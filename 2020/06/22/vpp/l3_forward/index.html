@@ -68,7 +68,7 @@
     </div>
   </nav>
   <div class="page-container">
-    <h1 id="VPP三层转发测试"><a href="#VPP三层转发测试" class="headerlink" title="VPP三层转发测试"></a>VPP三层转发测试</h1><h2 id="系统环境"><a href="#系统环境" class="headerlink" title="系统环境"></a>系统环境</h2><ul>
+  <h1 id="VPP三层转发测试"><a href="#VPP三层转发测试" class="headerlink" title="VPP三层转发测试"></a>VPP三层转发测试</h1><h2 id="系统环境"><a href="#系统环境" class="headerlink" title="系统环境"></a>系统环境</h2><ul>
 <li>CentOS Linux release 7.5.1804 (Core)</li>
 <li>VPP-stable/1908</li>
 <li>工作路径 /root/vpp</li>
@@ -102,6 +102,31 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost ~]route add -net 172.17.0.0 netmask 255.255.0.0 gw 172.16.1.1</span><br><span class="line">[root@localhost ~]# ifconfig eth3</span><br><span class="line">eth3: flags&#x3D;4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1500</span><br><span class="line">        inet 172.16.1.11  netmask 255.255.0.0  broadcast 172.16.255.255</span><br><span class="line">        inet6 fe80::2a51:32ff:fe0e:4e8e  prefixlen 64  scopeid 0x20&lt;link&gt;</span><br><span class="line">        ether 28:51:32:0e:4e:8e  txqueuelen 1000  (Ethernet)</span><br><span class="line">        RX packets 11225  bytes 1132564 (1.0 MiB)</span><br><span class="line">        RX errors 0  dropped 0  overruns 0  frame 0</span><br><span class="line">        TX packets 11748  bytes 1185688 (1.1 MiB)</span><br><span class="line">        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0</span><br><span class="line">        device interrupt 19  memory 0xdfb00000-dfb20000  </span><br><span class="line"></span><br><span class="line">[root@localhost ~]# route -n</span><br><span class="line">Kernel IP routing table</span><br><span class="line">Destination     Gateway         Genmask         Flags Metric Ref    Use Iface</span><br><span class="line">0.0.0.0         10.60.1.254     0.0.0.0         UG    0      0        0 eth0</span><br><span class="line">10.60.0.0       0.0.0.0         255.255.0.0     U     0      0        0 eth0</span><br><span class="line">172.16.0.0      0.0.0.0         255.255.0.0     U     0      0        0 eth3</span><br><span class="line">172.17.0.0      172.16.1.1      255.255.0.0     UG    0      0        0 eth3</span><br><span class="line">[root@localhost ~]# ping 172.17.1.11</span><br><span class="line">PING 172.17.1.11 (172.17.1.11) 56(84) bytes of data.</span><br><span class="line">64 bytes from 172.17.1.11: icmp_seq&#x3D;1 ttl&#x3D;63 time&#x3D;0.641 ms</span><br><span class="line">64 bytes from 172.17.1.11: icmp_seq&#x3D;2 ttl&#x3D;63 time&#x3D;0.623 ms</span><br><span class="line">64 bytes from 172.17.1.11: icmp_seq&#x3D;3 ttl&#x3D;63 time&#x3D;0.639 ms</span><br><span class="line">64 bytes from 172.17.1.11: icmp_seq&#x3D;4 ttl&#x3D;63 time&#x3D;0.605 ms</span><br><span class="line">64 bytes from 172.17.1.11: icmp_seq&#x3D;5 ttl&#x3D;63 time&#x3D;0.589 ms</span><br><span class="line">^C</span><br><span class="line">--- 172.17.1.11 ping statistics ---</span><br><span class="line">5 packets transmitted, 5 received, 0% packet loss, time 4000ms</span><br><span class="line">rtt min&#x2F;avg&#x2F;max&#x2F;mdev &#x3D; 0.589&#x2F;0.619&#x2F;0.641&#x2F;0.029 ms</span><br></pre></td></tr></table></figure>
 
 
+
+  
+  <section id="comments" class="comments">
+    <style>
+      .comments{margin:30px;padding:10px;background:#fff}
+      @media screen and (max-width:800px){.comments{margin:auto;padding:10px;background:#fff}}
+    </style>
+    <div class="valine_comment"></div>
+<!--载入js，在</body>之前插入即可-->
+<!--Leancloud 操作库:-->
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<!--Valine 的核心代码库-->
+<script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+<script>
+  new Valine({
+      el: '.valine_comment',
+      app_id: 'KmguPzUzYoAUXeMp0zqvxPPj-gzGzoHsz',
+      app_key: 'bq515N7CFPO5fHr3XlEXp5EJ',
+      placeholder: '请在这里留言。。。',
+      notify: 'true',
+      verify: 'true',
+    });
+</script>
+  </section>
+  
     <!--
     <div class="main-content">
       <div class="row">

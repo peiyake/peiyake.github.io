@@ -68,7 +68,7 @@
     </div>
   </nav>
   <div class="page-container">
-    <h1 id="Linux-dump-crash工具使用"><a href="#Linux-dump-crash工具使用" class="headerlink" title="Linux dump crash工具使用"></a>Linux dump crash工具使用</h1><p>内核 <strong>kdump</strong> 是一个强大的内核调试工具，你可以这么理解，当 linux内核崩溃时，这个 <strong>kdump</strong> 工具可以将崩溃现场完整的保存下来，也就是内核崩溃时系统的运行状态及各种堆栈信息。 生成的通常是一个很大的文件，当然这个文件的大小你可以自己设定，不过我们通常都是让内核自己来定。</p>
+  <h1 id="Linux-dump-crash工具使用"><a href="#Linux-dump-crash工具使用" class="headerlink" title="Linux dump crash工具使用"></a>Linux dump crash工具使用</h1><p>内核 <strong>kdump</strong> 是一个强大的内核调试工具，你可以这么理解，当 linux内核崩溃时，这个 <strong>kdump</strong> 工具可以将崩溃现场完整的保存下来，也就是内核崩溃时系统的运行状态及各种堆栈信息。 生成的通常是一个很大的文件，当然这个文件的大小你可以自己设定，不过我们通常都是让内核自己来定。</p>
 <p>多亏了这个工具，当我在调试内核模块不知所措时，看到了一丝曙光，下面简单把我这边的使用方法总结记录一下！</p>
 <h2 id="测试环境"><a href="#测试环境" class="headerlink" title="测试环境"></a>测试环境</h2><ul>
 <li>CentOS-7.5.1804</li>
@@ -105,6 +105,31 @@
 </ol>
 <p>通常使用 <strong>bt</strong> 命令查看内核crash前的堆栈信息中 <strong>RIP</strong> 寄存器的值就是指向最终造成panic 的地址，然后我们通过 <strong>mod -s l2w /root/l2w.ko</strong> 把我们的内核模块加载进入当前的crash内核中（注意：你要把模块事先放在指定位置，我这里是绝对路径 <strong>/root/l2w.ko</strong>）。 只有把模块加载后，才能进行反汇编。<br>使用 <strong>dis</strong> 命令对地址进行反汇编 ， 使用 <strong>sym + 地址</strong> 命令，物理地址映射出具体的符号（也就是我们代码的具体位置）</p>
 
+
+  
+  <section id="comments" class="comments">
+    <style>
+      .comments{margin:30px;padding:10px;background:#fff}
+      @media screen and (max-width:800px){.comments{margin:auto;padding:10px;background:#fff}}
+    </style>
+    <div class="valine_comment"></div>
+<!--载入js，在</body>之前插入即可-->
+<!--Leancloud 操作库:-->
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<!--Valine 的核心代码库-->
+<script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+<script>
+  new Valine({
+      el: '.valine_comment',
+      app_id: 'KmguPzUzYoAUXeMp0zqvxPPj-gzGzoHsz',
+      app_key: 'bq515N7CFPO5fHr3XlEXp5EJ',
+      placeholder: '请在这里留言。。。',
+      notify: 'true',
+      verify: 'true',
+    });
+</script>
+  </section>
+  
     <!--
     <div class="main-content">
       <div class="row">

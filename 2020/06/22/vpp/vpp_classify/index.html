@@ -68,13 +68,38 @@
     </div>
   </nav>
   <div class="page-container">
-    <h1 id="VPP流表"><a href="#VPP流表" class="headerlink" title="VPP流表"></a>VPP流表</h1><h2 id="VPP流表原理"><a href="#VPP流表原理" class="headerlink" title="VPP流表原理"></a>VPP流表原理</h2><h2 id="命令详解"><a href="#命令详解" class="headerlink" title="命令详解"></a>命令详解</h2><ol>
+  <h1 id="VPP流表"><a href="#VPP流表" class="headerlink" title="VPP流表"></a>VPP流表</h1><h2 id="VPP流表原理"><a href="#VPP流表原理" class="headerlink" title="VPP流表原理"></a>VPP流表原理</h2><h2 id="命令详解"><a href="#命令详解" class="headerlink" title="命令详解"></a>命令详解</h2><ol>
 <li>classify table</li>
 </ol>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">classify table </span><br><span class="line">          [miss-next|l2-miss_next|acl-miss-next &lt;next_index&gt;]</span><br><span class="line">          mask &lt;mask-value&gt; </span><br><span class="line">          buckets &lt;nn&gt; </span><br><span class="line">          [skip &lt;n&gt;] </span><br><span class="line">          [match &lt;n&gt;]</span><br><span class="line">          [current-data-flag &lt;n&gt;] </span><br><span class="line">          [current-data-offset &lt;n&gt;] </span><br><span class="line">          [table &lt;n&gt;]</span><br><span class="line">          [memory-size &lt;nn&gt;[M][G]] </span><br><span class="line">          [next-table &lt;n&gt;]</span><br><span class="line">          [del] </span><br><span class="line">          [del-chain]</span><br></pre></td></tr></table></figure>
 
 <p>未完待续 …</p>
 
+
+  
+  <section id="comments" class="comments">
+    <style>
+      .comments{margin:30px;padding:10px;background:#fff}
+      @media screen and (max-width:800px){.comments{margin:auto;padding:10px;background:#fff}}
+    </style>
+    <div class="valine_comment"></div>
+<!--载入js，在</body>之前插入即可-->
+<!--Leancloud 操作库:-->
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<!--Valine 的核心代码库-->
+<script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+<script>
+  new Valine({
+      el: '.valine_comment',
+      app_id: 'KmguPzUzYoAUXeMp0zqvxPPj-gzGzoHsz',
+      app_key: 'bq515N7CFPO5fHr3XlEXp5EJ',
+      placeholder: '请在这里留言。。。',
+      notify: 'true',
+      verify: 'true',
+    });
+</script>
+  </section>
+  
     <!--
     <div class="main-content">
       <div class="row">

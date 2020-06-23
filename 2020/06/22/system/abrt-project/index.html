@@ -68,7 +68,7 @@
     </div>
   </nav>
   <div class="page-container">
-    <h1 id="ABRT-是什么？"><a href="#ABRT-是什么？" class="headerlink" title="ABRT 是什么？"></a>ABRT 是什么？</h1><blockquote>
+  <h1 id="ABRT-是什么？"><a href="#ABRT-是什么？" class="headerlink" title="ABRT 是什么？"></a>ABRT 是什么？</h1><blockquote>
 <p>ABRT is a set of tools to help users detect and report application crashes. Its main purpose is to ease the process of reporting an issue and finding a solution.</p>
 </blockquote>
 <blockquote>
@@ -117,6 +117,31 @@
 <h4 id="3-kernel-panic"><a href="#3-kernel-panic" class="headerlink" title="3 kernel-panic"></a>3 kernel-panic</h4><p>内核态程序产生。  这个跟用户态差不多，如果内核模块访问了不可访问的内存，就会产生 <strong>kernel-panic</strong>。 这种情况通常会造成系统重启或者宕机。</p>
 <h2 id="abrt"><a href="#abrt" class="headerlink" title="abrt"></a>abrt</h2><p>ABRT工具集对于以上三种系统错误都可以进行收集分析，每种崩溃行为的分析方法，请看其它文章。</p>
 
+
+  
+  <section id="comments" class="comments">
+    <style>
+      .comments{margin:30px;padding:10px;background:#fff}
+      @media screen and (max-width:800px){.comments{margin:auto;padding:10px;background:#fff}}
+    </style>
+    <div class="valine_comment"></div>
+<!--载入js，在</body>之前插入即可-->
+<!--Leancloud 操作库:-->
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<!--Valine 的核心代码库-->
+<script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+<script>
+  new Valine({
+      el: '.valine_comment',
+      app_id: 'KmguPzUzYoAUXeMp0zqvxPPj-gzGzoHsz',
+      app_key: 'bq515N7CFPO5fHr3XlEXp5EJ',
+      placeholder: '请在这里留言。。。',
+      notify: 'true',
+      verify: 'true',
+    });
+</script>
+  </section>
+  
     <!--
     <div class="main-content">
       <div class="row">

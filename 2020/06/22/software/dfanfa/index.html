@@ -68,7 +68,7 @@
     </div>
   </nav>
   <div class="page-container">
-    <h1 id="有限自动机"><a href="#有限自动机" class="headerlink" title="有限自动机"></a>有限自动机</h1><p>引用百度百科上的一段解释 <a href="https://baike.baidu.com/item/%E6%9C%89%E9%99%90%E8%87%AA%E5%8A%A8%E6%9C%BA/8700995?fr=aladdin">有限自动机</a></p>
+  <h1 id="有限自动机"><a href="#有限自动机" class="headerlink" title="有限自动机"></a>有限自动机</h1><p>引用百度百科上的一段解释 <a href="https://baike.baidu.com/item/%E6%9C%89%E9%99%90%E8%87%AA%E5%8A%A8%E6%9C%BA/8700995?fr=aladdin">有限自动机</a></p>
 <blockquote>
 <p>有限自动机(finite automata)亦称时序机，有限离散数字系统的抽象数学模型。一个有限自动机M由五元组(X,Y,S,δ,λ)给定，其中X,Y和S都是非空有限集，分别称为M的输入集、输出集和状态集；δ是笛卡儿积集合S×X到S的映射，称为M的下一状态函数；λ是S×X到Y的单值映射，称为M的输出函数。当δ是单值映射时，称M为确定型有限自动机；当δ是多值映射时，称M为非确定型有限自动机。有限自动机有三种功能：作为序列转换器，将输入序列变换为输出序列；作为序列识别器，识别输入的序列是否具有某种性质；作为序列产生器，产生具有所要求性质的序列。</p>
 </blockquote>
@@ -96,6 +96,31 @@
 <li>对于集合Y中的任何字符串w，如果存在一条从初态节点到终止状态节点的路径，而且这条路径上所有弧的标记符连接成的字符串等于w，那么就称w可由该DFA识别。</li>
 </ol>
 
+
+  
+  <section id="comments" class="comments">
+    <style>
+      .comments{margin:30px;padding:10px;background:#fff}
+      @media screen and (max-width:800px){.comments{margin:auto;padding:10px;background:#fff}}
+    </style>
+    <div class="valine_comment"></div>
+<!--载入js，在</body>之前插入即可-->
+<!--Leancloud 操作库:-->
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<!--Valine 的核心代码库-->
+<script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+<script>
+  new Valine({
+      el: '.valine_comment',
+      app_id: 'KmguPzUzYoAUXeMp0zqvxPPj-gzGzoHsz',
+      app_key: 'bq515N7CFPO5fHr3XlEXp5EJ',
+      placeholder: '请在这里留言。。。',
+      notify: 'true',
+      verify: 'true',
+    });
+</script>
+  </section>
+  
     <!--
     <div class="main-content">
       <div class="row">

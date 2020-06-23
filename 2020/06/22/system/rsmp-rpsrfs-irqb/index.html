@@ -68,7 +68,7 @@
     </div>
   </nav>
   <div class="page-container">
-    <h1 id="Linux性能调优之irqbalance、smp-irq-affinity、rps-rfs"><a href="#Linux性能调优之irqbalance、smp-irq-affinity、rps-rfs" class="headerlink" title="Linux性能调优之irqbalance、smp irq affinity、rps/rfs"></a>Linux性能调优之irqbalance、smp irq affinity、rps/rfs</h1><h2 id="功能说明"><a href="#功能说明" class="headerlink" title="功能说明"></a>功能说明</h2><h3 id="irqbalance"><a href="#irqbalance" class="headerlink" title="irqbalance"></a>irqbalance</h3><h4 id="功能"><a href="#功能" class="headerlink" title="功能"></a>功能</h4><p> 引用 <a href="https://linux.die.net/man/1/irqbalance">Linux Man Page</a>上的解释：</p>
+  <h1 id="Linux性能调优之irqbalance、smp-irq-affinity、rps-rfs"><a href="#Linux性能调优之irqbalance、smp-irq-affinity、rps-rfs" class="headerlink" title="Linux性能调优之irqbalance、smp irq affinity、rps/rfs"></a>Linux性能调优之irqbalance、smp irq affinity、rps/rfs</h1><h2 id="功能说明"><a href="#功能说明" class="headerlink" title="功能说明"></a>功能说明</h2><h3 id="irqbalance"><a href="#irqbalance" class="headerlink" title="irqbalance"></a>irqbalance</h3><h4 id="功能"><a href="#功能" class="headerlink" title="功能"></a>功能</h4><p> 引用 <a href="https://linux.die.net/man/1/irqbalance">Linux Man Page</a>上的解释：</p>
 <blockquote>
 <p>irqbalance - distribute（把…分散开） hardware interrupts across processors on a multiprocessor system.<br>The purpose of irqbalance is distribute hardware interrupts across processors on a multiprocessor system in order to increase performance.</p>
 </blockquote>
@@ -148,6 +148,31 @@
 
 
 
+
+  
+  <section id="comments" class="comments">
+    <style>
+      .comments{margin:30px;padding:10px;background:#fff}
+      @media screen and (max-width:800px){.comments{margin:auto;padding:10px;background:#fff}}
+    </style>
+    <div class="valine_comment"></div>
+<!--载入js，在</body>之前插入即可-->
+<!--Leancloud 操作库:-->
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<!--Valine 的核心代码库-->
+<script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+<script>
+  new Valine({
+      el: '.valine_comment',
+      app_id: 'KmguPzUzYoAUXeMp0zqvxPPj-gzGzoHsz',
+      app_key: 'bq515N7CFPO5fHr3XlEXp5EJ',
+      placeholder: '请在这里留言。。。',
+      notify: 'true',
+      verify: 'true',
+    });
+</script>
+  </section>
+  
     <!--
     <div class="main-content">
       <div class="row">

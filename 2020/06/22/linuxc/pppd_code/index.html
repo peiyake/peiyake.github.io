@@ -68,7 +68,7 @@
     </div>
   </nav>
   <div class="page-container">
-    <h1 id="pppd源码详解一-（插件加载）"><a href="#pppd源码详解一-（插件加载）" class="headerlink" title="pppd源码详解一 （插件加载）"></a>pppd源码详解一 （插件加载）</h1><ul>
+  <h1 id="pppd源码详解一-（插件加载）"><a href="#pppd源码详解一-（插件加载）" class="headerlink" title="pppd源码详解一 （插件加载）"></a>pppd源码详解一 （插件加载）</h1><ul>
 <li>pppd-2.4.5</li>
 <li>CentOS-7.5.1804</li>
 </ul>
@@ -112,6 +112,31 @@
 </ul>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">int</span></span><br><span class="line">loadplugin(argv)</span><br><span class="line">    <span class="keyword">char</span> **argv;</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">char</span> *arg = *argv;</span><br><span class="line">    <span class="keyword">void</span> *handle;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *err;</span><br><span class="line">    <span class="keyword">void</span> (*init) __P((<span class="keyword">void</span>));</span><br><span class="line">    <span class="keyword">char</span> *path = arg;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *vers;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">strchr</span>(arg, <span class="string">'/'</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">	<span class="keyword">const</span> <span class="keyword">char</span> *base = _PATH_PLUGIN;</span><br><span class="line">	<span class="keyword">int</span> l = <span class="built_in">strlen</span>(base) + <span class="built_in">strlen</span>(arg) + <span class="number">2</span>;</span><br><span class="line">	path = <span class="built_in">malloc</span>(l);</span><br><span class="line">	<span class="keyword">if</span> (path == <span class="number">0</span>)</span><br><span class="line">	    novm(<span class="string">"plugin file path"</span>);</span><br><span class="line">	strlcpy(path, base, l);</span><br><span class="line">	strlcat(path, <span class="string">"/"</span>, l);</span><br><span class="line">	strlcat(path, arg, l);</span><br><span class="line">    &#125;</span><br><span class="line">    handle = dlopen(path, RTLD_GLOBAL | RTLD_NOW);</span><br><span class="line">    <span class="keyword">if</span> (handle == <span class="number">0</span>) &#123;</span><br><span class="line">	err = dlerror();</span><br><span class="line">	<span class="keyword">if</span> (err != <span class="number">0</span>)</span><br><span class="line">	    option_error(<span class="string">"%s"</span>, err);</span><br><span class="line">	option_error(<span class="string">"Couldn't load plugin %s"</span>, arg);</span><br><span class="line">	<span class="keyword">goto</span> err;</span><br><span class="line">    &#125;</span><br><span class="line">    init = (<span class="keyword">void</span> (*)(<span class="keyword">void</span>))dlsym(handle, <span class="string">"plugin_init"</span>);</span><br><span class="line">    <span class="keyword">if</span> (init == <span class="number">0</span>) &#123;</span><br><span class="line">	option_error(<span class="string">"%s has no initialization entry point"</span>, arg);</span><br><span class="line">	<span class="keyword">goto</span> errclose;</span><br><span class="line">    &#125;</span><br><span class="line">    vers = (<span class="keyword">const</span> <span class="keyword">char</span> *) dlsym(handle, <span class="string">"pppd_version"</span>);</span><br><span class="line">    <span class="keyword">if</span> (vers == <span class="number">0</span>) &#123;</span><br><span class="line">	warn(<span class="string">"Warning: plugin %s has no version information"</span>, arg);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="built_in">strcmp</span>(vers, VERSION) != <span class="number">0</span>) &#123;</span><br><span class="line">	option_error(<span class="string">"Plugin %s is for pppd version %s, this is %s"</span>,</span><br><span class="line">		     arg, vers, VERSION);</span><br><span class="line">	<span class="keyword">goto</span> errclose;</span><br><span class="line">    &#125;</span><br><span class="line">    info(<span class="string">"Plugin %s loaded."</span>, arg);</span><br><span class="line">    (*init)();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"> errclose:</span><br><span class="line">    dlclose(handle);</span><br><span class="line"> err:</span><br><span class="line">    <span class="keyword">if</span> (path != arg)</span><br><span class="line">	<span class="built_in">free</span>(path);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+
+  
+  <section id="comments" class="comments">
+    <style>
+      .comments{margin:30px;padding:10px;background:#fff}
+      @media screen and (max-width:800px){.comments{margin:auto;padding:10px;background:#fff}}
+    </style>
+    <div class="valine_comment"></div>
+<!--载入js，在</body>之前插入即可-->
+<!--Leancloud 操作库:-->
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<!--Valine 的核心代码库-->
+<script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+<script>
+  new Valine({
+      el: '.valine_comment',
+      app_id: 'KmguPzUzYoAUXeMp0zqvxPPj-gzGzoHsz',
+      app_key: 'bq515N7CFPO5fHr3XlEXp5EJ',
+      placeholder: '请在这里留言。。。',
+      notify: 'true',
+      verify: 'true',
+    });
+</script>
+  </section>
+  
     <!--
     <div class="main-content">
       <div class="row">

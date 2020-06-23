@@ -68,7 +68,7 @@
     </div>
   </nav>
   <div class="page-container">
-    <h1 id="VPP-二层桥接测试"><a href="#VPP-二层桥接测试" class="headerlink" title="VPP 二层桥接测试"></a>VPP 二层桥接测试</h1><h2 id="系统环境"><a href="#系统环境" class="headerlink" title="系统环境"></a>系统环境</h2><ul>
+  <h1 id="VPP-二层桥接测试"><a href="#VPP-二层桥接测试" class="headerlink" title="VPP 二层桥接测试"></a>VPP 二层桥接测试</h1><h2 id="系统环境"><a href="#系统环境" class="headerlink" title="系统环境"></a>系统环境</h2><ul>
 <li>CentOS Linux release 7.5.1804 (Core)</li>
 <li>VPP-stable/1908</li>
 <li>工作路径 /root/vpp</li>
@@ -101,6 +101,31 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">DBGvpp# show interface </span><br><span class="line">              Name               Idx    State  MTU (L3&#x2F;IP4&#x2F;IP6&#x2F;MPLS)     Counter          Count     </span><br><span class="line">local0                            0     down          0&#x2F;0&#x2F;0&#x2F;0       </span><br><span class="line">vpp0                              1      up          9000&#x2F;0&#x2F;0&#x2F;0     rx packets                   121</span><br><span class="line">                                                                    rx bytes                   10944</span><br><span class="line">                                                                    tx packets                   344</span><br><span class="line">                                                                    tx bytes                   33906</span><br><span class="line">                                                                    tx-error                      46</span><br><span class="line">vpp1                              2      up          9000&#x2F;0&#x2F;0&#x2F;0     rx packets                   390</span><br><span class="line">                                                                    rx bytes                   37748</span><br><span class="line">                                                                    tx packets                   121</span><br><span class="line">                                                                    tx bytes                   10944</span><br><span class="line">                                                                    drops                         46</span><br></pre></td></tr></table></figure></li>
 </ol>
 
+
+  
+  <section id="comments" class="comments">
+    <style>
+      .comments{margin:30px;padding:10px;background:#fff}
+      @media screen and (max-width:800px){.comments{margin:auto;padding:10px;background:#fff}}
+    </style>
+    <div class="valine_comment"></div>
+<!--载入js，在</body>之前插入即可-->
+<!--Leancloud 操作库:-->
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<!--Valine 的核心代码库-->
+<script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+<script>
+  new Valine({
+      el: '.valine_comment',
+      app_id: 'KmguPzUzYoAUXeMp0zqvxPPj-gzGzoHsz',
+      app_key: 'bq515N7CFPO5fHr3XlEXp5EJ',
+      placeholder: '请在这里留言。。。',
+      notify: 'true',
+      verify: 'true',
+    });
+</script>
+  </section>
+  
     <!--
     <div class="main-content">
       <div class="row">
