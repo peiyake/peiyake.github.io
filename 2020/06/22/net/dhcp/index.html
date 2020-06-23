@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="viggo" />
+  <title>Mr.Piak的博客 - </title>
+  <meta name="keywords" content="通信,tcp,udp,icmp,arp,ftp,dns,dhcp,snmp,ip,shell,python,kernel,vpp,dpdk,多进程,多线程,进程间通信,net-filter,skb,数据库,postgresql">
+  <meta name="description" content="本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  <link rel="shortcut icon" href="/favicon.ico">
+  
+<link rel="stylesheet" href="//fonts.loli.net/css?family=Arimo:400,700,400italic.css">
+<link rel="stylesheet" href="/css/fonts/linecons/css/linecons.min.css">
+<link rel="stylesheet" href="/css/fonts/fontawesome/css/all.min.css">
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+<link rel="stylesheet" href="/css/xenon-core.min.css">
+<link rel="stylesheet" href="/css/xenon-components.min.css">
+<link rel="stylesheet" href="/css/xenon-skins.min.css">
+<link rel="stylesheet" href="/css/nav.min.css">
+
+  
+<script src="/js/jquery-1.11.1.min.js"></script>
+
+  <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!--[if lt IE 9]>
+        
+<script src="/js/html5shiv.min.js"></script>
+
+        
+<script src="/js/respond.min.js"></script>
+
+    <![endif]-->
+  <!-- / FB Open Graph -->
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="http://peiyake.com/2020/06/22/net/dhcp/index.html">
+  <meta property="og:title" content="Mr.Piak的博客 - ">
+  <meta property="og:description" content="本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  <meta property="og:site_name" content="Mr.Piak的博客 - ">
+  
+  <meta property="og:image" content="/images/webstack_banner_cn.png">
+  
+  <!-- / Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Mr.Piak的博客 - ">
+  <meta name="twitter:description" content="本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  
+  <meta name="twitter:image" content="/images/webstack_banner_cn.png">
+  
+<meta name="generator" content="Hexo 4.2.1"></head>
+</head>
+
+<body class="page-body boxed-container">
+  <nav class="navbar horizontal-menu navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="navbar-brand">
+        <a href="/index.html" class="logo">
+          <img src="/images/logo@2x.png" width="180px" alt="" class="hidden-xs">
+          <img src="/images/logo@2x.png" width="180px" alt="" class="visible-xs">
+        </a>
+      </div>
+      <div class="navbar-mobile-clear"></div>
+      
+      <a href="https://github.com/peiyake/peiyake.github.io.git" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+      
+    </div>
+  </nav>
+  <div class="page-container">
+    <h1 id="DHCP协议详解"><a href="#DHCP协议详解" class="headerlink" title="DHCP协议详解"></a>DHCP协议详解</h1><p>这里引用<a href="https://baike.baidu.com/item/DHCP/218195?fromtitle=DHCP%E5%8D%8F%E8%AE%AE&fromid=1989741">百度百科-DHCP</a>上的一段解释</p>
+<blockquote>
+<p>动态主机设置协议（英语：Dynamic Host Configuration Protocol，DHCP）是一个局域网的网络协议，使用UDP协议工作，主要有两个用途：用于内部网或网络服务供应商自动分配IP地址；给用户用于内部网管理员作为对所有计算机作中央管理的手段。</p>
+</blockquote>
+<h2 id="协议报文格式定义"><a href="#协议报文格式定义" class="headerlink" title="协议报文格式定义"></a>协议报文格式定义</h2><ol>
+<li>dhcp协议的核心特性在 <strong>RFC2131</strong> 和 <strong>RFC2132</strong> 中定义</li>
+</ol>
+<ul>
+<li><p><a href="http://www.rfc-editor.org/rfc/rfc2131.txt">RFC2131</a></p>
+<p>  RFC2131 定义了dhcp协议的格式和规程</p>
+</li>
+<li><p><a href="http://www.rfc-editor.org/rfc/rfc2132.txt">RFC2132</a></p>
+<p>  RFC2132 定义了dhcp协议的 option 字段的规定，及使用说明。</p>
+</li>
+</ul>
+<ol start="2">
+<li>协议格式</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|     op (1)    |   htype (1)   |   hlen (1)    |   hops (1)    |</span><br><span class="line">+---------------+---------------+---------------+---------------+</span><br><span class="line">|                            xid (4)                            |</span><br><span class="line">+-------------------------------+-------------------------------+</span><br><span class="line">|           secs (2)            |           flags (2)           |</span><br><span class="line">+-------------------------------+-------------------------------+</span><br><span class="line">|                          ciaddr  (4)                          |</span><br><span class="line">+---------------------------------------------------------------+</span><br><span class="line">|                          yiaddr  (4)                          |</span><br><span class="line">+---------------------------------------------------------------+</span><br><span class="line">|                          siaddr  (4)                          |</span><br><span class="line">+---------------------------------------------------------------+</span><br><span class="line">|                          giaddr  (4)                          |</span><br><span class="line">+---------------------------------------------------------------+</span><br><span class="line">|                                                               |</span><br><span class="line">|                          chaddr  (16)                         |</span><br><span class="line">|                                                               |</span><br><span class="line">|                                                               |</span><br><span class="line">+---------------------------------------------------------------+</span><br><span class="line">|                                                               |</span><br><span class="line">|                          sname   (64)                         |</span><br><span class="line">+---------------------------------------------------------------+</span><br><span class="line">|                                                               |</span><br><span class="line">|                          file    (128)                        |</span><br><span class="line">+---------------------------------------------------------------+</span><br><span class="line">|                                                               |</span><br><span class="line">|                          options (variable)                   |</span><br><span class="line">+---------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>字段详解</li>
+</ol>
+<p>下面示意内容，基本来自<a href="https://baike.baidu.com/item/DHCP/218195?fromtitle=DHCP%E5%8D%8F%E8%AE%AE&fromid=1989741">百度百科-DHCP协议</a></p>
+<ul>
+<li><strong>op</strong> 消息类型，1字节<ul>
+<li>1 ：BOOTREQUEST</li>
+<li>2 ：BOOTREPLY</li>
+</ul>
+</li>
+<li><strong>htype</strong> 硬件地址类型，1字节<ul>
+<li>1 ：以太网地址类型，也就是我们常用的mac地址</li>
+</ul>
+</li>
+<li><strong>hlen</strong> 硬件地址长度，1字节</li>
+<li><strong>hops</strong> 1字节，若封包需经过 router 传送，每站加 1 ，若在同一网内，为 0。</li>
+<li><strong>xid</strong> 4 字节，DHCP REQUEST 时产生的数值，以作 DHCPREPLY 时的依据</li>
+<li><strong>secs</strong> 2 字节，Client 端启动时间（秒）</li>
+<li><strong>flags</strong> 2 字节，从 0 到 15 共 16 bits ，最左一 bit 为 1 时表示 server 将以广播方式传送封包给 client ，其余尚未使用</li>
+<li><strong>ciaddr</strong> 4 字节，要是 client 端想继续使用之前取得之 IP 地址，则列于这里</li>
+<li><strong>yiaddr</strong> 4 字节，从 server 送回 client 之 DHCP OFFER 与 DHCPACK封包中，此栏填写分配给 client 的 IP 地址。</li>
+<li><strong>siaddr</strong> 4 字节，若 client 需要透过网络开机，从 server 送出之 DHCP OFFER、DHCPACK、DHCPNACK封包中，此栏填写开机程序代码所在 server 之地址。</li>
+<li><strong>giaddr</strong> 4 字节，若需跨网域进行 DHCP 发放，此栏为 relay agent 的地址，否则为 0</li>
+<li><strong>chaddr</strong> 16 字节，Client 之硬件地址</li>
+<li><strong>sname</strong> 64 字节，Server 之名称字符串，以 0x00 结尾</li>
+<li><strong>file</strong> 4 字节，若 client 需要透过网络开机，此栏将指出开机程序名称，稍后以 TFTP 传送</li>
+<li><strong>options</strong> TLV格式数据，T:1byte  L:1byte, 允许厂商定议选项（Vendor-Specific Area)，以提供更多的设定信息（如：Netmask、Gateway、DNS、等等）。其长度可变，同时可携带多个选项，每一选项之第一个 byte 为信息代码，其后一个 byte 为该项数据长度，最后为项目内容</li>
+</ul>
+<ol start="4">
+<li>option概述</li>
+</ol>
+<ul>
+<li><p>option 格式</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"> Code   Len  Type</span><br><span class="line">+------+------+------+</span><br><span class="line">| CODE |  LEN | TYPE |</span><br><span class="line">+------+------+------+</span><br></pre></td></tr></table></figure></li>
+<li><p>option 255 用来作为终止符，当CODE=255 意味着dhcp报文的options部分到最后了。 每个DHCP报文都应该以此option结束</p>
+<ul>
+<li>CODE = 255</li>
+<li>LEN = 1</li>
+<li>TYPE = padding 数据</li>
+</ul>
+</li>
+<li><p>option 53<br>用来指明DHCP报文的类型，DISCOVERY/OFFER/REQUEST…</p>
+<ul>
+<li>CODE = 53</li>
+<li>LEN = 1</li>
+<li>TYPE = 1-9<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Value   Message Type</span><br><span class="line">-----   ------------</span><br><span class="line">    1     DHCPDISCOVER</span><br><span class="line">    2     DHCPOFFER</span><br><span class="line">    3     DHCPREQUEST</span><br><span class="line">    4     DHCPDECLINE</span><br><span class="line">    5     DHCPACK</span><br><span class="line">    6     DHCPNAK</span><br><span class="line">    7     DHCPRELEASE</span><br><span class="line">    8     DHCPINFORM</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p>option 54<br>用来指明 dhcp server标识，主要用在 DHCPOFFER DHCPREQUEST 报文中。用在 DHCPOFFER 中时，如果客户端同时受到多个 OFFER,那么依据此值来区分服务器端；<br>用在 DHCPREQUEST 时，用来告知服务器“我接受了哪个server分配的IP地址，不是这个IP的server就不要再给我分配地址了”</p>
+<ul>
+<li>CODE = 54</li>
+<li>LEN = 4</li>
+<li>TYPE = ipaddr</li>
+</ul>
+</li>
+<li><p>option 51<br>用来指定分配的IP地址的租期</p>
+<ul>
+<li>CODE = 51</li>
+<li>LEN = 4</li>
+<li>TYPE = 租期（秒）</li>
+</ul>
+</li>
+<li><p>option 1<br>用来指定分配的IP地址的掩码，subnet</p>
+<ul>
+<li>CODE = 1</li>
+<li>LEN = 4</li>
+<li>TYPE = ipaddr of subnet</li>
+</ul>
+</li>
+<li><p>option 4<br>用来指明路由IP，</p>
+<ul>
+<li>CODE = 4</li>
+<li>LEN =  应当是4的倍数，最小为4</li>
+<li>TYPE = 是一个ip list，当LEN &gt; 4 时，表示TYPE 有多个IP</li>
+</ul>
+</li>
+<li><p>option 6<br>指明DNS</p>
+<ul>
+<li>CODE = 6</li>
+<li>LEN = 应当是4的倍数，最小为4</li>
+<li>TYPE = 是一个dns ip list，当LEN &gt; 4 时，表示TYPE 有多个dns IP</li>
+</ul>
+<p>… 等等等等， 还有很多option，具体含义可以参考 <a href="http://www.rfc-editor.org/rfc/rfc2132.txt">RFC2132</a>， 这里不再列举</p>
+</li>
+</ul>
+<h2 id="DHCP协议流程"><a href="#DHCP协议流程" class="headerlink" title="DHCP协议流程"></a>DHCP协议流程</h2><h3 id="图例"><a href="#图例" class="headerlink" title="图例"></a>图例</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">    Server          Client          Server</span><br><span class="line">(not selected)                    (selected)</span><br><span class="line"></span><br><span class="line">      v               v               v</span><br><span class="line">      |               |               |</span><br><span class="line">      |     Begins initialization     |</span><br><span class="line">      |               |               |</span><br><span class="line">      | _____________&#x2F;|\____________  |</span><br><span class="line">      |&#x2F;DHCPDISCOVER | DHCPDISCOVER  \|</span><br><span class="line">      |               |               |</span><br><span class="line">  Determines          |          Determines</span><br><span class="line"> configuration        |         configuration</span><br><span class="line">      |               |               |</span><br><span class="line">      |\             |  ____________&#x2F; |</span><br><span class="line">      | \________    | &#x2F;DHCPOFFER     |</span><br><span class="line">      | DHCPOFFER\   |&#x2F;               |</span><br><span class="line">      |           \  |                |</span><br><span class="line">      |       Collects replies        |</span><br><span class="line">      |             \|                |</span><br><span class="line">      |     Selects configuration     |</span><br><span class="line">      |               |               |</span><br><span class="line">      | _____________&#x2F;|\____________  |</span><br><span class="line">      |&#x2F; DHCPREQUEST  |  DHCPREQUEST\ |</span><br><span class="line">      |               |               |</span><br><span class="line">      |               |     Commits configuration</span><br><span class="line">      |               |               |</span><br><span class="line">      |               | _____________&#x2F;|</span><br><span class="line">      |               |&#x2F; DHCPACK      |</span><br><span class="line">      |               |               |</span><br><span class="line">      |    Initialization complete    |</span><br><span class="line">      |               |               |</span><br><span class="line">      .               .               .</span><br><span class="line">      .               .               .</span><br><span class="line">      |               |               |</span><br><span class="line">      |      Graceful shutdown        |</span><br><span class="line">      |               |               |</span><br><span class="line">      |               |\ ____________ |</span><br><span class="line">      |               | DHCPRELEASE  \|</span><br><span class="line">      |               |               |</span><br><span class="line">      |               |        Discards lease</span><br><span class="line">      |               |               |</span><br><span class="line">      v               v               v</span><br></pre></td></tr></table></figure>
+<h3 id="各消息类型含义"><a href="#各消息类型含义" class="headerlink" title="各消息类型含义"></a>各消息类型含义</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">Message         Use</span><br><span class="line">-------         ---</span><br><span class="line"></span><br><span class="line">DHCPDISCOVER -  Client broadcast to locate available servers.</span><br><span class="line">                客户端广播请求，寻找可用的DHCP服务器</span><br><span class="line"></span><br><span class="line">DHCPOFFER    -  Server to client in response to DHCPDISCOVER with</span><br><span class="line">                offer of configuration parameters.</span><br><span class="line">                服务端返回给客户端的IP地址配置参数</span><br><span class="line"></span><br><span class="line">DHCPREQUEST  -  Client message to servers either (a) requesting</span><br><span class="line">                offered parameters from one server and implicitly</span><br><span class="line">                declining offers from all others, (b) confirming</span><br><span class="line">                correctness of previously allocated address after,</span><br><span class="line">                e.g., system reboot, or (c) extending the lease on a</span><br><span class="line">                particular network address.</span><br><span class="line">                客户端向服务端发送的消息：</span><br><span class="line">                (a) 表面上是向某一个服务器回复消息进行IP地址确认，暗含的意思是也告诉其他服务器---我已经选择了其中一个服务器分配的IP （此时报文是广播包）</span><br><span class="line">                (b) 例如系统重启后，发送REQUESET 用来对自己持有的IP配置向服务器进行确认</span><br><span class="line">                (c) </span><br><span class="line"></span><br><span class="line">DHCPACK      -  Server to client with configuration parameters,</span><br><span class="line">                including committed network address.</span><br><span class="line">                服务端向客户端发送的配置参数确认消息</span><br><span class="line"></span><br><span class="line">DHCPNAK      -  Server to client indicating client&#39;s notion of network</span><br><span class="line">                address is incorrect (e.g., client has moved to new</span><br><span class="line">                subnet) or client&#39;s lease as expired</span><br><span class="line"></span><br><span class="line">DHCPDECLINE  -  Client to server indicating network address is already</span><br><span class="line">                in use.</span><br><span class="line"></span><br><span class="line">DHCPRELEASE  -  Client to server relinquishing network address and</span><br><span class="line">                cancelling remaining lease.</span><br><span class="line"></span><br><span class="line">DHCPINFORM   -  Client to server, asking only for local configuration</span><br><span class="line">                parameters; client already has externally configured</span><br><span class="line">                network address.</span><br></pre></td></tr></table></figure>
+
+<h2 id="DHCP报文举例"><a href="#DHCP报文举例" class="headerlink" title="DHCP报文举例"></a>DHCP报文举例</h2><ol>
+<li><p>一个自动获取DHCP的完整流程</p>
+<p><img src="/images/dhcp_auto.png" alt="DHCP Discover"></p>
+</li>
+<li><p>DHCP Discover</p>
+<p><img src="/images/dhcp_discover.png" alt="DHCP Discover"></p>
+</li>
+<li><p>DHCP Offer</p>
+<p><img src="/images/dhcp_offer.png" alt="DHCP Offer"></p>
+</li>
+</ol>
+
+    <!--
+    <div class="main-content">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="panel panel-default">
+            
+            <h4 class="text-gray">关于本站</h4>
+            <div class="panel-body">
+              <div class="row">
+                <div class="col-sm-12">
+                  <blockquote><p>本站是hexo主题<a href="https://github.com/HCLonely/hexo-theme-webstack">hexo-theme-webstack</a>的demo站。</p></blockquote>
+                </div>
+              </div>
+            
+            
+            <h4 class="text-gray">关于站长</h4>
+            <div class="row">
+              <div class="col-sm-4">
+                <div class="xe-widget xe-conversations box2 label-info" onclick="window.open('https://blog.hclonely.com/', '_blank')" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="https://www.hclonely.com/">
+                  <div class="xe-comment-entry">
+                    <a class="xe-user-img">
+                      <img src="/images/logos/myblog.png" class="img-circle" width="40">
+                    </a>
+                    <div class="xe-comment">
+                      <a href="#" class="xe-user-name overflowClip_1">
+                        <strong>HCLonely</strong>
+                      </a>
+                      <p class="overflowClip_2">懒人一个</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-8">
+                <div class="row">
+                  <div class="col-sm-12">
+                    <br /><blockquote><p>本站是<a href="https://github.com/HCLonely">HCLonely</a>基于<a href="https://github.com/WebStackPage/WebStackPage.github.io">WebStackPage</a>项目做的一款<a href="https://hexo.io/">Hexo</a>主题。</p></blockquote>
+                  </div>
+                </div>
+                <br>
+              </div>
+            </div>
+            
+            </div>
+          </div>
+        </div>
+      </div>
+    -->
+  <footer class="main-footer sticky footer-type-1">
+  <div class="footer-inner">
+    <!-- Add your copyright text here -->
+    <p class="footer-text">
+      
+      &copy; 2019 - 2020
+      <a href="/about/"><strong>Mr.Piak的博客</strong></a> design by <a href="http://peiyake.com" target="_blank"><strong>Yake Pei</strong></a> | Power by <a href="https://hexo.io/" target="_blank"><strong>Hexo</strong></a> & <a href="https://github.com/peiyake/hexo-theme-webstack.git" target="_blank"><strong>hexo-theme-webstack</strong></a>
+    </p>
+    <div class="go-up">
+      <a href="#" rel="go-top">
+        <i class="fas fa-angle-up"></i>
+      </a>
+    </div>
+  </div>
+</footer>
+</div>
+</div>
+
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/TweenMax.min.js"></script>
+<script src="/js/resizeable.min.js"></script>
+<script src="/js/joinable.js"></script>
+<script src="/js/xenon-api.min.js"></script>
+<script src="/js/xenon-toggles.min.js"></script>
+<script src="/js/xenon-custom.min.js"></script>
+
+
+<textarea tabindex="-1" style="position: absolute; top: -999px; left: 0px; right: auto; bottom: auto; border: 0px; padding: 0px; box-sizing: content-box; word-wrap: break-word; overflow: hidden; transition: none; height: 0px !important; min-height: 0px !important; font-family: Arimo, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 400; font-style: normal; letter-spacing: 0px; text-transform: none; word-spacing: 0px; text-indent: 0px; line-height: 18.5714px; width: 53px;" class="autosizejs" id="autosizejs"></textarea>
+
+</body>
+
+</html>

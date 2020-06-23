@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="viggo" />
+  <title>Mr.Piak的博客 - </title>
+  <meta name="keywords" content="通信,tcp,udp,icmp,arp,ftp,dns,dhcp,snmp,ip,shell,python,kernel,vpp,dpdk,多进程,多线程,进程间通信,net-filter,skb,数据库,postgresql">
+  <meta name="description" content="本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  <link rel="shortcut icon" href="/favicon.ico">
+  
+<link rel="stylesheet" href="//fonts.loli.net/css?family=Arimo:400,700,400italic.css">
+<link rel="stylesheet" href="/css/fonts/linecons/css/linecons.min.css">
+<link rel="stylesheet" href="/css/fonts/fontawesome/css/all.min.css">
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+<link rel="stylesheet" href="/css/xenon-core.min.css">
+<link rel="stylesheet" href="/css/xenon-components.min.css">
+<link rel="stylesheet" href="/css/xenon-skins.min.css">
+<link rel="stylesheet" href="/css/nav.min.css">
+
+  
+<script src="/js/jquery-1.11.1.min.js"></script>
+
+  <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!--[if lt IE 9]>
+        
+<script src="/js/html5shiv.min.js"></script>
+
+        
+<script src="/js/respond.min.js"></script>
+
+    <![endif]-->
+  <!-- / FB Open Graph -->
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="http://peiyake.com/2020/06/22/shell/git_clone_add_diff/index.html">
+  <meta property="og:title" content="Mr.Piak的博客 - ">
+  <meta property="og:description" content="本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  <meta property="og:site_name" content="Mr.Piak的博客 - ">
+  
+  <meta property="og:image" content="/images/webstack_banner_cn.png">
+  
+  <!-- / Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Mr.Piak的博客 - ">
+  <meta name="twitter:description" content="本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  
+  <meta name="twitter:image" content="/images/webstack_banner_cn.png">
+  
+<meta name="generator" content="Hexo 4.2.1"></head>
+</head>
+
+<body class="page-body boxed-container">
+  <nav class="navbar horizontal-menu navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="navbar-brand">
+        <a href="/index.html" class="logo">
+          <img src="/images/logo@2x.png" width="180px" alt="" class="hidden-xs">
+          <img src="/images/logo@2x.png" width="180px" alt="" class="visible-xs">
+        </a>
+      </div>
+      <div class="navbar-mobile-clear"></div>
+      
+      <a href="https://github.com/peiyake/peiyake.github.io.git" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+      
+    </div>
+  </nav>
+  <div class="page-container">
+    <h1 id="git-clone-add-diff"><a href="#git-clone-add-diff" class="headerlink" title="git clone/add/diff"></a>git clone/add/diff</h1><p>本文使用github上创建的示例仓库进行练习 <code>git@github.com:peiyake/git_cmd_test.git</code></p>
+<h2 id="git-clone"><a href="#git-clone" class="headerlink" title="git clone"></a><a href="https://git-scm.com/docs/git-clone/zh_HANS-CN">git clone</a></h2><ol>
+<li><p>普通克隆</p>
+<p> git clone <a href="mailto:git@github.com">git@github.com</a>:peiyake/git_cmd_test.git</p>
+</li>
+<li><p>克隆到指定目录</p>
+<p> git clone <a href="mailto:git@github.com">git@github.com</a>:peiyake/git_cmd_test.git  ~/piak/my_git_cmd_test</p>
+</li>
+<li><p>克隆远端指定分支，使用 <code>-b &lt;branch name&gt;</code></p>
+<p> git clone <a href="mailto:git@github.com">git@github.com</a>:peiyake/git_cmd_test.git -b b1</p>
+</li>
+</ol>
+<h2 id="git-add"><a href="#git-add" class="headerlink" title="git add"></a><a href="https://git-scm.com/docs/git-add/zh_HANS-CN">git add</a></h2><blockquote>
+<p>在对工作树进行任何更改之后，以及在运行commit命令之前，必须使用<code>add</code>命令将所有新文件或修改过的文件添加到索引中</p>
+</blockquote>
+<ol>
+<li><p>参数</p>
+<ul>
+<li><code>-n | --dry-run</code>，实际上不添加文件，仅展示文件是否存在或是否忽略。</li>
+<li><code>-A</code>，如果在使用 -A 选项时没有 &lt;指定路径&gt;，则整个工作树中的所有文件都将更新（旧版本的 Git 会限制当前目录及其子目录的更新）。</li>
+<li><code>--chmod=(+|-)x</code>，重写添加文件的可执行位。可执行位仅在索引中更改，磁盘上的文件保持不变。</li>
+</ul>
+</li>
+<li><p>示例</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">[peiyake@localhost git_cmd_test]$ touch 4.c</span><br><span class="line">[peiyake@localhost git_cmd_test]$ git status</span><br><span class="line"># On branch b1</span><br><span class="line"># Untracked files:</span><br><span class="line">#   (use &quot;git add &lt;file&gt;...&quot; to include in what will be committed)</span><br><span class="line">#</span><br><span class="line">#       4.c</span><br><span class="line">nothing added to commit but untracked files present (use &quot;git add&quot; to track)</span><br><span class="line">[peiyake@localhost git_cmd_test]$ git add -A</span><br><span class="line">[peiyake@localhost git_cmd_test]$ git status</span><br><span class="line"># On branch b1</span><br><span class="line"># Changes to be committed:</span><br><span class="line">#   (use &quot;git reset HEAD &lt;file&gt;...&quot; to unstage)</span><br><span class="line">#</span><br><span class="line">#       new file:   4.c</span><br><span class="line">#</span><br><span class="line">[peiyake@localhost git_cmd_test]$</span><br></pre></td></tr></table></figure>
+
+<h2 id="git-diff"><a href="#git-diff" class="headerlink" title="git diff"></a><a href="https://git-scm.com/docs/git-diff">git diff</a></h2><ol>
+<li><code>git diff</code>，显示未被<a href="#git-addhttpsgit-scmcomdocsgit-addzhhans-cn">git add</a>过的文件的变更，（注意如果是新增的文件，没有commit过的话，不会显示出来）。</li>
+<li><code>git diff --cached</code>，显示已经被<a href="#git-addhttpsgit-scmcomdocsgit-addzhhans-cn">git add</a>但是还没有<code>commit</code>的变更。</li>
+<li><code>git diff HEAD</code>，显示以上所有变更</li>
+<li><code>git diff &lt;commit id&gt;</code>，比较 <strong><commit id></strong> 和 <strong><HEAD></strong> 之间的差异</li>
+<li><code>git diff &lt;commit id1&gt; &lt;commit id2&gt;</code>，比较 <strong><commit id1></strong> 和 <strong><commit id2></strong>之间的差异</li>
+<li><code>git diff &lt;commit id1&gt; &lt;commit id2&gt; --stat</code>，只显示 <strong><commit id1></strong> 和 <strong><commit id2></strong>之间存在差异的文件列表</li>
+</ol>
+
+    <!--
+    <div class="main-content">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="panel panel-default">
+            
+            <h4 class="text-gray">关于本站</h4>
+            <div class="panel-body">
+              <div class="row">
+                <div class="col-sm-12">
+                  <blockquote><p>本站是hexo主题<a href="https://github.com/HCLonely/hexo-theme-webstack">hexo-theme-webstack</a>的demo站。</p></blockquote>
+                </div>
+              </div>
+            
+            
+            <h4 class="text-gray">关于站长</h4>
+            <div class="row">
+              <div class="col-sm-4">
+                <div class="xe-widget xe-conversations box2 label-info" onclick="window.open('https://blog.hclonely.com/', '_blank')" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="https://www.hclonely.com/">
+                  <div class="xe-comment-entry">
+                    <a class="xe-user-img">
+                      <img src="/images/logos/myblog.png" class="img-circle" width="40">
+                    </a>
+                    <div class="xe-comment">
+                      <a href="#" class="xe-user-name overflowClip_1">
+                        <strong>HCLonely</strong>
+                      </a>
+                      <p class="overflowClip_2">懒人一个</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-8">
+                <div class="row">
+                  <div class="col-sm-12">
+                    <br /><blockquote><p>本站是<a href="https://github.com/HCLonely">HCLonely</a>基于<a href="https://github.com/WebStackPage/WebStackPage.github.io">WebStackPage</a>项目做的一款<a href="https://hexo.io/">Hexo</a>主题。</p></blockquote>
+                  </div>
+                </div>
+                <br>
+              </div>
+            </div>
+            
+            </div>
+          </div>
+        </div>
+      </div>
+    -->
+  <footer class="main-footer sticky footer-type-1">
+  <div class="footer-inner">
+    <!-- Add your copyright text here -->
+    <p class="footer-text">
+      
+      &copy; 2019 - 2020
+      <a href="/about/"><strong>Mr.Piak的博客</strong></a> design by <a href="http://peiyake.com" target="_blank"><strong>Yake Pei</strong></a> | Power by <a href="https://hexo.io/" target="_blank"><strong>Hexo</strong></a> & <a href="https://github.com/peiyake/hexo-theme-webstack.git" target="_blank"><strong>hexo-theme-webstack</strong></a>
+    </p>
+    <div class="go-up">
+      <a href="#" rel="go-top">
+        <i class="fas fa-angle-up"></i>
+      </a>
+    </div>
+  </div>
+</footer>
+</div>
+</div>
+
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/TweenMax.min.js"></script>
+<script src="/js/resizeable.min.js"></script>
+<script src="/js/joinable.js"></script>
+<script src="/js/xenon-api.min.js"></script>
+<script src="/js/xenon-toggles.min.js"></script>
+<script src="/js/xenon-custom.min.js"></script>
+
+
+<textarea tabindex="-1" style="position: absolute; top: -999px; left: 0px; right: auto; bottom: auto; border: 0px; padding: 0px; box-sizing: content-box; word-wrap: break-word; overflow: hidden; transition: none; height: 0px !important; min-height: 0px !important; font-family: Arimo, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 400; font-style: normal; letter-spacing: 0px; text-transform: none; word-spacing: 0px; text-indent: 0px; line-height: 18.5714px; width: 53px;" class="autosizejs" id="autosizejs"></textarea>
+
+</body>
+
+</html>

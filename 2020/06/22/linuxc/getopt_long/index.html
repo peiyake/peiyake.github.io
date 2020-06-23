@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="viggo" />
+  <title>Mr.Piak的博客 - </title>
+  <meta name="keywords" content="通信,tcp,udp,icmp,arp,ftp,dns,dhcp,snmp,ip,shell,python,kernel,vpp,dpdk,多进程,多线程,进程间通信,net-filter,skb,数据库,postgresql">
+  <meta name="description" content="本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  <link rel="shortcut icon" href="/favicon.ico">
+  
+<link rel="stylesheet" href="//fonts.loli.net/css?family=Arimo:400,700,400italic.css">
+<link rel="stylesheet" href="/css/fonts/linecons/css/linecons.min.css">
+<link rel="stylesheet" href="/css/fonts/fontawesome/css/all.min.css">
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+<link rel="stylesheet" href="/css/xenon-core.min.css">
+<link rel="stylesheet" href="/css/xenon-components.min.css">
+<link rel="stylesheet" href="/css/xenon-skins.min.css">
+<link rel="stylesheet" href="/css/nav.min.css">
+
+  
+<script src="/js/jquery-1.11.1.min.js"></script>
+
+  <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!--[if lt IE 9]>
+        
+<script src="/js/html5shiv.min.js"></script>
+
+        
+<script src="/js/respond.min.js"></script>
+
+    <![endif]-->
+  <!-- / FB Open Graph -->
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="http://peiyake.com/2020/06/22/linuxc/getopt_long/index.html">
+  <meta property="og:title" content="Mr.Piak的博客 - ">
+  <meta property="og:description" content="本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  <meta property="og:site_name" content="Mr.Piak的博客 - ">
+  
+  <meta property="og:image" content="/images/webstack_banner_cn.png">
+  
+  <!-- / Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Mr.Piak的博客 - ">
+  <meta name="twitter:description" content="本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  
+  <meta name="twitter:image" content="/images/webstack_banner_cn.png">
+  
+<meta name="generator" content="Hexo 4.2.1"></head>
+</head>
+
+<body class="page-body boxed-container">
+  <nav class="navbar horizontal-menu navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="navbar-brand">
+        <a href="/index.html" class="logo">
+          <img src="/images/logo@2x.png" width="180px" alt="" class="hidden-xs">
+          <img src="/images/logo@2x.png" width="180px" alt="" class="visible-xs">
+        </a>
+      </div>
+      <div class="navbar-mobile-clear"></div>
+      
+      <a href="https://github.com/peiyake/peiyake.github.io.git" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+      
+    </div>
+  </nav>
+  <div class="page-container">
+    <h1 id="getopt-long-用法总结"><a href="#getopt-long-用法总结" class="headerlink" title="getopt_long 用法总结"></a>getopt_long 用法总结</h1><h2 id="函数简介"><a href="#函数简介" class="headerlink" title="函数简介"></a>函数简介</h2><h4 id="函数原型"><a href="#函数原型" class="headerlink" title="函数原型"></a>函数原型</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;getopt.h&gt;</span><br><span class="line"></span><br><span class="line">int getopt_long(int argc, char * const argv[],</span><br><span class="line">        const char *optstring,</span><br><span class="line">        const struct option *longopts, int *longindex);</span><br></pre></td></tr></table></figure>
+
+<h4 id="struct-option"><a href="#struct-option" class="headerlink" title="struct option"></a><code>struct option</code></h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">struct option &#123;</span><br><span class="line">    const char *name;</span><br><span class="line">    int         has_arg;</span><br><span class="line">    int        *flag;</span><br><span class="line">    int         val;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>name</code> ：长选项参数名称</li>
+<li><code>has_arg</code> ：<ul>
+<li><code>no_argument</code> 或者 <code>0</code> ：表示这个选项不需要参数</li>
+<li><code>required_argument</code> 或者 <code>1</code> ：表示这个选项需要额外的参数</li>
+<li><code>optional_argument</code> 或者 <code>2</code> ： 表示这个选项的参数是可选的</li>
+</ul>
+</li>
+<li><code>flag</code> ：如果 <code>flag=NULL</code> 这种情况，<code>getopt_long</code> 的返回值是 <code>val</code> （这种情况，通常返回值设置为短选项）；否则，<code>flag</code> 应该指向一个可用的地址，<code>getopt_long</code>将返回0，同时将 <code>val</code>的值拷贝到 <code>flag</code>指向的地址。</li>
+<li><code>val</code> ： 根据 <code>flag</code>设置的值不同，这个 <code>val</code>的使用方式不同</li>
+</ul>
+<h4 id="全局变量"><a href="#全局变量" class="headerlink" title="全局变量"></a>全局变量</h4><ul>
+<li><code>optarg</code> ： 表示对应选项的入参</li>
+<li><code>optind</code> ： 表示下一个将要被处理的参数在argv中的下标值</li>
+<li><code>opterr</code> ： 如果opterr = 0，在getopt、getopt_long、getopt_long_only遇到错误将不会输出错误信息到标准输出流。opterr在非0时，向屏幕输出错误</li>
+<li><code>optopt</code> ： 表示没有被标识的选项</li>
+</ul>
+<h4 id="函数入参"><a href="#函数入参" class="headerlink" title="函数入参"></a>函数入参</h4><ul>
+<li><code>argc</code> <code>argv</code> ： 这个直接使用main函数的入参</li>
+<li><code>optstring</code> ： 这个用来设置短选项。例如：<code>&quot;abc:&quot;</code> 一个字符代表一个选项，在字符后面加一个’:’表示该选项带一个参数，字符后带两个’:’表示该选项带可选参数(参数可有可无)，若有参数，optarg指向该该参数，否则optarg为0</li>
+<li><code>longopts</code> ： 通常设置一个全局变量，请参考 <code>struct option</code></li>
+<li><code>longindex</code> ： longindex非空，它指向的变量将记录当前找到参数符合longopts里的第几个元素的描述，即是longopts的下标值。</li>
+</ul>
+<h4 id="返回值"><a href="#返回值" class="headerlink" title="返回值"></a>返回值</h4><p>如果入参是短选项，那么 <code>getopt_long</code> 返回该短选项字符；如果入参是长选项，那么根据 <code>flag</code> 的设置，<code>getopt_long</code>返回0或者<code>val</code>；如果入参无法识别，<code>getopt_long</code> 返回 <code>?</code>；如果参数<br>解析完毕，<code>getopt_long</code> 返回 <code>-1</code>；如果选项需要额外参数，但是实际没有传入额外参数，那么 <code>getopt_long</code> 返回值根据 <code>optstring</code> 的值，如果<code>optstring</code>第一个字符是<code>:</code>，那么此时<code>getopt_long</code>返回 <code>:</code>，否则返回 <code>?</code>。</p>
+<h2 id="例子程序"><a href="#例子程序" class="headerlink" title="例子程序"></a>例子程序</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">#include &lt;getopt.h&gt;</span><br><span class="line">#include &lt;string.h&gt;</span><br><span class="line"></span><br><span class="line">#define RUN_MODE_SERVER     1</span><br><span class="line">#define RUN_MODE_CLIENT     2</span><br><span class="line">char ipaddrs[256];</span><br><span class="line">int run_mode &#x3D; -1;</span><br><span class="line">static struct option longopts[] &#x3D; &#123;</span><br><span class="line">    &#123;&quot;server&quot;,      no_argument,        &amp;run_mode,   RUN_MODE_SERVER&#125;,</span><br><span class="line">    &#123;&quot;client&quot;,      no_argument,        &amp;run_mode,   RUN_MODE_CLIENT&#125;,</span><br><span class="line">    &#123;&quot;maddr&quot;,       required_argument,  NULL,   &#39;a&#39;&#125;,</span><br><span class="line">    &#123;&quot;help&quot;,        no_argument,        NULL,   &#39;h&#39;&#125;,</span><br><span class="line">    &#123;0,0,0,0&#125;</span><br><span class="line">&#125;;</span><br><span class="line">void help(char *name)</span><br><span class="line">&#123;</span><br><span class="line">    printf(&quot;Usage: %s [option]\n&quot;,name);</span><br><span class="line">    printf(&quot; option\n&quot;);</span><br><span class="line">    printf(&quot;    -s|--server         Test the mylibc api function\n&quot;);</span><br><span class="line">    printf(&quot;    -c|--client         \n&quot;);</span><br><span class="line">    printf(&quot;    -a|--maddr  &lt;[x.x.x.x][,x.x.x.x]&gt;   x.x.x.x is ipv4 mulicast addr,multiple addrs should split by &#39;,&#39;\n&quot;);</span><br><span class="line">    printf(&quot;    -h|--help           \n&quot;);</span><br><span class="line">    printf(&quot;\n&quot;);</span><br><span class="line">&#125;</span><br><span class="line">int main(int argc,const char **argv)</span><br><span class="line">&#123;</span><br><span class="line">    char c;</span><br><span class="line">    memset(ipaddrs,0,sizeof(ipaddrs));</span><br><span class="line">    while(1) </span><br><span class="line">    &#123;</span><br><span class="line">        int option_index &#x3D; 0;</span><br><span class="line"></span><br><span class="line">        c &#x3D; getopt_long(argc, argv, &quot;:scha:&quot;,longopts, &amp;option_index);</span><br><span class="line">        if (c &#x3D;&#x3D; -1)</span><br><span class="line">            break;</span><br><span class="line">        switch (c)</span><br><span class="line">        &#123;</span><br><span class="line">        case 0:</span><br><span class="line">            break;</span><br><span class="line"></span><br><span class="line">        case &#39;s&#39;:</span><br><span class="line">            run_mode &#x3D; RUN_MODE_SERVER;</span><br><span class="line">            break;</span><br><span class="line"></span><br><span class="line">        case &#39;c&#39;:</span><br><span class="line">            run_mode &#x3D; RUN_MODE_CLIENT;</span><br><span class="line">            break;</span><br><span class="line">        case &#39;a&#39;:</span><br><span class="line">            strcpy(ipaddrs,optarg);</span><br><span class="line">            break;</span><br><span class="line">        case &#39;h&#39;:</span><br><span class="line">            help(argv[0]);</span><br><span class="line">            break;</span><br><span class="line">        case &#39;:&#39;:</span><br><span class="line">            fprintf(stderr,&quot;option &#39;%c&#39; need an argument.\n&quot;,optopt);</span><br><span class="line">            help(argv[0]);</span><br><span class="line">        case &#39;?&#39;:</span><br><span class="line">            fprintf(stderr,&quot;unknow input param &#39;%s&#39;\n&quot;,argv[optind - 1]);</span><br><span class="line">            help(argv[0]);</span><br><span class="line">            break;</span><br><span class="line"></span><br><span class="line">        default:</span><br><span class="line">            printf(&quot;?? getopt returned character code 0%o ??\n&quot;, c);</span><br><span class="line">            help(argv[0]);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    printf(&quot;run_mode[%d]:%s, ipaddrs:%s\n&quot;,run_mode,(run_mode &#x3D;&#x3D; 1) ? &quot;server&quot;: &quot;client&quot;,ipaddrs);</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    <!--
+    <div class="main-content">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="panel panel-default">
+            
+            <h4 class="text-gray">关于本站</h4>
+            <div class="panel-body">
+              <div class="row">
+                <div class="col-sm-12">
+                  <blockquote><p>本站是hexo主题<a href="https://github.com/HCLonely/hexo-theme-webstack">hexo-theme-webstack</a>的demo站。</p></blockquote>
+                </div>
+              </div>
+            
+            
+            <h4 class="text-gray">关于站长</h4>
+            <div class="row">
+              <div class="col-sm-4">
+                <div class="xe-widget xe-conversations box2 label-info" onclick="window.open('https://blog.hclonely.com/', '_blank')" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="https://www.hclonely.com/">
+                  <div class="xe-comment-entry">
+                    <a class="xe-user-img">
+                      <img src="/images/logos/myblog.png" class="img-circle" width="40">
+                    </a>
+                    <div class="xe-comment">
+                      <a href="#" class="xe-user-name overflowClip_1">
+                        <strong>HCLonely</strong>
+                      </a>
+                      <p class="overflowClip_2">懒人一个</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-8">
+                <div class="row">
+                  <div class="col-sm-12">
+                    <br /><blockquote><p>本站是<a href="https://github.com/HCLonely">HCLonely</a>基于<a href="https://github.com/WebStackPage/WebStackPage.github.io">WebStackPage</a>项目做的一款<a href="https://hexo.io/">Hexo</a>主题。</p></blockquote>
+                  </div>
+                </div>
+                <br>
+              </div>
+            </div>
+            
+            </div>
+          </div>
+        </div>
+      </div>
+    -->
+  <footer class="main-footer sticky footer-type-1">
+  <div class="footer-inner">
+    <!-- Add your copyright text here -->
+    <p class="footer-text">
+      
+      &copy; 2019 - 2020
+      <a href="/about/"><strong>Mr.Piak的博客</strong></a> design by <a href="http://peiyake.com" target="_blank"><strong>Yake Pei</strong></a> | Power by <a href="https://hexo.io/" target="_blank"><strong>Hexo</strong></a> & <a href="https://github.com/peiyake/hexo-theme-webstack.git" target="_blank"><strong>hexo-theme-webstack</strong></a>
+    </p>
+    <div class="go-up">
+      <a href="#" rel="go-top">
+        <i class="fas fa-angle-up"></i>
+      </a>
+    </div>
+  </div>
+</footer>
+</div>
+</div>
+
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/TweenMax.min.js"></script>
+<script src="/js/resizeable.min.js"></script>
+<script src="/js/joinable.js"></script>
+<script src="/js/xenon-api.min.js"></script>
+<script src="/js/xenon-toggles.min.js"></script>
+<script src="/js/xenon-custom.min.js"></script>
+
+
+<textarea tabindex="-1" style="position: absolute; top: -999px; left: 0px; right: auto; bottom: auto; border: 0px; padding: 0px; box-sizing: content-box; word-wrap: break-word; overflow: hidden; transition: none; height: 0px !important; min-height: 0px !important; font-family: Arimo, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 400; font-style: normal; letter-spacing: 0px; text-transform: none; word-spacing: 0px; text-indent: 0px; line-height: 18.5714px; width: 53px;" class="autosizejs" id="autosizejs"></textarea>
+
+</body>
+
+</html>
