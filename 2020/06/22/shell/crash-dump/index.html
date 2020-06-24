@@ -49,6 +49,11 @@
   
   <meta name="twitter:image" content="/images/webstack_banner_cn.png">
   
+  <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+  <!--Leancloud 操作库:-->
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <!--Valine 的核心代码库-->
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -68,10 +73,15 @@
     </div>
   </nav>
   <div class="page-container">
-    <span id="/2020/06/22/shell/crash-dump/" class="leancloud-visitors view" data-flag-title="Linux dump crash工具使用">
-  <em class="post-meta-item-text">Pageviews:</em>
-  <i class="leancloud-visitors-count">loading</i>
-</span>
+    <div style="float:right">
+      <span>
+        <em class="post-meta-item-text">Author:Yake Pei,</em>
+      </span>
+      <span id="/2020/06/22/shell/crash-dump/" class="leancloud_visitors" data-flag-title="Linux dump crash工具使用">
+        <em class="post-meta-item-text">Pageviews:</em>
+        <i class="leancloud-visitors-count">loading</i>
+      </span>
+    </div>
   <h1 id="Linux-dump-crash工具使用"><a href="#Linux-dump-crash工具使用" class="headerlink" title="Linux dump crash工具使用"></a>Linux dump crash工具使用</h1><p>内核 <strong>kdump</strong> 是一个强大的内核调试工具，你可以这么理解，当 linux内核崩溃时，这个 <strong>kdump</strong> 工具可以将崩溃现场完整的保存下来，也就是内核崩溃时系统的运行状态及各种堆栈信息。 生成的通常是一个很大的文件，当然这个文件的大小你可以自己设定，不过我们通常都是让内核自己来定。</p>
 <p>多亏了这个工具，当我在调试内核模块不知所措时，看到了一丝曙光，下面简单把我这边的使用方法总结记录一下！</p>
 <h2 id="测试环境"><a href="#测试环境" class="headerlink" title="测试环境"></a>测试环境</h2><ul>
@@ -130,6 +140,7 @@
       placeholder: '请在这里留言。。。',
       notify: 'true',
       verify: 'true',
+      visitor: 'true',
     });
 </script>
   </section>

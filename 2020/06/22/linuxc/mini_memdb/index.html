@@ -49,6 +49,11 @@
   
   <meta name="twitter:image" content="/images/webstack_banner_cn.png">
   
+  <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+  <!--Leancloud 操作库:-->
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <!--Valine 的核心代码库-->
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -68,10 +73,15 @@
     </div>
   </nav>
   <div class="page-container">
-    <span id="/2020/06/22/linuxc/mini_memdb/" class="leancloud-visitors view" data-flag-title="getopt_long用法">
-  <em class="post-meta-item-text">Pageviews:</em>
-  <i class="leancloud-visitors-count">loading</i>
-</span>
+    <div style="float:right">
+      <span>
+        <em class="post-meta-item-text">Author:Yake Pei,</em>
+      </span>
+      <span id="/2020/06/22/linuxc/mini_memdb/" class="leancloud_visitors" data-flag-title="getopt_long用法">
+        <em class="post-meta-item-text">Pageviews:</em>
+        <i class="leancloud-visitors-count">loading</i>
+      </span>
+    </div>
   <h1 id="内存数据库设计"><a href="#内存数据库设计" class="headerlink" title="内存数据库设计"></a>内存数据库设计</h1><h2 id="背景分析"><a href="#背景分析" class="headerlink" title="背景分析"></a>背景分析</h2><p>工作这么长时间，很多时候都是看别人的代码，虽然能够看懂，但是总觉得不是自己的东西。尤其是项目中一些框架性的代码，这些代码才是项目的精髓，<br>只可惜自己没有参与过这些框架的设计，实在是可惜。</p>
 <p>目前个人工作也到了一定的阶段，自我感觉技术到了一个瓶颈期，想通过写一些框架性的软件架构来自我锻炼一下。一个是作为自己的工作总结，一个是<br>希望自己能突破自己，再上一个新台阶。</p>
 <p>目前，工作中有看过项目中的内存数据库设计，感觉其精妙不可言，想自己试试看能不能写一个出来。</p>
@@ -134,6 +144,7 @@
       placeholder: '请在这里留言。。。',
       notify: 'true',
       verify: 'true',
+      visitor: 'true',
     });
 </script>
   </section>

@@ -49,6 +49,11 @@
   
   <meta name="twitter:image" content="/images/webstack_banner_cn.png">
   
+  <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+  <!--Leancloud 操作库:-->
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <!--Valine 的核心代码库-->
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -68,10 +73,15 @@
     </div>
   </nav>
   <div class="page-container">
-    <span id="/2020/06/22/vpp/vpp_node/" class="leancloud-visitors view" data-flag-title="VPP - node图">
-  <em class="post-meta-item-text">Pageviews:</em>
-  <i class="leancloud-visitors-count">loading</i>
-</span>
+    <div style="float:right">
+      <span>
+        <em class="post-meta-item-text">Author:Yake Pei,</em>
+      </span>
+      <span id="/2020/06/22/vpp/vpp_node/" class="leancloud_visitors" data-flag-title="VPP - node图">
+        <em class="post-meta-item-text">Pageviews:</em>
+        <i class="leancloud-visitors-count">loading</i>
+      </span>
+    </div>
   <h1 id="VPP-node-示意"><a href="#VPP-node-示意" class="headerlink" title="VPP - node 示意"></a>VPP - node 示意</h1><h2 id="VPP-源码目录介绍"><a href="#VPP-源码目录介绍" class="headerlink" title="VPP 源码目录介绍"></a>VPP 源码目录介绍</h2><p><img src="/images/vpp_code.png" alt="源码介绍"></p>
 <h2 id="VPP-node-节点图"><a href="#VPP-node-节点图" class="headerlink" title="VPP node 节点图"></a>VPP node 节点图</h2><p><img src="/images/vpp_node.png" alt="vpp-node"></p>
 <h2 id="VPP-单个节点矢量包处理逻辑"><a href="#VPP-单个节点矢量包处理逻辑" class="headerlink" title="VPP 单个节点矢量包处理逻辑"></a>VPP 单个节点矢量包处理逻辑</h2><p><img src="/images/ethernet-input.png" alt="vpp-code"></p>
@@ -97,6 +107,7 @@
       placeholder: '请在这里留言。。。',
       notify: 'true',
       verify: 'true',
+      visitor: 'true',
     });
 </script>
   </section>

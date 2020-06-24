@@ -49,6 +49,11 @@
   
   <meta name="twitter:image" content="/images/webstack_banner_cn.png">
   
+  <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+  <!--Leancloud 操作库:-->
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <!--Valine 的核心代码库-->
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -68,10 +73,15 @@
     </div>
   </nav>
   <div class="page-container">
-    <span id="/2020/06/22/net/l2/" class="leancloud-visitors view" data-flag-title="链路层协议">
-  <em class="post-meta-item-text">Pageviews:</em>
-  <i class="leancloud-visitors-count">loading</i>
-</span>
+    <div style="float:right">
+      <span>
+        <em class="post-meta-item-text">Author:Yake Pei,</em>
+      </span>
+      <span id="/2020/06/22/net/l2/" class="leancloud_visitors" data-flag-title="链路层协议">
+        <em class="post-meta-item-text">Pageviews:</em>
+        <i class="leancloud-visitors-count">loading</i>
+      </span>
+    </div>
   <h1 id="链路层协议"><a href="#链路层协议" class="headerlink" title="链路层协议"></a>链路层协议</h1><p>本文内容主要摘自《TCP/IP详解-卷1》，简单总结罗列部分内容，方便自己查阅</p>
 <blockquote>
 <p>在T C P / I P协议族中，链路层主要有三个目的：（1）为I P模块发送和<br>接收I P数据报；（ 2）为A R P模块发送A R P请求和接收A R P应答；（3）为R A R P发送R A R P请<br>求和接收R A R P应答。T C P / I P支持多种不同的链路层协议，这取决于网络所使用的硬件，如以<br>太网、令牌环网、F D D I（光纤分布式数据接口）及R S-2 3 2串行线路等。</p>
@@ -133,6 +143,7 @@
       placeholder: '请在这里留言。。。',
       notify: 'true',
       verify: 'true',
+      visitor: 'true',
     });
 </script>
   </section>

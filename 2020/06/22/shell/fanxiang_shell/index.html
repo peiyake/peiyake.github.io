@@ -49,6 +49,11 @@
   
   <meta name="twitter:image" content="/images/webstack_banner_cn.png">
   
+  <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+  <!--Leancloud 操作库:-->
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <!--Valine 的核心代码库-->
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -68,10 +73,15 @@
     </div>
   </nav>
   <div class="page-container">
-    <span id="/2020/06/22/shell/fanxiang_shell/" class="leancloud-visitors view" data-flag-title="反向shell">
-  <em class="post-meta-item-text">Pageviews:</em>
-  <i class="leancloud-visitors-count">loading</i>
-</span>
+    <div style="float:right">
+      <span>
+        <em class="post-meta-item-text">Author:Yake Pei,</em>
+      </span>
+      <span id="/2020/06/22/shell/fanxiang_shell/" class="leancloud_visitors" data-flag-title="反向shell">
+        <em class="post-meta-item-text">Pageviews:</em>
+        <i class="leancloud-visitors-count">loading</i>
+      </span>
+    </div>
   <h1 id="反向shell"><a href="#反向shell" class="headerlink" title="反向shell"></a>反向shell</h1><h2 id="什么是反向shell"><a href="#什么是反向shell" class="headerlink" title="什么是反向shell"></a>什么是反向shell</h2><blockquote>
 <p><a href="https://baike.baidu.com/item/%E5%8F%8D%E5%90%91shell/16751835?fr=aladdin">反向shell</a>的工作方式是远程计算机将自己的shell发送给特定的用户，而不是将shell绑定到一个端口上。后者在很多环境中是无法访问的。这样，你就可以对远程服务器执行root命令。</p>
 </blockquote>
@@ -124,6 +134,7 @@
       placeholder: '请在这里留言。。。',
       notify: 'true',
       verify: 'true',
+      visitor: 'true',
     });
 </script>
   </section>

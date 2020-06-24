@@ -49,6 +49,11 @@
   
   <meta name="twitter:image" content="/images/webstack_banner_cn.png">
   
+  <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+  <!--Leancloud 操作库:-->
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <!--Valine 的核心代码库-->
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -68,10 +73,15 @@
     </div>
   </nav>
   <div class="page-container">
-    <span id="/2020/06/22/net/mutilecast/" class="leancloud-visitors view" data-flag-title="组播">
-  <em class="post-meta-item-text">Pageviews:</em>
-  <i class="leancloud-visitors-count">loading</i>
-</span>
+    <div style="float:right">
+      <span>
+        <em class="post-meta-item-text">Author:Yake Pei,</em>
+      </span>
+      <span id="/2020/06/22/net/mutilecast/" class="leancloud_visitors" data-flag-title="组播">
+        <em class="post-meta-item-text">Pageviews:</em>
+        <i class="leancloud-visitors-count">loading</i>
+      </span>
+    </div>
   <h1 id="组播相关知识点总结"><a href="#组播相关知识点总结" class="headerlink" title="组播相关知识点总结"></a>组播相关知识点总结</h1><h2 id="什么是组播？"><a href="#什么是组播？" class="headerlink" title="什么是组播？"></a>什么是组播？</h2><p><em><strong>组播的概念?</strong></em></p>
 <p>首先我们知道单播报文，是一个host发送给另一个host，在报文的IP层有明确的源、目IP地址。一个host发送，另一个<br>host接收。</p>
 <p>那组播是什么呢？顾明思议，就是一个host发出的报文可以被多个加入某个相同组的host接收，是一对多的关系。</p>
@@ -121,6 +131,7 @@
       placeholder: '请在这里留言。。。',
       notify: 'true',
       verify: 'true',
+      visitor: 'true',
     });
 </script>
   </section>

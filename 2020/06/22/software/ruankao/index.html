@@ -49,6 +49,11 @@
   
   <meta name="twitter:image" content="/images/webstack_banner_cn.png">
   
+  <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+  <!--Leancloud 操作库:-->
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <!--Valine 的核心代码库-->
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -68,10 +73,15 @@
     </div>
   </nav>
   <div class="page-container">
-    <span id="/2020/06/22/software/ruankao/" class="leancloud-visitors view" data-flag-title="软件设计师考试">
-  <em class="post-meta-item-text">Pageviews:</em>
-  <i class="leancloud-visitors-count">loading</i>
-</span>
+    <div style="float:right">
+      <span>
+        <em class="post-meta-item-text">Author:Yake Pei,</em>
+      </span>
+      <span id="/2020/06/22/software/ruankao/" class="leancloud_visitors" data-flag-title="软件设计师考试">
+        <em class="post-meta-item-text">Pageviews:</em>
+        <i class="leancloud-visitors-count">loading</i>
+      </span>
+    </div>
   <h1 id="软件设计师考试"><a href="#软件设计师考试" class="headerlink" title="软件设计师考试"></a>软件设计师考试</h1><h2 id="考试相关信息"><a href="#考试相关信息" class="headerlink" title="考试相关信息"></a>考试相关信息</h2><h3 id="考试科目"><a href="#考试科目" class="headerlink" title="考试科目"></a>考试科目</h3><ol>
 <li>计算机与软件工程知识<ul>
 <li>75分选择题</li>
@@ -359,6 +369,7 @@
       placeholder: '请在这里留言。。。',
       notify: 'true',
       verify: 'true',
+      visitor: 'true',
     });
 </script>
   </section>

@@ -49,6 +49,11 @@
   
   <meta name="twitter:image" content="/images/webstack_banner_cn.png">
   
+  <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+  <!--Leancloud 操作库:-->
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <!--Valine 的核心代码库-->
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -68,10 +73,15 @@
     </div>
   </nav>
   <div class="page-container">
-    <span id="/2020/06/22/linuxc/pagemap/" class="leancloud-visitors view" data-flag-title="Linux之 /proc/&lt;pid&gt;/pagemap 理解">
-  <em class="post-meta-item-text">Pageviews:</em>
-  <i class="leancloud-visitors-count">loading</i>
-</span>
+    <div style="float:right">
+      <span>
+        <em class="post-meta-item-text">Author:Yake Pei,</em>
+      </span>
+      <span id="/2020/06/22/linuxc/pagemap/" class="leancloud_visitors" data-flag-title="Linux之 /proc/<pid>/pagemap 理解">
+        <em class="post-meta-item-text">Pageviews:</em>
+        <i class="leancloud-visitors-count">loading</i>
+      </span>
+    </div>
   <h1 id="Linux之-proc-pagemap-理解"><a href="#Linux之-proc-pagemap-理解" class="headerlink" title="Linux之 /proc//pagemap 理解"></a>Linux之 /proc/<pid>/pagemap 理解</h1><h2 id="含义理解"><a href="#含义理解" class="headerlink" title="含义理解"></a>含义理解</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">10	 * &#x2F;proc&#x2F;pid&#x2F;pagemap.  This file lets a userspace process find out which</span><br><span class="line">11	   physical frame each virtual page is mapped to.  It contains one 64-bit</span><br><span class="line">12	   value for each virtual page, containing the following data (from</span><br><span class="line">13	   fs&#x2F;proc&#x2F;task_mmu.c, above pagemap_read):</span><br><span class="line">14	</span><br><span class="line">15	    * Bits 0-54  page frame number (PFN) if present  ## 如果虚拟内存地址被映射，那么Bits 0~54就表示实际物理地址的页面号</span><br><span class="line">16	    * Bits 0-4   swap type if swapped</span><br><span class="line">17	    * Bits 5-54  swap offset if swapped</span><br><span class="line">18	    * Bit  55    pte is soft-dirty (see Documentation&#x2F;vm&#x2F;soft-dirty.txt)</span><br><span class="line">19	    * Bit  56    page exclusively mapped (since 4.2)</span><br><span class="line">20	    * Bits 57-60 zero</span><br><span class="line">21	    * Bit  61    page is file-page or shared-anon (since 3.5)</span><br><span class="line">22	    * Bit  62    page swapped</span><br><span class="line">23	    * Bit  63    page present   # 如果虚拟内存地址被映射，那么该为会被置1</span><br></pre></td></tr></table></figure>
 
 <p><code>/proc/pid/pagemap</code>对于一个进程虚拟地址到物理地址映射的描述，这里包含了该进程所有用到的虚拟地址空间的映射描述信息。<code>/proc/pid/pagemap</code>该文件<br>可以被看成一个由<code>64Bits</code>长度的数组，数组的每个元素对应进程中分配的一个虚拟地址空间，根据上面所述，如果该<code>64Bits</code>的数值第64bit被置1，那么说明该<br>虚拟地址已经被映射到实际的物理地址，而 <code>Bits 0~54</code>的值就是该实际物理地址的页面号。得到物理地址页面号 再加上页面内地址偏移量就可以得到该虚拟地址<br>对应的实际物理地址。</p>
@@ -106,6 +116,7 @@
       placeholder: '请在这里留言。。。',
       notify: 'true',
       verify: 'true',
+      visitor: 'true',
     });
 </script>
   </section>
