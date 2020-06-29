@@ -62,6 +62,25 @@
   <script src="/js/prettify.js"></script>
   <link rel="stylesheet" href="/css/tomorrow_night.css">
   <link rel="stylesheet" href="/css/tomorrow_night.min.css">
+  <link rel="stylesheet" href="/css/my.css">
+  <script>
+    Date.prototype.Format = function (fmt) {
+      var o = {
+              "M+": this.getMonth() + 1, // 月份
+              "d+": this.getDate(), // 日
+              "h+": this.getHours(), // 小时
+              "m+": this.getMinutes(), // 分
+              "s+": this.getSeconds(), // 秒
+              "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+              "S": this.getMilliseconds() // 毫秒
+      };
+      if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+      for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+      return fmt;
+    }
+  </script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -81,16 +100,25 @@
     </div>
   </nav>
   <div class="page-container">
-    <div style="float:right">
-      <span>
-        <em class="post-meta-item-text">Author:Yake Pei,</em>
+  <h1 id="8021q 协议" class="page_title">
+    <a href="#8021q 协议" class="headerlink" title="8021q 协议"></a>
+    8021q 协议
+  </h1>
+  <div>
+    <em class="page_meta">Written by </em>
+    <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+    <em class="page_meta">,Last update
+      <span class="post-time">on 
+        <time datetime="1592824242000" itemprop="datePublished"><script>var date = new Date().Format('yy-MM-dd hh:mm');document.write(date);</script></time>
       </span>
-      <span id="/2020/06/22/net/8021q/" class="leancloud_visitors" data-flag-title="8021q 协议">
-        <em class="post-meta-item-text">Pageviews:</em>
-        <i class="leancloud-visitors-count">loading</i>
-      </span>
-    </div>
-  <h1 id="8021q-协议"><a href="#8021q-协议" class="headerlink" title="8021q 协议"></a>8021q 协议</h1><p>关于8021q协议的概述，这里引用<a href="https://zh.wikipedia.org/wiki/IEEE_802.1Q">维基百科-8021q</a>上的一段文字:</p>
+    </em>
+    <span id="/2020/06/22/net/8021q/" class="leancloud_visitors" data-flag-title="8021q 协议">
+      <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+      <i class="leancloud-visitors-count">loading</i>
+    </span>
+  </div>
+  <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+  <p>关于8021q协议的概述，这里引用<a href="https://zh.wikipedia.org/wiki/IEEE_802.1Q">维基百科-8021q</a>上的一段文字:</p>
 <blockquote>
 <p>IEEE 802.1Q以及VLAN Tagging属于互联网下IEEE 802.1的标准规范，允许多个网桥在信息不被外泄的情况下公开的共享同一个实体网络。IEEE 802.1Q -英文缩写写为dot1q，经常在实现以太网封装协议的架构下被提及。<br>IEEE 802.1Q定义一个关于VLAN连接介质访问控制层和IEEE 802.1D生成树协议的具体概念模型。这个模型允许各个独立的VLAN以以太网交换机的数据链路层或路由器互相连接。 </p>
 </blockquote>
@@ -104,6 +132,18 @@
     var dom = document.getElementsByClassName('code');
     for(var i=0,len=dom.length; i<len; i++){
       dom[i].style.width = '750px';
+    }
+    var dom = document.getElementsByTagName('h1');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].className  += 'page_title';
+    }
+    var dom = document.getElementsByTagName('p');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#303333';
+    }
+    var dom = document.getElementsByTagName('a');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#2d96bd';
     }
   </script>
 

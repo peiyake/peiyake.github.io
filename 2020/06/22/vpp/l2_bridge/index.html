@@ -62,6 +62,25 @@
   <script src="/js/prettify.js"></script>
   <link rel="stylesheet" href="/css/tomorrow_night.css">
   <link rel="stylesheet" href="/css/tomorrow_night.min.css">
+  <link rel="stylesheet" href="/css/my.css">
+  <script>
+    Date.prototype.Format = function (fmt) {
+      var o = {
+              "M+": this.getMonth() + 1, // 月份
+              "d+": this.getDate(), // 日
+              "h+": this.getHours(), // 小时
+              "m+": this.getMinutes(), // 分
+              "s+": this.getSeconds(), // 秒
+              "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+              "S": this.getMilliseconds() // 毫秒
+      };
+      if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+      for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+      return fmt;
+    }
+  </script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -81,16 +100,25 @@
     </div>
   </nav>
   <div class="page-container">
-    <div style="float:right">
-      <span>
-        <em class="post-meta-item-text">Author:Yake Pei,</em>
+  <h1 id="VPP 二层桥接测试" class="page_title">
+    <a href="#VPP 二层桥接测试" class="headerlink" title="VPP 二层桥接测试"></a>
+    VPP 二层桥接测试
+  </h1>
+  <div>
+    <em class="page_meta">Written by </em>
+    <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+    <em class="page_meta">,Last update
+      <span class="post-time">on 
+        <time datetime="1592824242000" itemprop="datePublished"><script>var date = new Date().Format('yy-MM-dd hh:mm');document.write(date);</script></time>
       </span>
-      <span id="/2020/06/22/vpp/l2_bridge/" class="leancloud_visitors" data-flag-title="VPP 二层桥接测试">
-        <em class="post-meta-item-text">Pageviews:</em>
-        <i class="leancloud-visitors-count">loading</i>
-      </span>
-    </div>
-  <h1 id="VPP-二层桥接测试"><a href="#VPP-二层桥接测试" class="headerlink" title="VPP 二层桥接测试"></a>VPP 二层桥接测试</h1><h2 id="系统环境"><a href="#系统环境" class="headerlink" title="系统环境"></a>系统环境</h2><ul>
+    </em>
+    <span id="/2020/06/22/vpp/l2_bridge/" class="leancloud_visitors" data-flag-title="VPP 二层桥接测试">
+      <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+      <i class="leancloud-visitors-count">loading</i>
+    </span>
+  </div>
+  <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+  <h2 id="系统环境"><a href="#系统环境" class="headerlink" title="系统环境"></a>系统环境</h2><ul>
 <li>CentOS Linux release 7.5.1804 (Core)</li>
 <li>VPP-stable/1908</li>
 <li>工作路径 /root/vpp</li>
@@ -99,34 +127,80 @@
 <h2 id="运行环境准备"><a href="#运行环境准备" class="headerlink" title="运行环境准备"></a>运行环境准备</h2><ol>
 <li>启动VPP</li>
 </ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost vpp]#.&#x2F;build-root&#x2F;build-vpp_debug-native&#x2F;vpp&#x2F;bin&#x2F;vpp -c &#x2F;root&#x2F;vpp&#x2F;startup.conf</span><br></pre></td></tr></table></figure>
-
-<ol start="2">
+<pre><code>[root@localhost vpp]#./build-root/build-vpp_debug-native/vpp/bin/vpp -c /root/vpp/startup.conf</code></pre><ol start="2">
 <li>启动vppctl</li>
 </ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost vpp]# .&#x2F;build-root&#x2F;build-vpp_debug-native&#x2F;vpp&#x2F;bin&#x2F;vppctl</span><br></pre></td></tr></table></figure>
-
-<h2 id="测试过程"><a href="#测试过程" class="headerlink" title="测试过程"></a>测试过程</h2><ol>
+<pre><code>[root@localhost vpp]# ./build-root/build-vpp_debug-native/vpp/bin/vppctl</code></pre><h2 id="测试过程"><a href="#测试过程" class="headerlink" title="测试过程"></a>测试过程</h2><ol>
 <li>vppctl 配置</li>
 </ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">DBGvpp# show interface </span><br><span class="line">              Name               Idx    State  MTU (L3&#x2F;IP4&#x2F;IP6&#x2F;MPLS)     Counter          Count     </span><br><span class="line">local0                            0     down          0&#x2F;0&#x2F;0&#x2F;0       </span><br><span class="line">vpp0                              1     down         9000&#x2F;0&#x2F;0&#x2F;0     </span><br><span class="line">vpp1                              2     down         9000&#x2F;0&#x2F;0&#x2F;0   </span><br><span class="line">DBGvpp# set interface state vpp0 up</span><br><span class="line">DBGvpp# set interface state vpp1 up</span><br><span class="line">DBGvpp# show interface </span><br><span class="line">              Name               Idx    State  MTU (L3&#x2F;IP4&#x2F;IP6&#x2F;MPLS)     Counter          Count     </span><br><span class="line">local0                            0     down          0&#x2F;0&#x2F;0&#x2F;0       </span><br><span class="line">vpp0                              1      up          9000&#x2F;0&#x2F;0&#x2F;0     </span><br><span class="line">vpp1                              2      up          9000&#x2F;0&#x2F;0&#x2F;0</span><br><span class="line">DBGvpp# set interface l2 bridge vpp0 1</span><br><span class="line">DBGvpp# set interface l2 bridge vpp1 1</span><br><span class="line">DBGvpp# show bridge-domain 1</span><br><span class="line">  BD-ID   Index   BSN  Age(min)  Learning  U-Forwrd   UU-Flood   Flooding  ARP-Term  arp-ufwd   BVI-Intf </span><br><span class="line">    1       1      0     off        on        on       flood        on       off       off        N&#x2F;A    </span><br><span class="line">DBGvpp# show bridge-domain 1 detail</span><br><span class="line">  BD-ID   Index   BSN  Age(min)  Learning  U-Forwrd   UU-Flood   Flooding  ARP-Term  arp-ufwd   BVI-Intf </span><br><span class="line">    1       1      0     off        on        on       flood        on       off       off        N&#x2F;A    </span><br><span class="line"></span><br><span class="line">           Interface           If-idx ISN  SHG  BVI  TxFlood        VLAN-Tag-Rewrite       </span><br><span class="line">             vpp0                1     1    0    -      *                 none             </span><br><span class="line">             vpp1                2     1    0    -      *                 none</span><br></pre></td></tr></table></figure>
+<pre><code>DBGvpp# show interface 
+              Name               Idx    State  MTU (L3/IP4/IP6/MPLS)     Counter          Count     
+local0                            0     down          0/0/0/0       
+vpp0                              1     down         9000/0/0/0     
+vpp1                              2     down         9000/0/0/0   
+DBGvpp# set interface state vpp0 up
+DBGvpp# set interface state vpp1 up
+DBGvpp# show interface 
+              Name               Idx    State  MTU (L3/IP4/IP6/MPLS)     Counter          Count     
+local0                            0     down          0/0/0/0       
+vpp0                              1      up          9000/0/0/0     
+vpp1                              2      up          9000/0/0/0
+DBGvpp# set interface l2 bridge vpp0 1
+DBGvpp# set interface l2 bridge vpp1 1
+DBGvpp# show bridge-domain 1
+  BD-ID   Index   BSN  Age(min)  Learning  U-Forwrd   UU-Flood   Flooding  ARP-Term  arp-ufwd   BVI-Intf 
+    1       1      0     off        on        on       flood        on       off       off        N/A    
+DBGvpp# show bridge-domain 1 detail
+  BD-ID   Index   BSN  Age(min)  Learning  U-Forwrd   UU-Flood   Flooding  ARP-Term  arp-ufwd   BVI-Intf 
+    1       1      0     off        on        on       flood        on       off       off        N/A    
 
-<ol start="2">
+           Interface           If-idx ISN  SHG  BVI  TxFlood        VLAN-Tag-Rewrite       
+             vpp0                1     1    0    -      *                 none             
+             vpp1                2     1    0    -      *                 none </code></pre><ol start="2">
 <li><p>vpp0 连接PC1，PC1配置静态IP <code>172.16.1.11/16</code></p>
 </li>
 <li><p>vpp1 连接PC2，PC2配置静态IP <code>172.16.1.12/16</code></p>
 </li>
 <li><p>PC1 ping  PC2 </p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost ~]# ping 172.16.1.12</span><br><span class="line">PING 172.16.1.12 (172.16.1.12) 56(84) bytes of data.</span><br><span class="line">64 bytes from 172.16.1.12: icmp_seq&#x3D;53 ttl&#x3D;64 time&#x3D;0.513 ms</span><br><span class="line">64 bytes from 172.16.1.12: icmp_seq&#x3D;54 ttl&#x3D;64 time&#x3D;0.850 ms</span><br><span class="line">64 bytes from 172.16.1.12: icmp_seq&#x3D;55 ttl&#x3D;64 time&#x3D;0.849 ms</span><br><span class="line">64 bytes from 172.16.1.12: icmp_seq&#x3D;56 ttl&#x3D;64 time&#x3D;0.609 ms</span><br><span class="line">64 bytes from 172.16.1.12: icmp_seq&#x3D;57 ttl&#x3D;64 time&#x3D;0.809 ms</span><br></pre></td></tr></table></figure>
-</li>
+<pre><code>[root@localhost ~]# ping 172.16.1.12
+PING 172.16.1.12 (172.16.1.12) 56(84) bytes of data.
+64 bytes from 172.16.1.12: icmp_seq=53 ttl=64 time=0.513 ms
+64 bytes from 172.16.1.12: icmp_seq=54 ttl=64 time=0.850 ms
+64 bytes from 172.16.1.12: icmp_seq=55 ttl=64 time=0.849 ms
+64 bytes from 172.16.1.12: icmp_seq=56 ttl=64 time=0.609 ms
+64 bytes from 172.16.1.12: icmp_seq=57 ttl=64 time=0.809 ms</code></pre></li>
 <li><p>再次查看vppctl</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">DBGvpp# show interface </span><br><span class="line">              Name               Idx    State  MTU (L3&#x2F;IP4&#x2F;IP6&#x2F;MPLS)     Counter          Count     </span><br><span class="line">local0                            0     down          0&#x2F;0&#x2F;0&#x2F;0       </span><br><span class="line">vpp0                              1      up          9000&#x2F;0&#x2F;0&#x2F;0     rx packets                   121</span><br><span class="line">                                                                    rx bytes                   10944</span><br><span class="line">                                                                    tx packets                   344</span><br><span class="line">                                                                    tx bytes                   33906</span><br><span class="line">                                                                    tx-error                      46</span><br><span class="line">vpp1                              2      up          9000&#x2F;0&#x2F;0&#x2F;0     rx packets                   390</span><br><span class="line">                                                                    rx bytes                   37748</span><br><span class="line">                                                                    tx packets                   121</span><br><span class="line">                                                                    tx bytes                   10944</span><br><span class="line">                                                                    drops                         46</span><br></pre></td></tr></table></figure></li>
+<pre><code>DBGvpp# show interface 
+           Name               Idx    State  MTU (L3/IP4/IP6/MPLS)     Counter          Count     
+local0                            0     down          0/0/0/0       
+vpp0                              1      up          9000/0/0/0     rx packets                   121
+                                                                 rx bytes                   10944
+                                                                 tx packets                   344
+                                                                 tx bytes                   33906
+                                                                 tx-error                      46
+vpp1                              2      up          9000/0/0/0     rx packets                   390
+                                                                 rx bytes                   37748
+                                                                 tx packets                   121
+                                                                 tx bytes                   10944
+                                                                 drops                         46</code></pre></li>
 </ol>
 
   <script>
     var dom = document.getElementsByClassName('code');
     for(var i=0,len=dom.length; i<len; i++){
       dom[i].style.width = '750px';
+    }
+    var dom = document.getElementsByTagName('h1');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].className  += 'page_title';
+    }
+    var dom = document.getElementsByTagName('p');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#303333';
+    }
+    var dom = document.getElementsByTagName('a');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#2d96bd';
     }
   </script>
 

@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="author" content="viggo" />
   <title> 
-          DHCP 协议
+          DHCP协议详解
           |
           
           Mr.Piak的博客
@@ -62,6 +62,25 @@
   <script src="/js/prettify.js"></script>
   <link rel="stylesheet" href="/css/tomorrow_night.css">
   <link rel="stylesheet" href="/css/tomorrow_night.min.css">
+  <link rel="stylesheet" href="/css/my.css">
+  <script>
+    Date.prototype.Format = function (fmt) {
+      var o = {
+              "M+": this.getMonth() + 1, // 月份
+              "d+": this.getDate(), // 日
+              "h+": this.getHours(), // 小时
+              "m+": this.getMinutes(), // 分
+              "s+": this.getSeconds(), // 秒
+              "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+              "S": this.getMilliseconds() // 毫秒
+      };
+      if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+      for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+      return fmt;
+    }
+  </script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -81,16 +100,25 @@
     </div>
   </nav>
   <div class="page-container">
-    <div style="float:right">
-      <span>
-        <em class="post-meta-item-text">Author:Yake Pei,</em>
+  <h1 id="DHCP协议详解" class="page_title">
+    <a href="#DHCP协议详解" class="headerlink" title="DHCP协议详解"></a>
+    DHCP协议详解
+  </h1>
+  <div>
+    <em class="page_meta">Written by </em>
+    <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+    <em class="page_meta">,Last update
+      <span class="post-time">on 
+        <time datetime="1592824242000" itemprop="datePublished"><script>var date = new Date().Format('yy-MM-dd hh:mm');document.write(date);</script></time>
       </span>
-      <span id="/2020/06/22/net/dhcp/" class="leancloud_visitors" data-flag-title="DHCP 协议">
-        <em class="post-meta-item-text">Pageviews:</em>
-        <i class="leancloud-visitors-count">loading</i>
-      </span>
-    </div>
-  <h1 id="DHCP协议详解"><a href="#DHCP协议详解" class="headerlink" title="DHCP协议详解"></a>DHCP协议详解</h1><p>这里引用<a href="https://baike.baidu.com/item/DHCP/218195?fromtitle=DHCP%E5%8D%8F%E8%AE%AE&fromid=1989741">百度百科-DHCP</a>上的一段解释</p>
+    </em>
+    <span id="/2020/06/22/net/dhcp/" class="leancloud_visitors" data-flag-title="DHCP协议详解">
+      <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+      <i class="leancloud-visitors-count">loading</i>
+    </span>
+  </div>
+  <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+  <p>这里引用<a href="https://baike.baidu.com/item/DHCP/218195?fromtitle=DHCP%E5%8D%8F%E8%AE%AE&fromid=1989741">百度百科-DHCP</a>上的一段解释</p>
 <blockquote>
 <p>动态主机设置协议（英语：Dynamic Host Configuration Protocol，DHCP）是一个局域网的网络协议，使用UDP协议工作，主要有两个用途：用于内部网或网络服务供应商自动分配IP地址；给用户用于内部网管理员作为对所有计算机作中央管理的手段。</p>
 </blockquote>
@@ -108,9 +136,36 @@
 <ol start="2">
 <li>协议格式</li>
 </ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|     op (1)    |   htype (1)   |   hlen (1)    |   hops (1)    |</span><br><span class="line">+---------------+---------------+---------------+---------------+</span><br><span class="line">|                            xid (4)                            |</span><br><span class="line">+-------------------------------+-------------------------------+</span><br><span class="line">|           secs (2)            |           flags (2)           |</span><br><span class="line">+-------------------------------+-------------------------------+</span><br><span class="line">|                          ciaddr  (4)                          |</span><br><span class="line">+---------------------------------------------------------------+</span><br><span class="line">|                          yiaddr  (4)                          |</span><br><span class="line">+---------------------------------------------------------------+</span><br><span class="line">|                          siaddr  (4)                          |</span><br><span class="line">+---------------------------------------------------------------+</span><br><span class="line">|                          giaddr  (4)                          |</span><br><span class="line">+---------------------------------------------------------------+</span><br><span class="line">|                                                               |</span><br><span class="line">|                          chaddr  (16)                         |</span><br><span class="line">|                                                               |</span><br><span class="line">|                                                               |</span><br><span class="line">+---------------------------------------------------------------+</span><br><span class="line">|                                                               |</span><br><span class="line">|                          sname   (64)                         |</span><br><span class="line">+---------------------------------------------------------------+</span><br><span class="line">|                                                               |</span><br><span class="line">|                          file    (128)                        |</span><br><span class="line">+---------------------------------------------------------------+</span><br><span class="line">|                                                               |</span><br><span class="line">|                          options (variable)                   |</span><br><span class="line">+---------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
-
-<ol start="3">
+<pre><code>   0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |     op (1)    |   htype (1)   |   hlen (1)    |   hops (1)    |
+   +---------------+---------------+---------------+---------------+
+   |                            xid (4)                            |
+   +-------------------------------+-------------------------------+
+   |           secs (2)            |           flags (2)           |
+   +-------------------------------+-------------------------------+
+   |                          ciaddr  (4)                          |
+   +---------------------------------------------------------------+
+   |                          yiaddr  (4)                          |
+   +---------------------------------------------------------------+
+   |                          siaddr  (4)                          |
+   +---------------------------------------------------------------+
+   |                          giaddr  (4)                          |
+   +---------------------------------------------------------------+
+   |                                                               |
+   |                          chaddr  (16)                         |
+   |                                                               |
+   |                                                               |
+   +---------------------------------------------------------------+
+   |                                                               |
+   |                          sname   (64)                         |
+   +---------------------------------------------------------------+
+   |                                                               |
+   |                          file    (128)                        |
+   +---------------------------------------------------------------+
+   |                                                               |
+   |                          options (variable)                   |
+   +---------------------------------------------------------------+</code></pre><ol start="3">
 <li>字段详解</li>
 </ol>
 <p>下面示意内容，基本来自<a href="https://baike.baidu.com/item/DHCP/218195?fromtitle=DHCP%E5%8D%8F%E8%AE%AE&fromid=1989741">百度百科-DHCP协议</a></p>
@@ -143,7 +198,10 @@
 </ol>
 <ul>
 <li><p>option 格式</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"> Code   Len  Type</span><br><span class="line">+------+------+------+</span><br><span class="line">| CODE |  LEN | TYPE |</span><br><span class="line">+------+------+------+</span><br></pre></td></tr></table></figure></li>
+<pre><code>  Code   Len  Type
+ +------+------+------+
+ | CODE |  LEN | TYPE |
+ +------+------+------+</code></pre></li>
 <li><p>option 255 用来作为终止符，当CODE=255 意味着dhcp报文的options部分到最后了。 每个DHCP报文都应该以此option结束</p>
 <ul>
 <li>CODE = 255</li>
@@ -155,7 +213,16 @@
 <ul>
 <li>CODE = 53</li>
 <li>LEN = 1</li>
-<li>TYPE = 1-9<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Value   Message Type</span><br><span class="line">-----   ------------</span><br><span class="line">    1     DHCPDISCOVER</span><br><span class="line">    2     DHCPOFFER</span><br><span class="line">    3     DHCPREQUEST</span><br><span class="line">    4     DHCPDECLINE</span><br><span class="line">    5     DHCPACK</span><br><span class="line">    6     DHCPNAK</span><br><span class="line">    7     DHCPRELEASE</span><br><span class="line">    8     DHCPINFORM</span><br></pre></td></tr></table></figure></li>
+<li>TYPE = 1-9<pre><code>    Value   Message Type
+    -----   ------------
+        1     DHCPDISCOVER
+        2     DHCPOFFER
+        3     DHCPREQUEST
+        4     DHCPDECLINE
+        5     DHCPACK
+        6     DHCPNAK
+        7     DHCPRELEASE
+        8     DHCPINFORM</code></pre></li>
 </ul>
 </li>
 <li><p>option 54<br>用来指明 dhcp server标识，主要用在 DHCPOFFER DHCPREQUEST 报文中。用在 DHCPOFFER 中时，如果客户端同时受到多个 OFFER,那么依据此值来区分服务器端；<br>用在 DHCPREQUEST 时，用来告知服务器“我接受了哪个server分配的IP地址，不是这个IP的server就不要再给我分配地址了”</p>
@@ -195,10 +262,85 @@
 <p>… 等等等等， 还有很多option，具体含义可以参考 <a href="http://www.rfc-editor.org/rfc/rfc2132.txt">RFC2132</a>， 这里不再列举</p>
 </li>
 </ul>
-<h2 id="DHCP协议流程"><a href="#DHCP协议流程" class="headerlink" title="DHCP协议流程"></a>DHCP协议流程</h2><h3 id="图例"><a href="#图例" class="headerlink" title="图例"></a>图例</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">    Server          Client          Server</span><br><span class="line">(not selected)                    (selected)</span><br><span class="line"></span><br><span class="line">      v               v               v</span><br><span class="line">      |               |               |</span><br><span class="line">      |     Begins initialization     |</span><br><span class="line">      |               |               |</span><br><span class="line">      | _____________&#x2F;|\____________  |</span><br><span class="line">      |&#x2F;DHCPDISCOVER | DHCPDISCOVER  \|</span><br><span class="line">      |               |               |</span><br><span class="line">  Determines          |          Determines</span><br><span class="line"> configuration        |         configuration</span><br><span class="line">      |               |               |</span><br><span class="line">      |\             |  ____________&#x2F; |</span><br><span class="line">      | \________    | &#x2F;DHCPOFFER     |</span><br><span class="line">      | DHCPOFFER\   |&#x2F;               |</span><br><span class="line">      |           \  |                |</span><br><span class="line">      |       Collects replies        |</span><br><span class="line">      |             \|                |</span><br><span class="line">      |     Selects configuration     |</span><br><span class="line">      |               |               |</span><br><span class="line">      | _____________&#x2F;|\____________  |</span><br><span class="line">      |&#x2F; DHCPREQUEST  |  DHCPREQUEST\ |</span><br><span class="line">      |               |               |</span><br><span class="line">      |               |     Commits configuration</span><br><span class="line">      |               |               |</span><br><span class="line">      |               | _____________&#x2F;|</span><br><span class="line">      |               |&#x2F; DHCPACK      |</span><br><span class="line">      |               |               |</span><br><span class="line">      |    Initialization complete    |</span><br><span class="line">      |               |               |</span><br><span class="line">      .               .               .</span><br><span class="line">      .               .               .</span><br><span class="line">      |               |               |</span><br><span class="line">      |      Graceful shutdown        |</span><br><span class="line">      |               |               |</span><br><span class="line">      |               |\ ____________ |</span><br><span class="line">      |               | DHCPRELEASE  \|</span><br><span class="line">      |               |               |</span><br><span class="line">      |               |        Discards lease</span><br><span class="line">      |               |               |</span><br><span class="line">      v               v               v</span><br></pre></td></tr></table></figure>
-<h3 id="各消息类型含义"><a href="#各消息类型含义" class="headerlink" title="各消息类型含义"></a>各消息类型含义</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">Message         Use</span><br><span class="line">-------         ---</span><br><span class="line"></span><br><span class="line">DHCPDISCOVER -  Client broadcast to locate available servers.</span><br><span class="line">                客户端广播请求，寻找可用的DHCP服务器</span><br><span class="line"></span><br><span class="line">DHCPOFFER    -  Server to client in response to DHCPDISCOVER with</span><br><span class="line">                offer of configuration parameters.</span><br><span class="line">                服务端返回给客户端的IP地址配置参数</span><br><span class="line"></span><br><span class="line">DHCPREQUEST  -  Client message to servers either (a) requesting</span><br><span class="line">                offered parameters from one server and implicitly</span><br><span class="line">                declining offers from all others, (b) confirming</span><br><span class="line">                correctness of previously allocated address after,</span><br><span class="line">                e.g., system reboot, or (c) extending the lease on a</span><br><span class="line">                particular network address.</span><br><span class="line">                客户端向服务端发送的消息：</span><br><span class="line">                (a) 表面上是向某一个服务器回复消息进行IP地址确认，暗含的意思是也告诉其他服务器---我已经选择了其中一个服务器分配的IP （此时报文是广播包）</span><br><span class="line">                (b) 例如系统重启后，发送REQUESET 用来对自己持有的IP配置向服务器进行确认</span><br><span class="line">                (c) </span><br><span class="line"></span><br><span class="line">DHCPACK      -  Server to client with configuration parameters,</span><br><span class="line">                including committed network address.</span><br><span class="line">                服务端向客户端发送的配置参数确认消息</span><br><span class="line"></span><br><span class="line">DHCPNAK      -  Server to client indicating client&#39;s notion of network</span><br><span class="line">                address is incorrect (e.g., client has moved to new</span><br><span class="line">                subnet) or client&#39;s lease as expired</span><br><span class="line"></span><br><span class="line">DHCPDECLINE  -  Client to server indicating network address is already</span><br><span class="line">                in use.</span><br><span class="line"></span><br><span class="line">DHCPRELEASE  -  Client to server relinquishing network address and</span><br><span class="line">                cancelling remaining lease.</span><br><span class="line"></span><br><span class="line">DHCPINFORM   -  Client to server, asking only for local configuration</span><br><span class="line">                parameters; client already has externally configured</span><br><span class="line">                network address.</span><br></pre></td></tr></table></figure>
+<h2 id="DHCP协议流程"><a href="#DHCP协议流程" class="headerlink" title="DHCP协议流程"></a>DHCP协议流程</h2><h3 id="图例"><a href="#图例" class="headerlink" title="图例"></a>图例</h3><pre><code>                Server          Client          Server
+            (not selected)                    (selected)
 
-<h2 id="DHCP报文举例"><a href="#DHCP报文举例" class="headerlink" title="DHCP报文举例"></a>DHCP报文举例</h2><ol>
+                  v               v               v
+                  |               |               |
+                  |     Begins initialization     |
+                  |               |               |
+                  | _____________/|\____________  |
+                  |/DHCPDISCOVER | DHCPDISCOVER  \|
+                  |               |               |
+              Determines          |          Determines
+             configuration        |         configuration
+                  |               |               |
+                  |\             |  ____________/ |
+                  | \________    | /DHCPOFFER     |
+                  | DHCPOFFER\   |/               |
+                  |           \  |                |
+                  |       Collects replies        |
+                  |             \|                |
+                  |     Selects configuration     |
+                  |               |               |
+                  | _____________/|\____________  |
+                  |/ DHCPREQUEST  |  DHCPREQUEST\ |
+                  |               |               |
+                  |               |     Commits configuration
+                  |               |               |
+                  |               | _____________/|
+                  |               |/ DHCPACK      |
+                  |               |               |
+                  |    Initialization complete    |
+                  |               |               |
+                  .               .               .
+                  .               .               .
+                  |               |               |
+                  |      Graceful shutdown        |
+                  |               |               |
+                  |               |\ ____________ |
+                  |               | DHCPRELEASE  \|
+                  |               |               |
+                  |               |        Discards lease
+                  |               |               |
+                  v               v               v</code></pre><h3 id="各消息类型含义"><a href="#各消息类型含义" class="headerlink" title="各消息类型含义"></a>各消息类型含义</h3><pre><code>   Message         Use
+   -------         ---
+
+   DHCPDISCOVER -  Client broadcast to locate available servers.
+                   客户端广播请求，寻找可用的DHCP服务器
+
+   DHCPOFFER    -  Server to client in response to DHCPDISCOVER with
+                   offer of configuration parameters.
+                   服务端返回给客户端的IP地址配置参数
+
+   DHCPREQUEST  -  Client message to servers either (a) requesting
+                   offered parameters from one server and implicitly
+                   declining offers from all others, (b) confirming
+                   correctness of previously allocated address after,
+                   e.g., system reboot, or (c) extending the lease on a
+                   particular network address.
+                   客户端向服务端发送的消息：
+                   (a) 表面上是向某一个服务器回复消息进行IP地址确认，暗含的意思是也告诉其他服务器---我已经选择了其中一个服务器分配的IP （此时报文是广播包）
+                   (b) 例如系统重启后，发送REQUESET 用来对自己持有的IP配置向服务器进行确认
+                   (c) 
+
+   DHCPACK      -  Server to client with configuration parameters,
+                   including committed network address.
+                   服务端向客户端发送的配置参数确认消息
+
+   DHCPNAK      -  Server to client indicating client&#39;s notion of network
+                   address is incorrect (e.g., client has moved to new
+                   subnet) or client&#39;s lease as expired
+
+   DHCPDECLINE  -  Client to server indicating network address is already
+                   in use.
+
+   DHCPRELEASE  -  Client to server relinquishing network address and
+                   cancelling remaining lease.
+
+   DHCPINFORM   -  Client to server, asking only for local configuration
+                   parameters; client already has externally configured
+                   network address.</code></pre><h2 id="DHCP报文举例"><a href="#DHCP报文举例" class="headerlink" title="DHCP报文举例"></a>DHCP报文举例</h2><ol>
 <li><p>一个自动获取DHCP的完整流程</p>
 <p><img src="/images/dhcp_auto.png" alt="DHCP Discover"></p>
 </li>
@@ -214,6 +356,18 @@
     var dom = document.getElementsByClassName('code');
     for(var i=0,len=dom.length; i<len; i++){
       dom[i].style.width = '750px';
+    }
+    var dom = document.getElementsByTagName('h1');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].className  += 'page_title';
+    }
+    var dom = document.getElementsByTagName('p');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#303333';
+    }
+    var dom = document.getElementsByTagName('a');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#2d96bd';
     }
   </script>
 

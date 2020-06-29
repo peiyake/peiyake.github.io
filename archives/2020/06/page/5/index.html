@@ -60,6 +60,25 @@
   <script src="/js/prettify.js"></script>
   <link rel="stylesheet" href="/css/tomorrow_night.css">
   <link rel="stylesheet" href="/css/tomorrow_night.min.css">
+  <link rel="stylesheet" href="/css/my.css">
+  <script>
+    Date.prototype.Format = function (fmt) {
+      var o = {
+              "M+": this.getMonth() + 1, // 月份
+              "d+": this.getDate(), // 日
+              "h+": this.getHours(), // 小时
+              "m+": this.getMinutes(), // 分
+              "s+": this.getSeconds(), // 秒
+              "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+              "S": this.getMilliseconds() // 毫秒
+      };
+      if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+      for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+      return fmt;
+    }
+  </script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -240,7 +259,7 @@
               </a>
               <div class="xe-comment">
                 <a href="#" class="xe-user-name overflowClip_1">
-                  <strong>建站指南</strong>
+                  <strong>建站指南GooGle</strong>
                 </a>
                 <p class="overflowClip_2">如果你想搭建跟博主一样的博客，那么请参考此建站指南</p>
               </div>
@@ -349,7 +368,7 @@
               </a>
               <div class="xe-comment">
                 <a href="#" class="xe-user-name overflowClip_1">
-                  <strong>建站指南</strong>
+                  <strong>建站指南GooGle</strong>
                 </a>
                 <p class="overflowClip_2">如果你想搭建跟博主一样的博客，那么请参考此建站指南</p>
               </div>
@@ -465,7 +484,7 @@
               </a>
               <div class="xe-comment">
                 <a href="#" class="xe-user-name overflowClip_1">
-                  <strong>getopt_long用法</strong>
+                  <strong>内存数据库设计</strong>
                 </a>
                 <p class="overflowClip_2">可变参数处理函数getopt_long用法解析</p>
               </div>
@@ -671,7 +690,7 @@
               </a>
               <div class="xe-comment">
                 <a href="#" class="xe-user-name overflowClip_1">
-                  <strong>IP地址分类</strong>
+                  <strong>IP地址知识点总结</strong>
                 </a>
                 <p class="overflowClip_2">IP地址分类方法、掩码作用等</p>
               </div>
@@ -690,7 +709,7 @@
               </a>
               <div class="xe-comment">
                 <a href="#" class="xe-user-name overflowClip_1">
-                  <strong>DHCP 协议</strong>
+                  <strong>DHCP协议详解</strong>
                 </a>
                 <p class="overflowClip_2">DHCP协议报文格式详解</p>
               </div>

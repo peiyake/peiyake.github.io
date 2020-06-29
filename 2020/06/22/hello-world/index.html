@@ -62,6 +62,25 @@
   <script src="/js/prettify.js"></script>
   <link rel="stylesheet" href="/css/tomorrow_night.css">
   <link rel="stylesheet" href="/css/tomorrow_night.min.css">
+  <link rel="stylesheet" href="/css/my.css">
+  <script>
+    Date.prototype.Format = function (fmt) {
+      var o = {
+              "M+": this.getMonth() + 1, // 月份
+              "d+": this.getDate(), // 日
+              "h+": this.getHours(), // 小时
+              "m+": this.getMinutes(), // 分
+              "s+": this.getSeconds(), // 秒
+              "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+              "S": this.getMilliseconds() // 毫秒
+      };
+      if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+      for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+      return fmt;
+    }
+  </script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -81,15 +100,24 @@
     </div>
   </nav>
   <div class="page-container">
-    <div style="float:right">
-      <span>
-        <em class="post-meta-item-text">Author:Yake Pei,</em>
+  <h1 id="Hello World" class="page_title">
+    <a href="#Hello World" class="headerlink" title="Hello World"></a>
+    Hello World
+  </h1>
+  <div>
+    <em class="page_meta">Written by </em>
+    <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+    <em class="page_meta">,Last update
+      <span class="post-time">on 
+        <time datetime="1592825695787" itemprop="datePublished"><script>var date = new Date().Format('yy-MM-dd hh:mm');document.write(date);</script></time>
       </span>
-      <span id="/2020/06/22/hello-world/" class="leancloud_visitors" data-flag-title="Hello World">
-        <em class="post-meta-item-text">Pageviews:</em>
-        <i class="leancloud-visitors-count">loading</i>
-      </span>
-    </div>
+    </em>
+    <span id="/2020/06/22/hello-world/" class="leancloud_visitors" data-flag-title="Hello World">
+      <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+      <i class="leancloud-visitors-count">loading</i>
+    </span>
+  </div>
+  <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
   <p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
 <h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
 
@@ -108,6 +136,18 @@
     var dom = document.getElementsByClassName('code');
     for(var i=0,len=dom.length; i<len; i++){
       dom[i].style.width = '750px';
+    }
+    var dom = document.getElementsByTagName('h1');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].className  += 'page_title';
+    }
+    var dom = document.getElementsByTagName('p');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#303333';
+    }
+    var dom = document.getElementsByTagName('a');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#2d96bd';
     }
   </script>
 

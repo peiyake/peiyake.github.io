@@ -62,6 +62,25 @@
   <script src="/js/prettify.js"></script>
   <link rel="stylesheet" href="/css/tomorrow_night.css">
   <link rel="stylesheet" href="/css/tomorrow_night.min.css">
+  <link rel="stylesheet" href="/css/my.css">
+  <script>
+    Date.prototype.Format = function (fmt) {
+      var o = {
+              "M+": this.getMonth() + 1, // 月份
+              "d+": this.getDate(), // 日
+              "h+": this.getHours(), // 小时
+              "m+": this.getMinutes(), // 分
+              "s+": this.getSeconds(), // 秒
+              "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+              "S": this.getMilliseconds() // 毫秒
+      };
+      if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+      for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+      return fmt;
+    }
+  </script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -81,16 +100,25 @@
     </div>
   </nav>
   <div class="page-container">
-    <div style="float:right">
-      <span>
-        <em class="post-meta-item-text">Author:Yake Pei,</em>
+  <h1 id="ARP协议" class="page_title">
+    <a href="#ARP协议" class="headerlink" title="ARP协议"></a>
+    ARP协议
+  </h1>
+  <div>
+    <em class="page_meta">Written by </em>
+    <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+    <em class="page_meta">,Last update
+      <span class="post-time">on 
+        <time datetime="1592824242000" itemprop="datePublished"><script>var date = new Date().Format('yy-MM-dd hh:mm');document.write(date);</script></time>
       </span>
-      <span id="/2020/06/22/net/arp/" class="leancloud_visitors" data-flag-title="ARP协议">
-        <em class="post-meta-item-text">Pageviews:</em>
-        <i class="leancloud-visitors-count">loading</i>
-      </span>
-    </div>
-  <h1 id="地址解析协议"><a href="#地址解析协议" class="headerlink" title="地址解析协议"></a>地址解析协议</h1><p>地址解析协议（英语：Address Resolution Protocol，缩写：ARP）是一个通过解析网络层地址来找寻数据链路层地址的网络传输协议，它在IPv4中极其重要。</p>
+    </em>
+    <span id="/2020/06/22/net/arp/" class="leancloud_visitors" data-flag-title="ARP协议">
+      <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+      <i class="leancloud-visitors-count">loading</i>
+    </span>
+  </div>
+  <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+  <p>地址解析协议（英语：Address Resolution Protocol，缩写：ARP）是一个通过解析网络层地址来找寻数据链路层地址的网络传输协议，它在IPv4中极其重要。</p>
 <p><em>注意:本文概念性总结，均来自维基百科<a href="https://zh.wikipedia.org/wiki/%E5%9C%B0%E5%9D%80%E8%A7%A3%E6%9E%90%E5%8D%8F%E8%AE%AE">ARP协议</a>上的文字介绍</em></p>
 <h2 id="基本功能"><a href="#基本功能" class="headerlink" title="基本功能"></a>基本功能</h2><blockquote>
 <p>在以太网协议中规定，同一局域网中的一台主机要和另一台主机进行直接通信，必须要知道目标主机的MAC地址。而在TCP/IP协议中，网络层和传输层只关心目标主机的IP地址。这就导致在以太网中使用IP协议时，数据链路层的以太网协议接到上层IP协议提供的数据中，只包含目的主机的IP地址。于是需要一种方法，根据目的主机的IP地址，获得其MAC地址。这就是ARP协议要做的事情。所谓地址解析（address resolution）就是主机在发送帧前将目标IP地址转换成目标MAC地址的过程</p>
@@ -155,15 +183,30 @@
 </ul>
 <h2 id="ARP老化机制"><a href="#ARP老化机制" class="headerlink" title="ARP老化机制"></a>ARP老化机制</h2><p>ARP缓存表采用老化机制，在一段时间内如果表中的某一行没有使用，就会被删除，这样可减少缓存表的长度，加快查询速度。</p>
 <ol>
-<li>ARP 老化时间间隔<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#centos系统上查看默认老化时间，单位：秒</span><br><span class="line">~# cat &#x2F;proc&#x2F;sys&#x2F;net&#x2F;ipv4&#x2F;neigh&#x2F;default&#x2F;gc_stale_time </span><br><span class="line">60</span><br><span class="line"></span><br><span class="line">#注意：每个网络接口也会有单独的arp老化时间配置 执行 ls &#x2F;proc&#x2F;sys&#x2F;net&#x2F;ipv4&#x2F;neigh&#x2F; 查看有哪些接口</span><br></pre></td></tr></table></figure>
+<li><p>ARP 老化时间间隔</p>
+<pre><code> #centos系统上查看默认老化时间，单位：秒
+ ~# cat /proc/sys/net/ipv4/neigh/default/gc_stale_time 
+ 60
 
-</li>
+ #注意：每个网络接口也会有单独的arp老化时间配置 执行 ls /proc/sys/net/ipv4/neigh/ 查看有哪些接口</code></pre></li>
 </ol>
 <h2 id="arp命令"><a href="#arp命令" class="headerlink" title="arp命令"></a>arp命令</h2>
   <script>
     var dom = document.getElementsByClassName('code');
     for(var i=0,len=dom.length; i<len; i++){
       dom[i].style.width = '750px';
+    }
+    var dom = document.getElementsByTagName('h1');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].className  += 'page_title';
+    }
+    var dom = document.getElementsByTagName('p');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#303333';
+    }
+    var dom = document.getElementsByTagName('a');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#2d96bd';
     }
   </script>
 

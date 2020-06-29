@@ -62,6 +62,25 @@
   <script src="/js/prettify.js"></script>
   <link rel="stylesheet" href="/css/tomorrow_night.css">
   <link rel="stylesheet" href="/css/tomorrow_night.min.css">
+  <link rel="stylesheet" href="/css/my.css">
+  <script>
+    Date.prototype.Format = function (fmt) {
+      var o = {
+              "M+": this.getMonth() + 1, // 月份
+              "d+": this.getDate(), // 日
+              "h+": this.getHours(), // 小时
+              "m+": this.getMinutes(), // 分
+              "s+": this.getSeconds(), // 秒
+              "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+              "S": this.getMilliseconds() // 毫秒
+      };
+      if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+      for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+      return fmt;
+    }
+  </script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -81,16 +100,25 @@
     </div>
   </nav>
   <div class="page-container">
-    <div style="float:right">
-      <span>
-        <em class="post-meta-item-text">Author:Yake Pei,</em>
+  <h1 id="使用abrt监控程序coredump" class="page_title">
+    <a href="#使用abrt监控程序coredump" class="headerlink" title="使用abrt监控程序coredump"></a>
+    使用abrt监控程序coredump
+  </h1>
+  <div>
+    <em class="page_meta">Written by </em>
+    <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+    <em class="page_meta">,Last update
+      <span class="post-time">on 
+        <time datetime="1592824242000" itemprop="datePublished"><script>var date = new Date().Format('yy-MM-dd hh:mm');document.write(date);</script></time>
       </span>
-      <span id="/2020/06/22/system/abrt-coredump/" class="leancloud_visitors" data-flag-title="使用abrt监控程序coredump">
-        <em class="post-meta-item-text">Pageviews:</em>
-        <i class="leancloud-visitors-count">loading</i>
-      </span>
-    </div>
-  <h1 id="使用abrt监控程序coredump"><a href="#使用abrt监控程序coredump" class="headerlink" title="使用abrt监控程序coredump"></a>使用abrt监控程序coredump</h1><blockquote>
+    </em>
+    <span id="/2020/06/22/system/abrt-coredump/" class="leancloud_visitors" data-flag-title="使用abrt监控程序coredump">
+      <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+      <i class="leancloud-visitors-count">loading</i>
+    </span>
+  </div>
+  <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+  <blockquote>
 <p>在UNIX系统中，常将“主内存”(main memory) 称为核心(core)，因为在使用半导体作为内存材料之前，便是使用核心(core)。而核心映像(core image) 就是 “进程”(process)执行当时的内存内容。当进程发生错误或收到“信号”(signal) 而终止执行时，系统会将核心映像写入一个文件，以作为调试之用，这就是所谓的核心转储(core dump)。—-来自 <a href="https://baike.baidu.com/item/%E6%A0%B8%E5%BF%83%E8%BD%AC%E5%82%A8/16772089?fromtitle=core%20dump&fromid=2971395&fr=aladdin">百度百科-核心转储</a></p>
 </blockquote>
 <h2 id="程序产生coredump的原因"><a href="#程序产生coredump的原因" class="headerlink" title="程序产生coredump的原因"></a>程序产生coredump的原因</h2><ol>
@@ -129,18 +157,110 @@
 <h2 id="core-dump举例"><a href="#core-dump举例" class="headerlink" title="core-dump举例"></a>core-dump举例</h2><ol>
 <li>编写如下应用程序</li>
 </ol>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc,<span class="keyword">const</span> <span class="keyword">char</span> **argv)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">        <span class="keyword">char</span> *p = <span class="literal">NULL</span>;</span><br><span class="line">        <span class="built_in">memcpy</span>(p,<span class="string">"Hello,world"</span>,<span class="keyword">sizeof</span>(<span class="string">"Hello world"</span>));</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"p = %s\n"</span>,p);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre><code class="c">#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+int main(int argc,const char **argv)
+{
+        char *p = NULL;
+        memcpy(p,&quot;Hello,world&quot;,sizeof(&quot;Hello world&quot;));
+        printf(&quot;p = %s\n&quot;,p);
+        return 0;
+}</code></pre>
 <ol start="2">
 <li>编译、执行、查看coredump</li>
 </ol>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line">[root@a ~]# gcc dump.c -o dump      # 编译生成 可执行文件 dump</span><br><span class="line">[root@a ~]# ./dump                  # 运行dump</span><br><span class="line">Segmentation fault (core dumped)</span><br><span class="line">[root@a ~]# abrt-cli list           # 使用abrt-cli 查看abrt捕捉到的core-dump信息</span><br><span class="line">id 3da5246b89c3112fa7eccd21d1ae363a8be44a09</span><br><span class="line">reason:         dump killed by SIGSEGV</span><br><span class="line">time:           Mon May 25 10:15:48 2020</span><br><span class="line">cmdline:        ./dump</span><br><span class="line">uid:            0 (root)</span><br><span class="line">Directory:      /var/spool/abrt/ccpp-2020-05-25-10:15:48-28684</span><br><span class="line"></span><br><span class="line">[root@a ~]# gdb ./dump /var/spool/abrt/ccpp-2020-05-25-10:15:48-28684/coredump  # 使用gdb查看core文件</span><br><span class="line">GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-110.el7</span><br><span class="line">Copyright (C) 2013 Free Software Foundation, Inc.</span><br><span class="line">License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;</span><br><span class="line">This is free software: you are free to change and redistribute it.</span><br><span class="line">There is NO WARRANTY, to the extent permitted by law.  Type "show copying"</span><br><span class="line">and "show warranty" for details.</span><br><span class="line">This GDB was configured as "x86_64-redhat-linux-gnu".</span><br><span class="line">For bug reporting instructions, please see:</span><br><span class="line">&lt;http://www.gnu.org/software/gdb/bugs/&gt;...</span><br><span class="line">Reading symbols from /root/dump...done.</span><br><span class="line"></span><br><span class="line">warning: exec file is newer than core file.</span><br><span class="line">[New LWP 28684]</span><br><span class="line">Core was generated by `./dump'.</span><br><span class="line">Program terminated with signal 11, Segmentation fault.</span><br><span class="line"><span class="meta">#</span><span class="bash">0  0x00007f7748635667 <span class="keyword">in</span> __memcpy_ssse3 () from /lib64/libc.so.6</span></span><br><span class="line">Missing separate debuginfos, use: debuginfo-install glibc-2.17-222.el7.x86_64</span><br><span class="line">(gdb) bt</span><br><span class="line"><span class="meta">#</span><span class="bash">0  0x00007f7748635667 <span class="keyword">in</span> __memcpy_ssse3 () from /lib64/libc.so.6</span></span><br><span class="line"><span class="meta">#</span><span class="bash">1  0x00000000004005aa <span class="keyword">in</span> main (argc=1, argv=0x7fff014aa9f8) at dump.c:6</span></span><br><span class="line">(gdb) quitT ~]# gdb ./dump /var/spool/abrt/ccpp-2020-05-25-10:15:48-28684/coredump</span><br><span class="line">GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-110.el7</span><br><span class="line">Copyright (C) 2013 Free Software Foundation, Inc.</span><br><span class="line">License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;</span><br><span class="line">This is free software: you are free to change and redistribute it.</span><br><span class="line">There is NO WARRANTY, to the extent permitted by law.  Type "show copying"</span><br><span class="line">and "show warranty" for details.</span><br><span class="line">This GDB was configured as "x86_64-redhat-linux-gnu".</span><br><span class="line">For bug reporting instructions, please see:</span><br><span class="line">&lt;http://www.gnu.org/software/gdb/bugs/&gt;...</span><br><span class="line">Reading symbols from /root/dump...done.</span><br><span class="line"></span><br><span class="line">warning: exec file is newer than core file.</span><br><span class="line">[New LWP 28684]</span><br><span class="line">Core was generated by `./dump'.</span><br><span class="line">Program terminated with signal 11, Segmentation fault.</span><br><span class="line"><span class="meta">#</span><span class="bash">0  0x00007f7748635667 <span class="keyword">in</span> __memcpy_ssse3 () from /lib64/libc.so.6</span></span><br><span class="line">Missing separate debuginfos, use: debuginfo-install glibc-2.17-222.el7.x86_64</span><br><span class="line">(gdb) bt</span><br><span class="line"><span class="meta">#</span><span class="bash">0  0x00007f7748635667 <span class="keyword">in</span> __memcpy_ssse3 () from /lib64/libc.so.6</span></span><br><span class="line"><span class="meta">#</span><span class="bash">1  0x00000000004005aa <span class="keyword">in</span> main (argc=1, argv=0x7fff014aa9f8) at dump.c:6</span></span><br><span class="line">(gdb) quit ~]# gdb ./dump /var/spool/abrt/ccpp-2020-05-25-10:15:48-28684/coredump</span><br><span class="line">GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-110.el7</span><br><span class="line">Copyright (C) 2013 Free Software Foundation, Inc.</span><br><span class="line">License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;</span><br><span class="line">This is free software: you are free to change and redistribute it.</span><br><span class="line">There is NO WARRANTY, to the extent permitted by law.  Type "show copying"</span><br><span class="line">and "show warranty" for details.</span><br><span class="line">This GDB was configured as "x86_64-redhat-linux-gnu".</span><br><span class="line">For bug reporting instructions, please see:</span><br><span class="line">&lt;http://www.gnu.org/software/gdb/bugs/&gt;...</span><br><span class="line">Reading symbols from /root/dump...done.</span><br><span class="line"></span><br><span class="line">warning: exec file is newer than core file.</span><br><span class="line">[New LWP 28684]</span><br><span class="line">Core was generated by `./dump'.</span><br><span class="line">Program terminated with signal 11, Segmentation fault.</span><br><span class="line"><span class="meta">#</span><span class="bash">0  0x00007f7748635667 <span class="keyword">in</span> __memcpy_ssse3 () from /lib64/libc.so.6</span></span><br><span class="line">Missing separate debuginfos, use: debuginfo-install glibc-2.17-222.el7.x86_64</span><br><span class="line">(gdb) bt</span><br><span class="line"><span class="meta">#</span><span class="bash">0  0x00007f7748635667 <span class="keyword">in</span> __memcpy_ssse3 () from /lib64/libc.so.6</span></span><br><span class="line"><span class="meta">#</span><span class="bash">1  0x00000000004005aa <span class="keyword">in</span> main (argc=1, argv=0x7fff014aa9f8) at dump.c:6    <span class="comment"># 精准定位代码错误</span></span></span><br><span class="line">(gdb) quit</span><br></pre></td></tr></table></figure>
+<pre><code class="shell">[root@a ~]# gcc dump.c -o dump      # 编译生成 可执行文件 dump
+[root@a ~]# ./dump                  # 运行dump
+Segmentation fault (core dumped)
+[root@a ~]# abrt-cli list           # 使用abrt-cli 查看abrt捕捉到的core-dump信息
+id 3da5246b89c3112fa7eccd21d1ae363a8be44a09
+reason:         dump killed by SIGSEGV
+time:           Mon May 25 10:15:48 2020
+cmdline:        ./dump
+uid:            0 (root)
+Directory:      /var/spool/abrt/ccpp-2020-05-25-10:15:48-28684
 
+[root@a ~]# gdb ./dump /var/spool/abrt/ccpp-2020-05-25-10:15:48-28684/coredump  # 使用gdb查看core文件
+GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-110.el7
+Copyright (C) 2013 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type &quot;show copying&quot;
+and &quot;show warranty&quot; for details.
+This GDB was configured as &quot;x86_64-redhat-linux-gnu&quot;.
+For bug reporting instructions, please see:
+&lt;http://www.gnu.org/software/gdb/bugs/&gt;...
+Reading symbols from /root/dump...done.
+
+warning: exec file is newer than core file.
+[New LWP 28684]
+Core was generated by `./dump&#39;.
+Program terminated with signal 11, Segmentation fault.
+#0  0x00007f7748635667 in __memcpy_ssse3 () from /lib64/libc.so.6
+Missing separate debuginfos, use: debuginfo-install glibc-2.17-222.el7.x86_64
+(gdb) bt
+#0  0x00007f7748635667 in __memcpy_ssse3 () from /lib64/libc.so.6
+#1  0x00000000004005aa in main (argc=1, argv=0x7fff014aa9f8) at dump.c:6
+(gdb) quitT ~]# gdb ./dump /var/spool/abrt/ccpp-2020-05-25-10:15:48-28684/coredump
+GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-110.el7
+Copyright (C) 2013 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type &quot;show copying&quot;
+and &quot;show warranty&quot; for details.
+This GDB was configured as &quot;x86_64-redhat-linux-gnu&quot;.
+For bug reporting instructions, please see:
+&lt;http://www.gnu.org/software/gdb/bugs/&gt;...
+Reading symbols from /root/dump...done.
+
+warning: exec file is newer than core file.
+[New LWP 28684]
+Core was generated by `./dump&#39;.
+Program terminated with signal 11, Segmentation fault.
+#0  0x00007f7748635667 in __memcpy_ssse3 () from /lib64/libc.so.6
+Missing separate debuginfos, use: debuginfo-install glibc-2.17-222.el7.x86_64
+(gdb) bt
+#0  0x00007f7748635667 in __memcpy_ssse3 () from /lib64/libc.so.6
+#1  0x00000000004005aa in main (argc=1, argv=0x7fff014aa9f8) at dump.c:6
+(gdb) quit ~]# gdb ./dump /var/spool/abrt/ccpp-2020-05-25-10:15:48-28684/coredump
+GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-110.el7
+Copyright (C) 2013 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type &quot;show copying&quot;
+and &quot;show warranty&quot; for details.
+This GDB was configured as &quot;x86_64-redhat-linux-gnu&quot;.
+For bug reporting instructions, please see:
+&lt;http://www.gnu.org/software/gdb/bugs/&gt;...
+Reading symbols from /root/dump...done.
+
+warning: exec file is newer than core file.
+[New LWP 28684]
+Core was generated by `./dump&#39;.
+Program terminated with signal 11, Segmentation fault.
+#0  0x00007f7748635667 in __memcpy_ssse3 () from /lib64/libc.so.6
+Missing separate debuginfos, use: debuginfo-install glibc-2.17-222.el7.x86_64
+(gdb) bt
+#0  0x00007f7748635667 in __memcpy_ssse3 () from /lib64/libc.so.6
+#1  0x00000000004005aa in main (argc=1, argv=0x7fff014aa9f8) at dump.c:6    # 精准定位代码错误
+(gdb) quit</code></pre>
 
   <script>
     var dom = document.getElementsByClassName('code');
     for(var i=0,len=dom.length; i<len; i++){
       dom[i].style.width = '750px';
+    }
+    var dom = document.getElementsByTagName('h1');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].className  += 'page_title';
+    }
+    var dom = document.getElementsByTagName('p');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#303333';
+    }
+    var dom = document.getElementsByTagName('a');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#2d96bd';
     }
   </script>
 

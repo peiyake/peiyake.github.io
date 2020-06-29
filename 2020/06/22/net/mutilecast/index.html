@@ -62,6 +62,25 @@
   <script src="/js/prettify.js"></script>
   <link rel="stylesheet" href="/css/tomorrow_night.css">
   <link rel="stylesheet" href="/css/tomorrow_night.min.css">
+  <link rel="stylesheet" href="/css/my.css">
+  <script>
+    Date.prototype.Format = function (fmt) {
+      var o = {
+              "M+": this.getMonth() + 1, // 月份
+              "d+": this.getDate(), // 日
+              "h+": this.getHours(), // 小时
+              "m+": this.getMinutes(), // 分
+              "s+": this.getSeconds(), // 秒
+              "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+              "S": this.getMilliseconds() // 毫秒
+      };
+      if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+      for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+      return fmt;
+    }
+  </script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -81,16 +100,26 @@
     </div>
   </nav>
   <div class="page-container">
-    <div style="float:right">
-      <span>
-        <em class="post-meta-item-text">Author:Yake Pei,</em>
+  <h1 id="组播" class="page_title">
+    <a href="#组播" class="headerlink" title="组播"></a>
+    组播
+  </h1>
+  <div>
+    <em class="page_meta">Written by </em>
+    <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+    <em class="page_meta">,Last update
+      <span class="post-time">on 
+        <time datetime="1592824242000" itemprop="datePublished"><script>var date = new Date().Format('yy-MM-dd hh:mm');document.write(date);</script></time>
       </span>
-      <span id="/2020/06/22/net/mutilecast/" class="leancloud_visitors" data-flag-title="组播">
-        <em class="post-meta-item-text">Pageviews:</em>
-        <i class="leancloud-visitors-count">loading</i>
-      </span>
-    </div>
-  <h1 id="组播相关知识点总结"><a href="#组播相关知识点总结" class="headerlink" title="组播相关知识点总结"></a>组播相关知识点总结</h1><h2 id="什么是组播？"><a href="#什么是组播？" class="headerlink" title="什么是组播？"></a>什么是组播？</h2><p><em><strong>组播的概念?</strong></em></p>
+    </em>
+    <span id="/2020/06/22/net/mutilecast/" class="leancloud_visitors" data-flag-title="组播">
+      <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+      <i class="leancloud-visitors-count">loading</i>
+    </span>
+  </div>
+  <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+  <p>组播技术的初衷是在IP网络中，以”尽力而为”的形式发送信息到某个目标组，这个目标组称为组播组，这样在有源主机向多点目标主机发送信息需求时，源主机只发送一份数据，数据的目的地址是组播组地址，这样，凡是属于该组的成员，都可以接收到一份原主机发送的数据的拷贝，此组播方式下，只有真正信息需要的成员会收到信息，其他主机不会收到。</p>
+<h2 id="什么是组播？"><a href="#什么是组播？" class="headerlink" title="什么是组播？"></a>什么是组播？</h2><p><em><strong>组播的概念?</strong></em></p>
 <p>首先我们知道单播报文，是一个host发送给另一个host，在报文的IP层有明确的源、目IP地址。一个host发送，另一个<br>host接收。</p>
 <p>那组播是什么呢？顾明思议，就是一个host发出的报文可以被多个加入某个相同组的host接收，是一对多的关系。</p>
 <p><em><strong>组播报文的目的IP是什么？</strong></em></p>
@@ -122,6 +151,18 @@
     var dom = document.getElementsByClassName('code');
     for(var i=0,len=dom.length; i<len; i++){
       dom[i].style.width = '750px';
+    }
+    var dom = document.getElementsByTagName('h1');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].className  += 'page_title';
+    }
+    var dom = document.getElementsByTagName('p');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#303333';
+    }
+    var dom = document.getElementsByTagName('a');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#2d96bd';
     }
   </script>
 

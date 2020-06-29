@@ -62,6 +62,25 @@
   <script src="/js/prettify.js"></script>
   <link rel="stylesheet" href="/css/tomorrow_night.css">
   <link rel="stylesheet" href="/css/tomorrow_night.min.css">
+  <link rel="stylesheet" href="/css/my.css">
+  <script>
+    Date.prototype.Format = function (fmt) {
+      var o = {
+              "M+": this.getMonth() + 1, // 月份
+              "d+": this.getDate(), // 日
+              "h+": this.getHours(), // 小时
+              "m+": this.getMinutes(), // 分
+              "s+": this.getSeconds(), // 秒
+              "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+              "S": this.getMilliseconds() // 毫秒
+      };
+      if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+      for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+      return fmt;
+    }
+  </script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -81,22 +100,34 @@
     </div>
   </nav>
   <div class="page-container">
-    <div style="float:right">
-      <span>
-        <em class="post-meta-item-text">Author:Yake Pei,</em>
+  <h1 id="Linux dump crash工具使用" class="page_title">
+    <a href="#Linux dump crash工具使用" class="headerlink" title="Linux dump crash工具使用"></a>
+    Linux dump crash工具使用
+  </h1>
+  <div>
+    <em class="page_meta">Written by </em>
+    <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+    <em class="page_meta">,Last update
+      <span class="post-time">on 
+        <time datetime="1592824242000" itemprop="datePublished"><script>var date = new Date().Format('yy-MM-dd hh:mm');document.write(date);</script></time>
       </span>
-      <span id="/2020/06/22/shell/crash-dump/" class="leancloud_visitors" data-flag-title="Linux dump crash工具使用">
-        <em class="post-meta-item-text">Pageviews:</em>
-        <i class="leancloud-visitors-count">loading</i>
-      </span>
-    </div>
-  <h1 id="Linux-dump-crash工具使用"><a href="#Linux-dump-crash工具使用" class="headerlink" title="Linux dump crash工具使用"></a>Linux dump crash工具使用</h1><p>内核 <strong>kdump</strong> 是一个强大的内核调试工具，你可以这么理解，当 linux内核崩溃时，这个 <strong>kdump</strong> 工具可以将崩溃现场完整的保存下来，也就是内核崩溃时系统的运行状态及各种堆栈信息。 生成的通常是一个很大的文件，当然这个文件的大小你可以自己设定，不过我们通常都是让内核自己来定。</p>
+    </em>
+    <span id="/2020/06/22/shell/crash-dump/" class="leancloud_visitors" data-flag-title="Linux dump crash工具使用">
+      <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+      <i class="leancloud-visitors-count">loading</i>
+    </span>
+  </div>
+  <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+  <p>内核 <strong>kdump</strong> 是一个强大的内核调试工具，你可以这么理解，当 linux内核崩溃时，这个 <strong>kdump</strong> 工具可以将崩溃现场完整的保存下来，也就是内核崩溃时系统的运行状态及各种堆栈信息。 生成的通常是一个很大的文件，当然这个文件的大小你可以自己设定，不过我们通常都是让内核自己来定。</p>
 <p>多亏了这个工具，当我在调试内核模块不知所措时，看到了一丝曙光，下面简单把我这边的使用方法总结记录一下！</p>
 <h2 id="测试环境"><a href="#测试环境" class="headerlink" title="测试环境"></a>测试环境</h2><ul>
 <li>CentOS-7.5.1804</li>
 </ul>
 <h2 id="dump服务安装"><a href="#dump服务安装" class="headerlink" title="dump服务安装"></a>dump服务安装</h2><ol>
-<li>安装<strong>kdump</strong> 服务<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">yum install -y kexec-tools          // 安装dump服务软件包</span><br><span class="line">systemctl enable kdump.service      // 设置 kdump 服务开机启动</span><br><span class="line">systemctl status kdump.service      // 查看 kdump 服务当前运行状态</span><br></pre></td></tr></table></figure></li>
+<li>安装<strong>kdump</strong> 服务<pre><code class="shell">yum install -y kexec-tools          // 安装dump服务软件包
+systemctl enable kdump.service      // 设置 kdump 服务开机启动
+systemctl status kdump.service      // 查看 kdump 服务当前运行状态</code></pre>
+</li>
 <li>开启内核crash</li>
 </ol>
 <p>修改系统启动参数，通常是 grub.cfg 文件，在启动参数中添加如下：</p>
@@ -109,8 +140,134 @@
 <li><p>执行如下命令</p>
 </li>
 </ol>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost ~]# crash  /lib/modules/3.10.0.862.ac/build/vmlinux /var/crash/127.0.0.1-2019-09-23-09\:16\:44/vmcore</span><br><span class="line"></span><br><span class="line">crash 7.2.3-8.el7</span><br><span class="line">Copyright (C) 2002-2017  Red Hat, Inc.</span><br><span class="line">Copyright (C) 2004, 2005, 2006, 2010  IBM Corporation</span><br><span class="line">Copyright (C) 1999-2006  Hewlett-Packard Co</span><br><span class="line">Copyright (C) 2005, 2006, 2011, 2012  Fujitsu Limited</span><br><span class="line">Copyright (C) 2006, 2007  VA Linux Systems Japan K.K.</span><br><span class="line">Copyright (C) 2005, 2011  NEC Corporation</span><br><span class="line">Copyright (C) 1999, 2002, 2007  Silicon Graphics, Inc.</span><br><span class="line">Copyright (C) 1999, 2000, 2001, 2002  Mission Critical Linux, Inc.</span><br><span class="line">This program is free software, covered by the GNU General Public License,</span><br><span class="line">and you are welcome to change it and/or distribute copies of it under</span><br><span class="line">certain conditions.  Enter "help copying" to see the conditions.</span><br><span class="line">This program has absolutely no warranty.  Enter "help warranty" for details.</span><br><span class="line"> </span><br><span class="line">GNU gdb (GDB) 7.6</span><br><span class="line">Copyright (C) 2013 Free Software Foundation, Inc.</span><br><span class="line">License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;</span><br><span class="line">This is free software: you are free to change and redistribute it.</span><br><span class="line">There is NO WARRANTY, to the extent permitted by law.  Type "show copying"</span><br><span class="line">and "show warranty" for details.</span><br><span class="line">This GDB was configured as "x86_64-unknown-linux-gnu"...</span><br><span class="line"></span><br><span class="line">WARNING: kernel relocated [34MB]: patching 82553 gdb minimal_symbol values</span><br><span class="line"></span><br><span class="line">      KERNEL: /lib/modules/3.10.0.862.ac/build/vmlinux                 </span><br><span class="line">    DUMPFILE: /var/crash/127.0.0.1-2019-09-23-09:16:44/vmcore  [PARTIAL DUMP]</span><br><span class="line">        CPUS: 8</span><br><span class="line">        DATE: Mon Sep 23 17:16:23 2019</span><br><span class="line">      UPTIME: 00:08:02</span><br><span class="line">LOAD AVERAGE: 0.29, 0.49, 0.33</span><br><span class="line">       TASKS: 277</span><br><span class="line">    NODENAME: localhost</span><br><span class="line">     RELEASE: 3.10.0.862.ac</span><br><span class="line">     VERSION: #1 SMP Mon Aug 26 08:42:15 UTC 2019</span><br><span class="line">     MACHINE: x86_64  (3392 Mhz)</span><br><span class="line">      MEMORY: 4 GB</span><br><span class="line">       PANIC: "BUG: unable to handle kernel NULL pointer dereference at 00000000000000e8"</span><br><span class="line">         PID: 0</span><br><span class="line">     COMMAND: "swapper/3"</span><br><span class="line">        TASK: ffff90bca94ccf10  (1 of 8)  [THREAD_INFO: ffff90bca94e0000]</span><br><span class="line">         CPU: 3</span><br><span class="line">       STATE: TASK_RUNNING (PANIC)</span><br><span class="line"></span><br><span class="line"><span class="meta">crash&gt;</span><span class="bash"> ^C</span></span><br><span class="line"><span class="meta">crash&gt;</span><span class="bash"> ^C</span></span><br><span class="line"><span class="meta">crash&gt;</span><span class="bash"> bt</span></span><br><span class="line">PID: 0      TASK: ffff90bca94ccf10  CPU: 3   COMMAND: "swapper/3"</span><br><span class="line"><span class="meta"> #</span><span class="bash">0 [ffff90bcafac3188] machine_kexec at ffffffff83260b2a</span></span><br><span class="line"><span class="meta"> #</span><span class="bash">1 [ffff90bcafac31e8] __crash_kexec at ffffffff83313402</span></span><br><span class="line"><span class="meta"> #</span><span class="bash">2 [ffff90bcafac32b8] crash_kexec at ffffffff833134f0</span></span><br><span class="line"><span class="meta"> #</span><span class="bash">3 [ffff90bcafac32d0] oops_end at ffffffff83917768</span></span><br><span class="line"><span class="meta"> #</span><span class="bash">4 [ffff90bcafac32f8] no_context at ffffffff83907088</span></span><br><span class="line"><span class="meta"> #</span><span class="bash">5 [ffff90bcafac3348] __bad_area_nosemaphore at ffffffff8390711f</span></span><br><span class="line"><span class="meta"> #</span><span class="bash">6 [ffff90bcafac3398] bad_area_nosemaphore at ffffffff83907290</span></span><br><span class="line"><span class="meta"> #</span><span class="bash">7 [ffff90bcafac33a8] __do_page_fault at ffffffff8391a720</span></span><br><span class="line"><span class="meta"> #</span><span class="bash">8 [ffff90bcafac3410] do_page_fault at ffffffff8391a915</span></span><br><span class="line"><span class="meta"> #</span><span class="bash">9 [ffff90bcafac3440] page_fault at ffffffff83916768</span></span><br><span class="line">    [exception RIP: l2w_vdev_hard_xmit_broad_pkt+248]</span><br><span class="line">    RIP: ffffffffc05a3b78  RSP: ffff90bcafac34f0  RFLAGS: 00010216</span><br><span class="line">    RAX: 0000000000000000  RBX: ffff90bc28050a80  RCX: 0000000000000005</span><br><span class="line">    RDX: ffff90bcafc00340  RSI: 00000000000000e0  RDI: ffffffffc05a7480</span><br><span class="line">    RBP: ffff90bcafac35b0   R8: 000000000000000d   R9: 0000000000000000</span><br><span class="line">    R10: ffff90bcafc003a2  R11: ffffffff83efc940  R12: ffff90bca8465800</span><br><span class="line">    R13: ffff90bca8465800  R14: ffffffff83f4be40  R15: ffff90bca8465800</span><br><span class="line">    ORIG_RAX: ffffffffffffffff  CS: 0010  SS: 0018</span><br><span class="line"><span class="meta">#</span><span class="bash">10 [ffff90bcafac35b8] nf_l2w_pre_routing at ffffffffc05a0268 [l2w]</span></span><br><span class="line"><span class="meta">#</span><span class="bash">11 [ffff90bcafac3620] nf_iterate at ffffffff83827408</span></span><br><span class="line"><span class="meta">#</span><span class="bash">12 [ffff90bcafac3660] nf_hook_slow at ffffffff838274f8</span></span><br><span class="line"><span class="meta">#</span><span class="bash">13 [ffff90bcafac3698] br_handle_frame at ffffffffc05f2902 [bridge]</span></span><br><span class="line"><span class="meta">#</span><span class="bash">14 [ffff90bcafac3720] __netif_receive_skb_core at ffffffff837eb50a</span></span><br><span class="line"><span class="meta">#</span><span class="bash">15 [ffff90bcafac3798] __netif_receive_skb at ffffffff837ebd48</span></span><br><span class="line"><span class="meta">#</span><span class="bash">16 [ffff90bcafac37b8] netif_receive_skb_internal at ffffffff837ebdd0</span></span><br><span class="line"><span class="meta">#</span><span class="bash">17 [ffff90bcafac37e8] netif_receive_skb at ffffffff837ebe6c</span></span><br><span class="line"><span class="meta">#</span><span class="bash">18 [ffff90bcafac3808] l2w_udp_rcv at ffffffffc05a12ca [l2w]</span></span><br><span class="line"><span class="meta">#</span><span class="bash">19 [ffff90bcafac3828] __udp4_lib_rcv at ffffffff83863c9e</span></span><br><span class="line"><span class="meta">#</span><span class="bash">20 [ffff90bcafac38c0] udp_rcv at ffffffff838648fa</span></span><br><span class="line"><span class="meta">#</span><span class="bash">21 [ffff90bcafac38d0] ip_local_deliver_finish at ffffffff838316d9</span></span><br><span class="line"><span class="meta">#</span><span class="bash">22 [ffff90bcafac38f8] ip_local_deliver at ffffffff838319c9</span></span><br><span class="line"><span class="meta">#</span><span class="bash">23 [ffff90bcafac3950] ip_rcv_finish at ffffffff83831340</span></span><br><span class="line"><span class="meta">#</span><span class="bash">24 [ffff90bcafac3978] ip_rcv at ffffffff83831cf9</span></span><br><span class="line"><span class="meta">#</span><span class="bash">25 [ffff90bcafac39e0] __netif_receive_skb_core at ffffffff837eba39</span></span><br><span class="line"><span class="meta">#</span><span class="bash">26 [ffff90bcafac3a58] __netif_receive_skb at ffffffff837ebd48</span></span><br><span class="line"><span class="meta">#</span><span class="bash">27 [ffff90bcafac3a78] netif_receive_skb_internal at ffffffff837ebdd0</span></span><br><span class="line"><span class="meta">#</span><span class="bash">28 [ffff90bcafac3aa8] netif_receive_skb at ffffffff837ebe6c</span></span><br><span class="line"><span class="meta">#</span><span class="bash">29 [ffff90bcafac3ac8] br_netif_receive_skb at ffffffffc05f1f28 [bridge]</span></span><br><span class="line"><span class="meta">#</span><span class="bash">30 [ffff90bcafac3ae0] br_pass_frame_up at ffffffffc05f2028 [bridge]</span></span><br><span class="line"><span class="meta">#</span><span class="bash">31 [ffff90bcafac3b58] br_handle_frame_finish at ffffffffc05f2301 [bridge]</span></span><br><span class="line"><span class="meta">#</span><span class="bash">32 [ffff90bcafac3bd8] br_handle_frame at ffffffffc05f2911 [bridge]</span></span><br><span class="line"><span class="meta">#</span><span class="bash">33 [ffff90bcafac3c60] __netif_receive_skb_core at ffffffff837eb50a</span></span><br><span class="line"><span class="meta">#</span><span class="bash">34 [ffff90bcafac3cd8] __netif_receive_skb at ffffffff837ebd48</span></span><br><span class="line"><span class="meta">#</span><span class="bash">35 [ffff90bcafac3cf8] netif_receive_skb_internal at ffffffff837ebdd0</span></span><br><span class="line"><span class="meta">#</span><span class="bash">36 [ffff90bcafac3d28] napi_gro_receive at ffffffff837ec9f8</span></span><br><span class="line"><span class="meta">#</span><span class="bash">37 [ffff90bcafac3d50] e1000_receive_skb at ffffffffc0394f1f [e1000e]</span></span><br><span class="line"><span class="meta">#</span><span class="bash">38 [ffff90bcafac3d88] e1000_clean_rx_irq at ffffffffc0396e5b [e1000e]</span></span><br><span class="line"><span class="meta">#</span><span class="bash">39 [ffff90bcafac3e28] e1000e_poll at ffffffffc039eda2 [e1000e]</span></span><br><span class="line"><span class="meta">#</span><span class="bash">40 [ffff90bcafac3e78] net_rx_action at ffffffff837ec3ef</span></span><br><span class="line"><span class="meta">#</span><span class="bash">41 [ffff90bcafac3ef8] __do_softirq at ffffffff8329a945</span></span><br><span class="line"><span class="meta">#</span><span class="bash">42 [ffff90bcafac3f68] call_softirq at ffffffff83922d2c</span></span><br><span class="line"><span class="meta">#</span><span class="bash">43 [ffff90bcafac3f80] do_softirq at ffffffff8322d625</span></span><br><span class="line"><span class="meta">#</span><span class="bash">44 [ffff90bcafac3fa0] irq_exit at ffffffff8329acc5</span></span><br><span class="line"><span class="meta">#</span><span class="bash">45 [ffff90bcafac3fb8] do_IRQ at ffffffff83923fc6</span></span><br><span class="line">--- &lt;IRQ stack&gt; ---</span><br><span class="line"><span class="meta">#</span><span class="bash">46 [ffff90bca94e3db8] ret_from_intr at ffffffff83916362</span></span><br><span class="line">    [exception RIP: cpuidle_enter_state+84]</span><br><span class="line">    RIP: ffffffff83769364  RSP: ffff90bca94e3e60  RFLAGS: 00000202</span><br><span class="line">    RAX: 000000701812f068  RBX: ffff90bca94e3e40  RCX: 0000000000000018</span><br><span class="line">    RDX: 0000000225c17d03  RSI: ffff90bca94e3fd8  RDI: 000000701812f068</span><br><span class="line">    RBP: ffff90bca94e3e88   R8: 0000000000000085   R9: ffff90bcafad7ad0</span><br><span class="line">    R10: 7fffffffffffffff  R11: 000000aadcc5c800  R12: 0000000000000003</span><br><span class="line">    R13: ffff90bcafad39e0  R14: ffffffff832be645  R15: ffff90bca94e3de0</span><br><span class="line">    ORIG_RAX: ffffffffffffff19  CS: 0010  SS: 0018</span><br><span class="line"><span class="meta">#</span><span class="bash">47 [ffff90bca94e3e90] cpuidle_idle_call at ffffffff837694be</span></span><br><span class="line"><span class="meta">#</span><span class="bash">48 [ffff90bca94e3ed0] arch_cpu_idle at ffffffff832352fe</span></span><br><span class="line"><span class="meta">#</span><span class="bash">49 [ffff90bca94e3ee0] cpu_startup_entry at ffffffff832f2b6a</span></span><br><span class="line"><span class="meta">#</span><span class="bash">50 [ffff90bca94e3f28] start_secondary at ffffffff83255362</span></span><br><span class="line"><span class="meta">#</span><span class="bash">51 [ffff90bca94e3f50] start_cpu at ffffffff832000d5</span></span><br><span class="line"><span class="meta">crash&gt;</span><span class="bash"> mod -s l2w /root/l2w.ko</span></span><br><span class="line">mod: l2w: last symbol: l2w_kill_thread is not _MODULE_END_l2w?</span><br><span class="line">     MODULE       NAME                    SIZE  OBJECT FILE</span><br><span class="line">ffffffffc05b73c0  l2w                   153093  /lib/modules/3.10.0.862.ac/kernel/net/bridge/l2w/l2w.ko </span><br><span class="line"><span class="meta">crash&gt;</span><span class="bash"> dis ffffffffc05a3b78 </span></span><br><span class="line">0xffffffffc05a3b78 &lt;l2w_vdev_hard_xmit_broad_pkt+248&gt;:  mov    0xe8(%rax),%rdx</span><br><span class="line"><span class="meta">crash&gt;</span><span class="bash"> sym 0xffffffffc05a3b78</span></span><br><span class="line">ffffffffc05a3b78 (T) l2w_vdev_hard_xmit_broad_pkt+248 [l2w] /usr/src/kernels/3.10.0.862.ac/net/bridge/l2w/vdev.c: 216</span><br><span class="line"><span class="meta">crash&gt;</span><span class="bash"> <span class="built_in">exit</span></span></span><br><span class="line">[root@localhost ~]#crash&gt;</span><br></pre></td></tr></table></figure>
+<pre><code class="shell">[root@localhost ~]# crash  /lib/modules/3.10.0.862.ac/build/vmlinux /var/crash/127.0.0.1-2019-09-23-09\:16\:44/vmcore
 
+crash 7.2.3-8.el7
+Copyright (C) 2002-2017  Red Hat, Inc.
+Copyright (C) 2004, 2005, 2006, 2010  IBM Corporation
+Copyright (C) 1999-2006  Hewlett-Packard Co
+Copyright (C) 2005, 2006, 2011, 2012  Fujitsu Limited
+Copyright (C) 2006, 2007  VA Linux Systems Japan K.K.
+Copyright (C) 2005, 2011  NEC Corporation
+Copyright (C) 1999, 2002, 2007  Silicon Graphics, Inc.
+Copyright (C) 1999, 2000, 2001, 2002  Mission Critical Linux, Inc.
+This program is free software, covered by the GNU General Public License,
+and you are welcome to change it and/or distribute copies of it under
+certain conditions.  Enter &quot;help copying&quot; to see the conditions.
+This program has absolutely no warranty.  Enter &quot;help warranty&quot; for details.
+
+GNU gdb (GDB) 7.6
+Copyright (C) 2013 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type &quot;show copying&quot;
+and &quot;show warranty&quot; for details.
+This GDB was configured as &quot;x86_64-unknown-linux-gnu&quot;...
+
+WARNING: kernel relocated [34MB]: patching 82553 gdb minimal_symbol values
+
+      KERNEL: /lib/modules/3.10.0.862.ac/build/vmlinux                 
+    DUMPFILE: /var/crash/127.0.0.1-2019-09-23-09:16:44/vmcore  [PARTIAL DUMP]
+        CPUS: 8
+        DATE: Mon Sep 23 17:16:23 2019
+      UPTIME: 00:08:02
+LOAD AVERAGE: 0.29, 0.49, 0.33
+       TASKS: 277
+    NODENAME: localhost
+     RELEASE: 3.10.0.862.ac
+     VERSION: #1 SMP Mon Aug 26 08:42:15 UTC 2019
+     MACHINE: x86_64  (3392 Mhz)
+      MEMORY: 4 GB
+       PANIC: &quot;BUG: unable to handle kernel NULL pointer dereference at 00000000000000e8&quot;
+         PID: 0
+     COMMAND: &quot;swapper/3&quot;
+        TASK: ffff90bca94ccf10  (1 of 8)  [THREAD_INFO: ffff90bca94e0000]
+         CPU: 3
+       STATE: TASK_RUNNING (PANIC)
+
+crash&gt; ^C
+crash&gt; ^C
+crash&gt; bt
+PID: 0      TASK: ffff90bca94ccf10  CPU: 3   COMMAND: &quot;swapper/3&quot;
+ #0 [ffff90bcafac3188] machine_kexec at ffffffff83260b2a
+ #1 [ffff90bcafac31e8] __crash_kexec at ffffffff83313402
+ #2 [ffff90bcafac32b8] crash_kexec at ffffffff833134f0
+ #3 [ffff90bcafac32d0] oops_end at ffffffff83917768
+ #4 [ffff90bcafac32f8] no_context at ffffffff83907088
+ #5 [ffff90bcafac3348] __bad_area_nosemaphore at ffffffff8390711f
+ #6 [ffff90bcafac3398] bad_area_nosemaphore at ffffffff83907290
+ #7 [ffff90bcafac33a8] __do_page_fault at ffffffff8391a720
+ #8 [ffff90bcafac3410] do_page_fault at ffffffff8391a915
+ #9 [ffff90bcafac3440] page_fault at ffffffff83916768
+    [exception RIP: l2w_vdev_hard_xmit_broad_pkt+248]
+    RIP: ffffffffc05a3b78  RSP: ffff90bcafac34f0  RFLAGS: 00010216
+    RAX: 0000000000000000  RBX: ffff90bc28050a80  RCX: 0000000000000005
+    RDX: ffff90bcafc00340  RSI: 00000000000000e0  RDI: ffffffffc05a7480
+    RBP: ffff90bcafac35b0   R8: 000000000000000d   R9: 0000000000000000
+    R10: ffff90bcafc003a2  R11: ffffffff83efc940  R12: ffff90bca8465800
+    R13: ffff90bca8465800  R14: ffffffff83f4be40  R15: ffff90bca8465800
+    ORIG_RAX: ffffffffffffffff  CS: 0010  SS: 0018
+#10 [ffff90bcafac35b8] nf_l2w_pre_routing at ffffffffc05a0268 [l2w]
+#11 [ffff90bcafac3620] nf_iterate at ffffffff83827408
+#12 [ffff90bcafac3660] nf_hook_slow at ffffffff838274f8
+#13 [ffff90bcafac3698] br_handle_frame at ffffffffc05f2902 [bridge]
+#14 [ffff90bcafac3720] __netif_receive_skb_core at ffffffff837eb50a
+#15 [ffff90bcafac3798] __netif_receive_skb at ffffffff837ebd48
+#16 [ffff90bcafac37b8] netif_receive_skb_internal at ffffffff837ebdd0
+#17 [ffff90bcafac37e8] netif_receive_skb at ffffffff837ebe6c
+#18 [ffff90bcafac3808] l2w_udp_rcv at ffffffffc05a12ca [l2w]
+#19 [ffff90bcafac3828] __udp4_lib_rcv at ffffffff83863c9e
+#20 [ffff90bcafac38c0] udp_rcv at ffffffff838648fa
+#21 [ffff90bcafac38d0] ip_local_deliver_finish at ffffffff838316d9
+#22 [ffff90bcafac38f8] ip_local_deliver at ffffffff838319c9
+#23 [ffff90bcafac3950] ip_rcv_finish at ffffffff83831340
+#24 [ffff90bcafac3978] ip_rcv at ffffffff83831cf9
+#25 [ffff90bcafac39e0] __netif_receive_skb_core at ffffffff837eba39
+#26 [ffff90bcafac3a58] __netif_receive_skb at ffffffff837ebd48
+#27 [ffff90bcafac3a78] netif_receive_skb_internal at ffffffff837ebdd0
+#28 [ffff90bcafac3aa8] netif_receive_skb at ffffffff837ebe6c
+#29 [ffff90bcafac3ac8] br_netif_receive_skb at ffffffffc05f1f28 [bridge]
+#30 [ffff90bcafac3ae0] br_pass_frame_up at ffffffffc05f2028 [bridge]
+#31 [ffff90bcafac3b58] br_handle_frame_finish at ffffffffc05f2301 [bridge]
+#32 [ffff90bcafac3bd8] br_handle_frame at ffffffffc05f2911 [bridge]
+#33 [ffff90bcafac3c60] __netif_receive_skb_core at ffffffff837eb50a
+#34 [ffff90bcafac3cd8] __netif_receive_skb at ffffffff837ebd48
+#35 [ffff90bcafac3cf8] netif_receive_skb_internal at ffffffff837ebdd0
+#36 [ffff90bcafac3d28] napi_gro_receive at ffffffff837ec9f8
+#37 [ffff90bcafac3d50] e1000_receive_skb at ffffffffc0394f1f [e1000e]
+#38 [ffff90bcafac3d88] e1000_clean_rx_irq at ffffffffc0396e5b [e1000e]
+#39 [ffff90bcafac3e28] e1000e_poll at ffffffffc039eda2 [e1000e]
+#40 [ffff90bcafac3e78] net_rx_action at ffffffff837ec3ef
+#41 [ffff90bcafac3ef8] __do_softirq at ffffffff8329a945
+#42 [ffff90bcafac3f68] call_softirq at ffffffff83922d2c
+#43 [ffff90bcafac3f80] do_softirq at ffffffff8322d625
+#44 [ffff90bcafac3fa0] irq_exit at ffffffff8329acc5
+#45 [ffff90bcafac3fb8] do_IRQ at ffffffff83923fc6
+--- &lt;IRQ stack&gt; ---
+#46 [ffff90bca94e3db8] ret_from_intr at ffffffff83916362
+    [exception RIP: cpuidle_enter_state+84]
+    RIP: ffffffff83769364  RSP: ffff90bca94e3e60  RFLAGS: 00000202
+    RAX: 000000701812f068  RBX: ffff90bca94e3e40  RCX: 0000000000000018
+    RDX: 0000000225c17d03  RSI: ffff90bca94e3fd8  RDI: 000000701812f068
+    RBP: ffff90bca94e3e88   R8: 0000000000000085   R9: ffff90bcafad7ad0
+    R10: 7fffffffffffffff  R11: 000000aadcc5c800  R12: 0000000000000003
+    R13: ffff90bcafad39e0  R14: ffffffff832be645  R15: ffff90bca94e3de0
+    ORIG_RAX: ffffffffffffff19  CS: 0010  SS: 0018
+#47 [ffff90bca94e3e90] cpuidle_idle_call at ffffffff837694be
+#48 [ffff90bca94e3ed0] arch_cpu_idle at ffffffff832352fe
+#49 [ffff90bca94e3ee0] cpu_startup_entry at ffffffff832f2b6a
+#50 [ffff90bca94e3f28] start_secondary at ffffffff83255362
+#51 [ffff90bca94e3f50] start_cpu at ffffffff832000d5
+crash&gt; mod -s l2w /root/l2w.ko
+mod: l2w: last symbol: l2w_kill_thread is not _MODULE_END_l2w?
+     MODULE       NAME                    SIZE  OBJECT FILE
+ffffffffc05b73c0  l2w                   153093  /lib/modules/3.10.0.862.ac/kernel/net/bridge/l2w/l2w.ko 
+crash&gt; dis ffffffffc05a3b78 
+0xffffffffc05a3b78 &lt;l2w_vdev_hard_xmit_broad_pkt+248&gt;:  mov    0xe8(%rax),%rdx
+crash&gt; sym 0xffffffffc05a3b78
+ffffffffc05a3b78 (T) l2w_vdev_hard_xmit_broad_pkt+248 [l2w] /usr/src/kernels/3.10.0.862.ac/net/bridge/l2w/vdev.c: 216
+crash&gt; exit
+[root@localhost ~]#crash&gt;</code></pre>
 <ol start="3">
 <li>分析</li>
 </ol>
@@ -131,6 +288,18 @@
     var dom = document.getElementsByClassName('code');
     for(var i=0,len=dom.length; i<len; i++){
       dom[i].style.width = '750px';
+    }
+    var dom = document.getElementsByTagName('h1');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].className  += 'page_title';
+    }
+    var dom = document.getElementsByTagName('p');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#303333';
+    }
+    var dom = document.getElementsByTagName('a');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#2d96bd';
     }
   </script>
 

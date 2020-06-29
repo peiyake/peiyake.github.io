@@ -62,6 +62,25 @@
   <script src="/js/prettify.js"></script>
   <link rel="stylesheet" href="/css/tomorrow_night.css">
   <link rel="stylesheet" href="/css/tomorrow_night.min.css">
+  <link rel="stylesheet" href="/css/my.css">
+  <script>
+    Date.prototype.Format = function (fmt) {
+      var o = {
+              "M+": this.getMonth() + 1, // 月份
+              "d+": this.getDate(), // 日
+              "h+": this.getHours(), // 小时
+              "m+": this.getMinutes(), // 分
+              "s+": this.getSeconds(), // 秒
+              "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+              "S": this.getMilliseconds() // 毫秒
+      };
+      if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+      for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+      return fmt;
+    }
+  </script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -81,16 +100,25 @@
     </div>
   </nav>
   <div class="page-container">
-    <div style="float:right">
-      <span>
-        <em class="post-meta-item-text">Author:Yake Pei,</em>
+  <h1 id="PP三层转发测试" class="page_title">
+    <a href="#PP三层转发测试" class="headerlink" title="PP三层转发测试"></a>
+    PP三层转发测试
+  </h1>
+  <div>
+    <em class="page_meta">Written by </em>
+    <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+    <em class="page_meta">,Last update
+      <span class="post-time">on 
+        <time datetime="1592824242000" itemprop="datePublished"><script>var date = new Date().Format('yy-MM-dd hh:mm');document.write(date);</script></time>
       </span>
-      <span id="/2020/06/22/vpp/l3_forward/" class="leancloud_visitors" data-flag-title="PP三层转发测试">
-        <em class="post-meta-item-text">Pageviews:</em>
-        <i class="leancloud-visitors-count">loading</i>
-      </span>
-    </div>
-  <h1 id="VPP三层转发测试"><a href="#VPP三层转发测试" class="headerlink" title="VPP三层转发测试"></a>VPP三层转发测试</h1><h2 id="系统环境"><a href="#系统环境" class="headerlink" title="系统环境"></a>系统环境</h2><ul>
+    </em>
+    <span id="/2020/06/22/vpp/l3_forward/" class="leancloud_visitors" data-flag-title="PP三层转发测试">
+      <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+      <i class="leancloud-visitors-count">loading</i>
+    </span>
+  </div>
+  <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+  <h2 id="系统环境"><a href="#系统环境" class="headerlink" title="系统环境"></a>系统环境</h2><ul>
 <li>CentOS Linux release 7.5.1804 (Core)</li>
 <li>VPP-stable/1908</li>
 <li>工作路径 /root/vpp</li>
@@ -99,19 +127,35 @@
 <h2 id="运行环境准备"><a href="#运行环境准备" class="headerlink" title="运行环境准备"></a>运行环境准备</h2><ol>
 <li>启动VPP</li>
 </ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost vpp]#.&#x2F;build-root&#x2F;build-vpp_debug-native&#x2F;vpp&#x2F;bin&#x2F;vpp -c &#x2F;root&#x2F;vpp&#x2F;startup.conf</span><br></pre></td></tr></table></figure>
-
-<ol start="2">
+<pre><code>[root@localhost vpp]#./build-root/build-vpp_debug-native/vpp/bin/vpp -c /root/vpp/startup.conf</code></pre><ol start="2">
 <li>启动vppctl</li>
 </ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost vpp]# .&#x2F;build-root&#x2F;build-vpp_debug-native&#x2F;vpp&#x2F;bin&#x2F;vppctl</span><br></pre></td></tr></table></figure>
-
-<h2 id="测试过程"><a href="#测试过程" class="headerlink" title="测试过程"></a>测试过程</h2><ol>
+<pre><code>[root@localhost vpp]# ./build-root/build-vpp_debug-native/vpp/bin/vppctl</code></pre><h2 id="测试过程"><a href="#测试过程" class="headerlink" title="测试过程"></a>测试过程</h2><ol>
 <li>vppctl 配置</li>
 </ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">DBGvpp# show interface                              &#x2F;&#x2F; 查看接口                          </span><br><span class="line">            Name               Idx    State  MTU (L3&#x2F;IP4&#x2F;IP6&#x2F;MPLS)     Counter          Count     </span><br><span class="line">local0                            0     down          0&#x2F;0&#x2F;0&#x2F;0       </span><br><span class="line">vpp0                              1     down         9000&#x2F;0&#x2F;0&#x2F;0     </span><br><span class="line">vpp1                              2     down         9000&#x2F;0&#x2F;0&#x2F;0</span><br><span class="line"></span><br><span class="line">DBGvpp# set interface state vpp0 up                 &#x2F;&#x2F; 启动接口</span><br><span class="line">DBGvpp# set interface state vpp1 up</span><br><span class="line">DBGvpp# show interface             </span><br><span class="line">            Name               Idx    State  MTU (L3&#x2F;IP4&#x2F;IP6&#x2F;MPLS)     Counter          Count     </span><br><span class="line">local0                            0     down          0&#x2F;0&#x2F;0&#x2F;0       </span><br><span class="line">vpp0                              1      up          9000&#x2F;0&#x2F;0&#x2F;0     </span><br><span class="line">vpp1                              2      up          9000&#x2F;0&#x2F;0&#x2F;0 </span><br><span class="line"></span><br><span class="line">DBGvpp# set interface ip address vpp0 172.16.1.1&#x2F;16 &#x2F;&#x2F; 接口配置IP</span><br><span class="line">DBGvpp# set interface ip address vpp1 172.17.1.1&#x2F;16</span><br><span class="line">DBGvpp# show interfaces addr                        &#x2F;&#x2F; 查看接口IP</span><br><span class="line">local0 (dn):</span><br><span class="line">vpp0 (up):</span><br><span class="line">L3 172.16.1.1&#x2F;16</span><br><span class="line">vpp1 (up):</span><br><span class="line">L3 172.17.1.1&#x2F;16</span><br></pre></td></tr></table></figure>
+<pre><code>DBGvpp# show interface                              // 查看接口                          
+            Name               Idx    State  MTU (L3/IP4/IP6/MPLS)     Counter          Count     
+local0                            0     down          0/0/0/0       
+vpp0                              1     down         9000/0/0/0     
+vpp1                              2     down         9000/0/0/0
 
-<ol start="2">
+DBGvpp# set interface state vpp0 up                 // 启动接口
+DBGvpp# set interface state vpp1 up
+DBGvpp# show interface             
+            Name               Idx    State  MTU (L3/IP4/IP6/MPLS)     Counter          Count     
+local0                            0     down          0/0/0/0       
+vpp0                              1      up          9000/0/0/0     
+vpp1                              2      up          9000/0/0/0 
+
+DBGvpp# set interface ip address vpp0 172.16.1.1/16 // 接口配置IP
+DBGvpp# set interface ip address vpp1 172.17.1.1/16
+DBGvpp# show interfaces addr                        // 查看接口IP
+local0 (dn):
+vpp0 (up):
+L3 172.16.1.1/16
+vpp1 (up):
+L3 172.17.1.1/16
+</code></pre><ol start="2">
 <li>vpp0 连接PC1，PC1配置静态IP <code>172.16.1.11/16</code></li>
 <li>vpp1 连接PC2，PC2配置静态IP <code>172.17.1.11/16</code></li>
 <li>PC1 ping  PC2</li>
@@ -121,13 +165,52 @@
 </ul>
 </li>
 </ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost ~]route add -net 172.17.0.0 netmask 255.255.0.0 gw 172.16.1.1</span><br><span class="line">[root@localhost ~]# ifconfig eth3</span><br><span class="line">eth3: flags&#x3D;4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1500</span><br><span class="line">        inet 172.16.1.11  netmask 255.255.0.0  broadcast 172.16.255.255</span><br><span class="line">        inet6 fe80::2a51:32ff:fe0e:4e8e  prefixlen 64  scopeid 0x20&lt;link&gt;</span><br><span class="line">        ether 28:51:32:0e:4e:8e  txqueuelen 1000  (Ethernet)</span><br><span class="line">        RX packets 11225  bytes 1132564 (1.0 MiB)</span><br><span class="line">        RX errors 0  dropped 0  overruns 0  frame 0</span><br><span class="line">        TX packets 11748  bytes 1185688 (1.1 MiB)</span><br><span class="line">        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0</span><br><span class="line">        device interrupt 19  memory 0xdfb00000-dfb20000  </span><br><span class="line"></span><br><span class="line">[root@localhost ~]# route -n</span><br><span class="line">Kernel IP routing table</span><br><span class="line">Destination     Gateway         Genmask         Flags Metric Ref    Use Iface</span><br><span class="line">0.0.0.0         10.60.1.254     0.0.0.0         UG    0      0        0 eth0</span><br><span class="line">10.60.0.0       0.0.0.0         255.255.0.0     U     0      0        0 eth0</span><br><span class="line">172.16.0.0      0.0.0.0         255.255.0.0     U     0      0        0 eth3</span><br><span class="line">172.17.0.0      172.16.1.1      255.255.0.0     UG    0      0        0 eth3</span><br><span class="line">[root@localhost ~]# ping 172.17.1.11</span><br><span class="line">PING 172.17.1.11 (172.17.1.11) 56(84) bytes of data.</span><br><span class="line">64 bytes from 172.17.1.11: icmp_seq&#x3D;1 ttl&#x3D;63 time&#x3D;0.641 ms</span><br><span class="line">64 bytes from 172.17.1.11: icmp_seq&#x3D;2 ttl&#x3D;63 time&#x3D;0.623 ms</span><br><span class="line">64 bytes from 172.17.1.11: icmp_seq&#x3D;3 ttl&#x3D;63 time&#x3D;0.639 ms</span><br><span class="line">64 bytes from 172.17.1.11: icmp_seq&#x3D;4 ttl&#x3D;63 time&#x3D;0.605 ms</span><br><span class="line">64 bytes from 172.17.1.11: icmp_seq&#x3D;5 ttl&#x3D;63 time&#x3D;0.589 ms</span><br><span class="line">^C</span><br><span class="line">--- 172.17.1.11 ping statistics ---</span><br><span class="line">5 packets transmitted, 5 received, 0% packet loss, time 4000ms</span><br><span class="line">rtt min&#x2F;avg&#x2F;max&#x2F;mdev &#x3D; 0.589&#x2F;0.619&#x2F;0.641&#x2F;0.029 ms</span><br></pre></td></tr></table></figure>
+<pre><code>[root@localhost ~]route add -net 172.17.0.0 netmask 255.255.0.0 gw 172.16.1.1
+[root@localhost ~]# ifconfig eth3
+eth3: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1500
+        inet 172.16.1.11  netmask 255.255.0.0  broadcast 172.16.255.255
+        inet6 fe80::2a51:32ff:fe0e:4e8e  prefixlen 64  scopeid 0x20&lt;link&gt;
+        ether 28:51:32:0e:4e:8e  txqueuelen 1000  (Ethernet)
+        RX packets 11225  bytes 1132564 (1.0 MiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 11748  bytes 1185688 (1.1 MiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+        device interrupt 19  memory 0xdfb00000-dfb20000  
 
-
+[root@localhost ~]# route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+0.0.0.0         10.60.1.254     0.0.0.0         UG    0      0        0 eth0
+10.60.0.0       0.0.0.0         255.255.0.0     U     0      0        0 eth0
+172.16.0.0      0.0.0.0         255.255.0.0     U     0      0        0 eth3
+172.17.0.0      172.16.1.1      255.255.0.0     UG    0      0        0 eth3
+[root@localhost ~]# ping 172.17.1.11
+PING 172.17.1.11 (172.17.1.11) 56(84) bytes of data.
+64 bytes from 172.17.1.11: icmp_seq=1 ttl=63 time=0.641 ms
+64 bytes from 172.17.1.11: icmp_seq=2 ttl=63 time=0.623 ms
+64 bytes from 172.17.1.11: icmp_seq=3 ttl=63 time=0.639 ms
+64 bytes from 172.17.1.11: icmp_seq=4 ttl=63 time=0.605 ms
+64 bytes from 172.17.1.11: icmp_seq=5 ttl=63 time=0.589 ms
+^C
+--- 172.17.1.11 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4000ms
+rtt min/avg/max/mdev = 0.589/0.619/0.641/0.029 ms</code></pre>
   <script>
     var dom = document.getElementsByClassName('code');
     for(var i=0,len=dom.length; i<len; i++){
       dom[i].style.width = '750px';
+    }
+    var dom = document.getElementsByTagName('h1');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].className  += 'page_title';
+    }
+    var dom = document.getElementsByTagName('p');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#303333';
+    }
+    var dom = document.getElementsByTagName('a');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#2d96bd';
     }
   </script>
 

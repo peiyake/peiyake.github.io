@@ -62,6 +62,25 @@
   <script src="/js/prettify.js"></script>
   <link rel="stylesheet" href="/css/tomorrow_night.css">
   <link rel="stylesheet" href="/css/tomorrow_night.min.css">
+  <link rel="stylesheet" href="/css/my.css">
+  <script>
+    Date.prototype.Format = function (fmt) {
+      var o = {
+              "M+": this.getMonth() + 1, // 月份
+              "d+": this.getDate(), // 日
+              "h+": this.getHours(), // 小时
+              "m+": this.getMinutes(), // 分
+              "s+": this.getSeconds(), // 秒
+              "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+              "S": this.getMilliseconds() // 毫秒
+      };
+      if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+      for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+      return fmt;
+    }
+  </script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -81,16 +100,25 @@
     </div>
   </nav>
   <div class="page-container">
-    <div style="float:right">
-      <span>
-        <em class="post-meta-item-text">Author:Yake Pei,</em>
+  <h1 id="iptables 命令详解" class="page_title">
+    <a href="#iptables 命令详解" class="headerlink" title="iptables 命令详解"></a>
+    iptables 命令详解
+  </h1>
+  <div>
+    <em class="page_meta">Written by </em>
+    <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+    <em class="page_meta">,Last update
+      <span class="post-time">on 
+        <time datetime="1592824242000" itemprop="datePublished"><script>var date = new Date().Format('yy-MM-dd hh:mm');document.write(date);</script></time>
       </span>
-      <span id="/2020/06/22/shell/iptables-cmd/" class="leancloud_visitors" data-flag-title="iptables 命令详解">
-        <em class="post-meta-item-text">Pageviews:</em>
-        <i class="leancloud-visitors-count">loading</i>
-      </span>
-    </div>
-  <h1 id="iptables-专题学习"><a href="#iptables-专题学习" class="headerlink" title="iptables 专题学习"></a>iptables 专题学习</h1><p>iptables是linux下的防火墙管理工具,它是linux系统下和NETFILETER架构模块交互的用户态命令行工具,通过iptable可以对linux的NETFILTER配置各种规则,来达到对网络防火墙进行管理的目的. NETFILTER本身就是非常复杂的一套东西, 本文这里主要介绍iptables的使用方法,有关NETFILTER架构的有关知识可以查看我的另一篇文章 <code>NETFILTER专题学习</code>。</p>
+    </em>
+    <span id="/2020/06/22/shell/iptables-cmd/" class="leancloud_visitors" data-flag-title="iptables 命令详解">
+      <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+      <i class="leancloud-visitors-count">loading</i>
+    </span>
+  </div>
+  <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+  <p>iptables是linux下的防火墙管理工具,它是linux系统下和NETFILETER架构模块交互的用户态命令行工具,通过iptable可以对linux的NETFILTER配置各种规则,来达到对网络防火墙进行管理的目的. NETFILTER本身就是非常复杂的一套东西, 本文这里主要介绍iptables的使用方法,有关NETFILTER架构的有关知识可以查看我的另一篇文章 <code>NETFILTER专题学习</code>。</p>
 <h2 id="iptables-命令学习总结"><a href="#iptables-命令学习总结" class="headerlink" title="iptables 命令学习总结"></a>iptables 命令学习总结</h2><h3 id="iptables规则基本要素"><a href="#iptables规则基本要素" class="headerlink" title="iptables规则基本要素"></a>iptables规则基本要素</h3><p>一条iptables规则由以下几种基本要素构成：</p>
 <ul>
 <li>规则适配哪张表</li>
@@ -157,7 +185,9 @@
 <h3 id="要素1-规则适配哪张表"><a href="#要素1-规则适配哪张表" class="headerlink" title="要素1 : 规则适配哪张表"></a>要素1 : <strong>规则适配哪张表</strong></h3><ul>
 <li><code>-t</code> 参数指定规则要适配的表名称，例如：</li>
 </ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">iptables -t nat         //匹配nat表</span><br><span class="line">iptables -t filter      //匹配filter表</span><br><span class="line">iptables -t mangle      //匹配mangle表</span><br></pre></td></tr></table></figure>
+<pre><code class="shell">iptables -t nat         //匹配nat表
+iptables -t filter      //匹配filter表
+iptables -t mangle      //匹配mangle表</code></pre>
 <p>注意：如果省略 <code>-t</code> 参数,默认操作的是 <code>filter</code> 表</p>
 <hr>
 <h3 id="要素2、3-规则的动作-和-指定链名称"><a href="#要素2、3-规则的动作-和-指定链名称" class="headerlink" title="要素2、3 : 规则的动作 和 指定链名称"></a>要素2、3 : <strong>规则的动作 和 指定链名称</strong></h3><p>该要素大致分为2类，一是 <strong>查看动作</strong> ，另一个是 <strong>设置动作</strong> , 规则的动作一般都是针对 <strong>链</strong> 的，所以一般都要指定链的名称， <strong>某张表有哪些链在上面表格已经说明</strong></p>
@@ -172,8 +202,28 @@
 </li>
 </ul>
 <p>例如：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost ~]# iptables -nvL</span><br><span class="line">Chain INPUT (policy ACCEPT 7105K packets, 5036M bytes)</span><br><span class="line"> pkts bytes target     prot opt in     out     source               destination         </span><br><span class="line">    0     0 ACCEPT     udp  --  virbr0 *       0.0.0.0/0            0.0.0.0/0            udp dpt:53</span><br><span class="line">    0     0 ACCEPT     tcp  --  virbr0 *       0.0.0.0/0            0.0.0.0/0            tcp dpt:53</span><br><span class="line"></span><br><span class="line">Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)</span><br><span class="line"> pkts bytes target     prot opt in     out     source               destination         </span><br><span class="line">    0     0 ACCEPT     all  --  *      virbr0  0.0.0.0/0            192.168.122.0/24     ctstate RELATED,ESTABLISHED</span><br><span class="line">    0     0 ACCEPT     all  --  virbr0 *       192.168.122.0/24     0.0.0.0/0           </span><br><span class="line"></span><br><span class="line">Chain OUTPUT (policy ACCEPT 6119K packets, 2825M bytes)</span><br><span class="line"> pkts bytes target     prot opt in     out     source               destination         </span><br><span class="line">    0     0 ACCEPT     udp  --  *      virbr0  0.0.0.0/0            0.0.0.0/0            udp dpt:68</span><br><span class="line">[root@localhost ~]# iptables -S</span><br><span class="line">-P INPUT ACCEPT</span><br><span class="line">-P FORWARD ACCEPT</span><br><span class="line">-P OUTPUT ACCEPT</span><br><span class="line">-A INPUT -i virbr0 -p udp -m udp --dport 53 -j ACCEPT</span><br><span class="line">-A INPUT -i virbr0 -p tcp -m tcp --dport 53 -j ACCEPT</span><br><span class="line">-A FORWARD -d 192.168.122.0/24 -o virbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT</span><br><span class="line">-A OUTPUT -o virbr0 -p udp -m udp --dport 68 -j ACCEPTrbr0 -j REJECT --reject-with icmp-port-unreachable</span><br></pre></td></tr></table></figure>
+<pre><code class="shell">[root@localhost ~]# iptables -nvL
+Chain INPUT (policy ACCEPT 7105K packets, 5036M bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 ACCEPT     udp  --  virbr0 *       0.0.0.0/0            0.0.0.0/0            udp dpt:53
+    0     0 ACCEPT     tcp  --  virbr0 *       0.0.0.0/0            0.0.0.0/0            tcp dpt:53
 
+Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 ACCEPT     all  --  *      virbr0  0.0.0.0/0            192.168.122.0/24     ctstate RELATED,ESTABLISHED
+    0     0 ACCEPT     all  --  virbr0 *       192.168.122.0/24     0.0.0.0/0           
+
+Chain OUTPUT (policy ACCEPT 6119K packets, 2825M bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 ACCEPT     udp  --  *      virbr0  0.0.0.0/0            0.0.0.0/0            udp dpt:68
+[root@localhost ~]# iptables -S
+-P INPUT ACCEPT
+-P FORWARD ACCEPT
+-P OUTPUT ACCEPT
+-A INPUT -i virbr0 -p udp -m udp --dport 53 -j ACCEPT
+-A INPUT -i virbr0 -p tcp -m tcp --dport 53 -j ACCEPT
+-A FORWARD -d 192.168.122.0/24 -o virbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A OUTPUT -o virbr0 -p udp -m udp --dport 68 -j ACCEPTrbr0 -j REJECT --reject-with icmp-port-unreachable</code></pre>
 <ul>
 <li><strong>设置动作</strong><ul>
 <li><code>-F | --flush</code> 清空指定规则链的所有规则，没有指定链名的话则清空该表的所有规则</li>
@@ -192,8 +242,14 @@
 </blockquote>
 <hr>
 <h3 id="要素5-匹配后如何处理？"><a href="#要素5-匹配后如何处理？" class="headerlink" title="要素5 : 匹配后如何处理？"></a><strong>要素5 : 匹配后如何处理？</strong></h3><p>在继续说明之前，这里要回顾一下 <strong>要素2 的 设置动作</strong> 中的一个选项 <code>-P</code> ,例如：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost ~]# iptables -F                     // 清空默认表 filter 的所有规则</span><br><span class="line">[root@localhost ~]# iptables -L FORWARD             // 查看 filter表 FORWARD 链的规则</span><br><span class="line">Chain FORWARD (policy ACCEPT)   //  policy ACCEPT  表示，进入这条链的所有报文都会被 ACCEPT （接受），总是允许转发</span><br><span class="line">target     prot opt source               destination         </span><br><span class="line">[root@localhost ~]# iptables -P FORWARD DROP        // 修改 filter 表 FORWARD 链的默认规则是 DROP</span><br><span class="line">[root@localhost ~]# iptables -L FORWARD             // 再次查看</span><br><span class="line">Chain FORWARD (policy DROP)     //  policy DROP  表示，进入这条链的所有报文都会被 DROP （丢弃），也就是禁止转发</span><br><span class="line">target     prot opt source               destination</span><br></pre></td></tr></table></figure>
-
+<pre><code class="shell">[root@localhost ~]# iptables -F                     // 清空默认表 filter 的所有规则
+[root@localhost ~]# iptables -L FORWARD             // 查看 filter表 FORWARD 链的规则
+Chain FORWARD (policy ACCEPT)   //  policy ACCEPT  表示，进入这条链的所有报文都会被 ACCEPT （接受），总是允许转发
+target     prot opt source               destination         
+[root@localhost ~]# iptables -P FORWARD DROP        // 修改 filter 表 FORWARD 链的默认规则是 DROP
+[root@localhost ~]# iptables -L FORWARD             // 再次查看
+Chain FORWARD (policy DROP)     //  policy DROP  表示，进入这条链的所有报文都会被 DROP （丢弃），也就是禁止转发
+target     prot opt source               destination</code></pre>
 <pre><code>在我们决定某条规则匹配后如何处理时，首先我们要看该链的默认规则是什么</code></pre><ul>
 <li>如果默认规则是 <strong>ACCEPT</strong>， 那么我们规则的处理动作一般是 将匹配规则的报文 DROP 或者进行其处理. 意思是： 正常情况下报文都接收，但是只有匹配我们设置的规则的报文拒绝接收</li>
 <li>如果默认规则是 <strong>DROP</strong>， 那么我们规则的处理动作一般是 将匹配规则的报文 ACCEPT 或者进行其处理. 意思是： 正常情况下报文都拒绝，但是只有匹配我们设置的规则的报文才允许通过</li>
@@ -275,6 +331,18 @@
     var dom = document.getElementsByClassName('code');
     for(var i=0,len=dom.length; i<len; i++){
       dom[i].style.width = '750px';
+    }
+    var dom = document.getElementsByTagName('h1');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].className  += 'page_title';
+    }
+    var dom = document.getElementsByTagName('p');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#303333';
+    }
+    var dom = document.getElementsByTagName('a');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#2d96bd';
     }
   </script>
 

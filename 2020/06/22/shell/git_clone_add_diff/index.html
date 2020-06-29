@@ -62,6 +62,25 @@
   <script src="/js/prettify.js"></script>
   <link rel="stylesheet" href="/css/tomorrow_night.css">
   <link rel="stylesheet" href="/css/tomorrow_night.min.css">
+  <link rel="stylesheet" href="/css/my.css">
+  <script>
+    Date.prototype.Format = function (fmt) {
+      var o = {
+              "M+": this.getMonth() + 1, // 月份
+              "d+": this.getDate(), // 日
+              "h+": this.getHours(), // 小时
+              "m+": this.getMinutes(), // 分
+              "s+": this.getSeconds(), // 秒
+              "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+              "S": this.getMilliseconds() // 毫秒
+      };
+      if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+      for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+      return fmt;
+    }
+  </script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -81,16 +100,25 @@
     </div>
   </nav>
   <div class="page-container">
-    <div style="float:right">
-      <span>
-        <em class="post-meta-item-text">Author:Yake Pei,</em>
+  <h1 id="git clone/add/diff" class="page_title">
+    <a href="#git clone/add/diff" class="headerlink" title="git clone/add/diff"></a>
+    git clone/add/diff
+  </h1>
+  <div>
+    <em class="page_meta">Written by </em>
+    <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+    <em class="page_meta">,Last update
+      <span class="post-time">on 
+        <time datetime="1592824242000" itemprop="datePublished"><script>var date = new Date().Format('yy-MM-dd hh:mm');document.write(date);</script></time>
       </span>
-      <span id="/2020/06/22/shell/git_clone_add_diff/" class="leancloud_visitors" data-flag-title="git clone/add/diff">
-        <em class="post-meta-item-text">Pageviews:</em>
-        <i class="leancloud-visitors-count">loading</i>
-      </span>
-    </div>
-  <h1 id="git-clone-add-diff"><a href="#git-clone-add-diff" class="headerlink" title="git clone/add/diff"></a>git clone/add/diff</h1><p>本文使用github上创建的示例仓库进行练习 <code>git@github.com:peiyake/git_cmd_test.git</code></p>
+    </em>
+    <span id="/2020/06/22/shell/git_clone_add_diff/" class="leancloud_visitors" data-flag-title="git clone/add/diff">
+      <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+      <i class="leancloud-visitors-count">loading</i>
+    </span>
+  </div>
+  <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+  <p>本文使用github上创建的示例仓库进行练习 <code>git@github.com:peiyake/git_cmd_test.git</code></p>
 <h2 id="git-clone"><a href="#git-clone" class="headerlink" title="git clone"></a><a href="https://git-scm.com/docs/git-clone/zh_HANS-CN">git clone</a></h2><ol>
 <li><p>普通克隆</p>
 <p> git clone <a href="mailto:git@github.com">git@github.com</a>:peiyake/git_cmd_test.git</p>
@@ -116,9 +144,23 @@
 <li><p>示例</p>
 </li>
 </ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">[peiyake@localhost git_cmd_test]$ touch 4.c</span><br><span class="line">[peiyake@localhost git_cmd_test]$ git status</span><br><span class="line"># On branch b1</span><br><span class="line"># Untracked files:</span><br><span class="line">#   (use &quot;git add &lt;file&gt;...&quot; to include in what will be committed)</span><br><span class="line">#</span><br><span class="line">#       4.c</span><br><span class="line">nothing added to commit but untracked files present (use &quot;git add&quot; to track)</span><br><span class="line">[peiyake@localhost git_cmd_test]$ git add -A</span><br><span class="line">[peiyake@localhost git_cmd_test]$ git status</span><br><span class="line"># On branch b1</span><br><span class="line"># Changes to be committed:</span><br><span class="line">#   (use &quot;git reset HEAD &lt;file&gt;...&quot; to unstage)</span><br><span class="line">#</span><br><span class="line">#       new file:   4.c</span><br><span class="line">#</span><br><span class="line">[peiyake@localhost git_cmd_test]$</span><br></pre></td></tr></table></figure>
-
-<h2 id="git-diff"><a href="#git-diff" class="headerlink" title="git diff"></a><a href="https://git-scm.com/docs/git-diff">git diff</a></h2><ol>
+<pre><code>[peiyake@localhost git_cmd_test]$ touch 4.c
+[peiyake@localhost git_cmd_test]$ git status
+# On branch b1
+# Untracked files:
+#   (use &quot;git add &lt;file&gt;...&quot; to include in what will be committed)
+#
+#       4.c
+nothing added to commit but untracked files present (use &quot;git add&quot; to track)
+[peiyake@localhost git_cmd_test]$ git add -A
+[peiyake@localhost git_cmd_test]$ git status
+# On branch b1
+# Changes to be committed:
+#   (use &quot;git reset HEAD &lt;file&gt;...&quot; to unstage)
+#
+#       new file:   4.c
+#
+[peiyake@localhost git_cmd_test]$</code></pre><h2 id="git-diff"><a href="#git-diff" class="headerlink" title="git diff"></a><a href="https://git-scm.com/docs/git-diff">git diff</a></h2><ol>
 <li><code>git diff</code>，显示未被<a href="#git-addhttpsgit-scmcomdocsgit-addzhhans-cn">git add</a>过的文件的变更，（注意如果是新增的文件，没有commit过的话，不会显示出来）。</li>
 <li><code>git diff --cached</code>，显示已经被<a href="#git-addhttpsgit-scmcomdocsgit-addzhhans-cn">git add</a>但是还没有<code>commit</code>的变更。</li>
 <li><code>git diff HEAD</code>，显示以上所有变更</li>
@@ -131,6 +173,18 @@
     var dom = document.getElementsByClassName('code');
     for(var i=0,len=dom.length; i<len; i++){
       dom[i].style.width = '750px';
+    }
+    var dom = document.getElementsByTagName('h1');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].className  += 'page_title';
+    }
+    var dom = document.getElementsByTagName('p');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#303333';
+    }
+    var dom = document.getElementsByTagName('a');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#2d96bd';
     }
   </script>
 

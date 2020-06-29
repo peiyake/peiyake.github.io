@@ -62,6 +62,25 @@
   <script src="/js/prettify.js"></script>
   <link rel="stylesheet" href="/css/tomorrow_night.css">
   <link rel="stylesheet" href="/css/tomorrow_night.min.css">
+  <link rel="stylesheet" href="/css/my.css">
+  <script>
+    Date.prototype.Format = function (fmt) {
+      var o = {
+              "M+": this.getMonth() + 1, // 月份
+              "d+": this.getDate(), // 日
+              "h+": this.getHours(), // 小时
+              "m+": this.getMinutes(), // 分
+              "s+": this.getSeconds(), // 秒
+              "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+              "S": this.getMilliseconds() // 毫秒
+      };
+      if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+      for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+      return fmt;
+    }
+  </script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -81,30 +100,333 @@
     </div>
   </nav>
   <div class="page-container">
-    <div style="float:right">
-      <span>
-        <em class="post-meta-item-text">Author:Yake Pei,</em>
+  <h1 id="pppd源码详解一 （插件加载）" class="page_title">
+    <a href="#pppd源码详解一 （插件加载）" class="headerlink" title="pppd源码详解一 （插件加载）"></a>
+    pppd源码详解一 （插件加载）
+  </h1>
+  <div>
+    <em class="page_meta">Written by </em>
+    <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+    <em class="page_meta">,Last update
+      <span class="post-time">on 
+        <time datetime="1592824242000" itemprop="datePublished"><script>var date = new Date().Format('yy-MM-dd hh:mm');document.write(date);</script></time>
       </span>
-      <span id="/2020/06/22/linuxc/pppd_code/" class="leancloud_visitors" data-flag-title="pppd源码详解一 （插件加载）">
-        <em class="post-meta-item-text">Pageviews:</em>
-        <i class="leancloud-visitors-count">loading</i>
-      </span>
-    </div>
-  <h1 id="pppd源码详解一-（插件加载）"><a href="#pppd源码详解一-（插件加载）" class="headerlink" title="pppd源码详解一 （插件加载）"></a>pppd源码详解一 （插件加载）</h1><ul>
-<li>pppd-2.4.5</li>
-<li>CentOS-7.5.1804</li>
-</ul>
-<h2 id="获取rpm包中源码"><a href="#获取rpm包中源码" class="headerlink" title="获取rpm包中源码"></a>获取rpm包中源码</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">wget http:&#x2F;&#x2F;vault.centos.org&#x2F;7.5.1804&#x2F;os&#x2F;Source&#x2F;SPackages&#x2F;ppp-2.4.5-33.el7.src.rpm</span><br><span class="line">rpm -ivh ppp-2.4.5-33.el7.src.rpm</span><br><span class="line">ls .&#x2F;rpmbuild&#x2F;SOURCE&#x2F;ppp-2.4.5.tar.gz</span><br></pre></td></tr></table></figure>
-
-<h2 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h2><p>解读pppd的源码，重点想知道如下信息：</p>
+    </em>
+    <span id="/2020/06/22/linuxc/pppd_code/" class="leancloud_visitors" data-flag-title="pppd源码详解一 （插件加载）">
+      <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+      <i class="leancloud-visitors-count">loading</i>
+    </span>
+  </div>
+  <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+  <p>本文使用 <code>pppd-2.4.5</code>在<code>CentOS-7.5.1804</code>进行测试.</p>
+<h2 id="获取rpm包中源码"><a href="#获取rpm包中源码" class="headerlink" title="获取rpm包中源码"></a>获取rpm包中源码</h2><pre><code>wget http://vault.centos.org/7.5.1804/os/Source/SPackages/ppp-2.4.5-33.el7.src.rpm
+rpm -ivh ppp-2.4.5-33.el7.src.rpm
+ls ./rpmbuild/SOURCE/ppp-2.4.5.tar.gz</code></pre><h2 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h2><p>解读pppd的源码，重点想知道如下信息：</p>
 <ol>
 <li>pppd 如何加载插件？</li>
 <li>pppd 如何发起 ppp的 discovery连接？</li>
 <li>pppd 对各种 ppp协议的处理逻辑？</li>
 <li>pppd 如何创建虚端口</li>
 </ol>
-<h2 id="main-函数解读"><a href="#main-函数解读" class="headerlink" title="main 函数解读"></a>main 函数解读</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br><span class="line">296</span><br><span class="line">297</span><br><span class="line">298</span><br><span class="line">299</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span></span><br><span class="line">main(argc, argv)</span><br><span class="line">    <span class="keyword">int</span> argc;</span><br><span class="line">    <span class="keyword">char</span> *argv[];</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">int</span> i, t;</span><br><span class="line">    <span class="keyword">char</span> *p;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">passwd</span> *<span class="title">pw</span>;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">protent</span> *<span class="title">protp</span>;</span></span><br><span class="line">    <span class="keyword">char</span> numbuf[<span class="number">16</span>];</span><br><span class="line"></span><br><span class="line">    link_stats_valid = <span class="number">0</span>;</span><br><span class="line">    new_phase(PHASE_INITIALIZE);</span><br><span class="line"></span><br><span class="line">    script_env = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Initialize syslog facilities */</span></span><br><span class="line">    reopen_log();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (gethostname(hostname, MAXNAMELEN) &lt; <span class="number">0</span> ) &#123;</span><br><span class="line">	option_error(<span class="string">"Couldn't get hostname: %m"</span>);</span><br><span class="line">	<span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    hostname[MAXNAMELEN<span class="number">-1</span>] = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* make sure we don't create world or group writable files. */</span></span><br><span class="line">    umask(umask(<span class="number">0777</span>) | <span class="number">022</span>);</span><br><span class="line"></span><br><span class="line">    uid = getuid();</span><br><span class="line">    privileged = uid == <span class="number">0</span>;</span><br><span class="line">    slprintf(numbuf, <span class="keyword">sizeof</span>(numbuf), <span class="string">"%d"</span>, uid);</span><br><span class="line">    script_setenv(<span class="string">"ORIG_UID"</span>, numbuf, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    ngroups = getgroups(NGROUPS_MAX, groups);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Initialize magic number generator now so that protocols may</span></span><br><span class="line"><span class="comment">     * use magic numbers in initialization.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    magic_init();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Initialize each protocol.各种协议初始化</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; (protp = protocols[i]) != <span class="literal">NULL</span>; ++i)</span><br><span class="line">        (*protp-&gt;init)(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Initialize the default channel.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    tty_init();</span><br><span class="line"></span><br><span class="line">    progname = *argv;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Parse, in order, the system options file, the user's options file,</span></span><br><span class="line"><span class="comment">     * and the command line arguments.</span></span><br><span class="line"><span class="comment">     * 分别从三个地方获取参数，文件、用户、命令行，然后解析</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (!options_from_file(_PATH_SYSOPTIONS, !privileged, <span class="number">0</span>, <span class="number">1</span>)</span><br><span class="line">	|| !options_from_user()</span><br><span class="line">	|| !parse_args(argc<span class="number">-1</span>, argv+<span class="number">1</span>))</span><br><span class="line">	<span class="built_in">exit</span>(EXIT_OPTION_ERROR);</span><br><span class="line">    devnam_fixed = <span class="number">1</span>;		<span class="comment">/* can no longer change device name */</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Work out the device name, if it hasn't already been specified,</span></span><br><span class="line"><span class="comment">     * and parse the tty's options file.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (the_channel-&gt;process_extra_options)</span><br><span class="line">	(*the_channel-&gt;process_extra_options)();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (debug)</span><br><span class="line">	setlogmask(LOG_UPTO(LOG_DEBUG));</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Check that we are running as root.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (geteuid() != <span class="number">0</span>) &#123;</span><br><span class="line">	option_error(<span class="string">"must be root to run %s, since it is not setuid-root"</span>,</span><br><span class="line">		     argv[<span class="number">0</span>]);</span><br><span class="line">	<span class="built_in">exit</span>(EXIT_NOT_ROOT);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!ppp_available()) &#123;</span><br><span class="line">	option_error(<span class="string">"%s"</span>, no_ppp_msg);</span><br><span class="line">	<span class="built_in">exit</span>(EXIT_NO_KERNEL_SUPPORT);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Check that the options given are valid and consistent.</span></span><br><span class="line"><span class="comment">     * 执行每个协议的 check_options 函数</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    check_options();</span><br><span class="line">    <span class="keyword">if</span> (!sys_check_options())</span><br><span class="line">	<span class="built_in">exit</span>(EXIT_OPTION_ERROR);</span><br><span class="line">    auth_check_options();</span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> HAVE_MULTILINK</span></span><br><span class="line">    mp_check_options();</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; (protp = protocols[i]) != <span class="literal">NULL</span>; ++i)</span><br><span class="line">	<span class="keyword">if</span> (protp-&gt;check_options != <span class="literal">NULL</span>)</span><br><span class="line">	    (*protp-&gt;check_options)();</span><br><span class="line">    <span class="keyword">if</span> (the_channel-&gt;check_options)</span><br><span class="line">	(*the_channel-&gt;check_options)();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (dump_options || dryrun) &#123;</span><br><span class="line">	init_pr_log(<span class="literal">NULL</span>, LOG_INFO);</span><br><span class="line">	print_options(pr_log, <span class="literal">NULL</span>);</span><br><span class="line">	end_pr_log();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (dryrun)</span><br><span class="line">	die(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Make sure fds 0, 1, 2 are open to somewhere. */</span></span><br><span class="line">    fd_devnull = <span class="built_in">open</span>(_PATH_DEVNULL, O_RDWR);</span><br><span class="line">    <span class="keyword">if</span> (fd_devnull &lt; <span class="number">0</span>)</span><br><span class="line">	fatal(<span class="string">"Couldn't open %s: %m"</span>, _PATH_DEVNULL);</span><br><span class="line">    <span class="keyword">while</span> (fd_devnull &lt;= <span class="number">2</span>) &#123;</span><br><span class="line">	i = dup(fd_devnull);</span><br><span class="line">	<span class="keyword">if</span> (i &lt; <span class="number">0</span>)</span><br><span class="line">	    fatal(<span class="string">"Critical shortage of file descriptors: dup failed: %m"</span>);</span><br><span class="line">	fd_devnull = i;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Initialize system-dependent stuff.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    sys_init();</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> USE_TDB      <span class="comment">/* 使用宏 隔开的语句其实都不用看，用宏隔开，说明可有可无*/</span></span></span><br><span class="line">    pppdb = tdb_open(_PATH_PPPDB, <span class="number">0</span>, <span class="number">0</span>, O_RDWR|O_CREAT, <span class="number">0644</span>);</span><br><span class="line">    <span class="keyword">if</span> (pppdb != <span class="literal">NULL</span>) &#123;</span><br><span class="line">	slprintf(db_key, <span class="keyword">sizeof</span>(db_key), <span class="string">"pppd%d"</span>, getpid());</span><br><span class="line">	update_db_entry();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">	warn(<span class="string">"Warning: couldn't open ppp database %s"</span>, _PATH_PPPDB);</span><br><span class="line">	<span class="keyword">if</span> (multilink) &#123;</span><br><span class="line">	    warn(<span class="string">"Warning: disabling multilink"</span>);</span><br><span class="line">	    multilink = <span class="number">0</span>;</span><br><span class="line">	&#125;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Detach ourselves from the terminal, if required,</span></span><br><span class="line"><span class="comment">     * and identify who is running us.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (!nodetach &amp;&amp; !updetach)</span><br><span class="line">	<span class="built_in">detach</span>();</span><br><span class="line">    p = getlogin();</span><br><span class="line">    <span class="keyword">if</span> (p == <span class="literal">NULL</span>) &#123;</span><br><span class="line">	pw = getpwuid(uid);</span><br><span class="line">	<span class="keyword">if</span> (pw != <span class="literal">NULL</span> &amp;&amp; pw-&gt;pw_name != <span class="literal">NULL</span>)</span><br><span class="line">	    p = pw-&gt;pw_name;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">	    p = <span class="string">"(unknown)"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    syslog(LOG_NOTICE, <span class="string">"pppd %s started by %s, uid %d"</span>, VERSION, p, uid);</span><br><span class="line">    script_setenv(<span class="string">"PPPLOGNAME"</span>, p, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (devnam[<span class="number">0</span>])</span><br><span class="line">	script_setenv(<span class="string">"DEVICE"</span>, devnam, <span class="number">1</span>);</span><br><span class="line">    slprintf(numbuf, <span class="keyword">sizeof</span>(numbuf), <span class="string">"%d"</span>, getpid());</span><br><span class="line">    script_setenv(<span class="string">"PPPD_PID"</span>, numbuf, <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    setup_signals();</span><br><span class="line"></span><br><span class="line">    create_linkpidfile(getpid());</span><br><span class="line"></span><br><span class="line">    waiting = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * If we're doing dial-on-demand, set up the interface now.</span></span><br><span class="line"><span class="comment">     * 这个条件想成立，除非显示在命令行指定</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (demand) &#123;</span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * Open the loopback channel and set it up to be the ppp interface.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	fd_loop = open_ppp_loopback();  <span class="comment">/*创建PPP虚设备*/</span></span><br><span class="line">	set_ifunit(<span class="number">1</span>);</span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * Configure the interface and mark it up, etc.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	demand_conf();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    do_callback = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (;;) &#123;</span><br><span class="line"></span><br><span class="line">	bundle_eof = <span class="number">0</span>;</span><br><span class="line">	bundle_terminating = <span class="number">0</span>;</span><br><span class="line">	listen_time = <span class="number">0</span>;</span><br><span class="line">	need_holdoff = <span class="number">1</span>;</span><br><span class="line">	devfd = <span class="number">-1</span>;</span><br><span class="line">	status = EXIT_OK;</span><br><span class="line">	++unsuccess;</span><br><span class="line">	doing_callback = do_callback;</span><br><span class="line">	do_callback = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (demand &amp;&amp; !doing_callback) &#123;</span><br><span class="line">	    <span class="comment">/*</span></span><br><span class="line"><span class="comment">	     * Don't do anything until we see some activity.</span></span><br><span class="line"><span class="comment">	     */</span></span><br><span class="line">	    new_phase(PHASE_DORMANT);</span><br><span class="line">	    demand_unblock();</span><br><span class="line">	    add_fd(fd_loop);</span><br><span class="line">	    <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">		handle_events();</span><br><span class="line">		<span class="keyword">if</span> (asked_to_quit)</span><br><span class="line">		    <span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">if</span> (get_loop_output())</span><br><span class="line">		    <span class="keyword">break</span>;</span><br><span class="line">	    &#125;</span><br><span class="line">	    remove_fd(fd_loop);</span><br><span class="line">	    <span class="keyword">if</span> (asked_to_quit)</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">	    <span class="comment">/*</span></span><br><span class="line"><span class="comment">	     * Now we want to bring up the link.</span></span><br><span class="line"><span class="comment">	     */</span></span><br><span class="line">	    demand_block();</span><br><span class="line">	    info(<span class="string">"Starting link"</span>);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	gettimeofday(&amp;start_time, <span class="literal">NULL</span>);</span><br><span class="line">	script_unsetenv(<span class="string">"CONNECT_TIME"</span>);</span><br><span class="line">	script_unsetenv(<span class="string">"BYTES_SENT"</span>);</span><br><span class="line">	script_unsetenv(<span class="string">"BYTES_RCVD"</span>);</span><br><span class="line"></span><br><span class="line">	lcp_open(<span class="number">0</span>);		<span class="comment">/* Start protocol */</span></span><br><span class="line">    <span class="comment">/* start_link 调用 rp-pppoe 插件，发起pppoe的 discovery连接，这个很重要*/</span></span><br><span class="line">	start_link(<span class="number">0</span>);</span><br><span class="line">    <span class="comment">/* 下面开始，就已经是ppp的 session 阶段了*/</span></span><br><span class="line">	<span class="keyword">while</span> (phase != PHASE_DEAD) &#123;</span><br><span class="line">	    handle_events();    <span class="comment">/* 监控各个fd，一旦就绪，就处理*/</span></span><br><span class="line">	    get_input();        <span class="comment">/*  这个函数 处理 sesseion 的输入*/</span></span><br><span class="line">	    <span class="keyword">if</span> (kill_link)</span><br><span class="line">		lcp_close(<span class="number">0</span>, <span class="string">"User request"</span>);</span><br><span class="line">	    <span class="keyword">if</span> (asked_to_quit) &#123;</span><br><span class="line">		bundle_terminating = <span class="number">1</span>;</span><br><span class="line">		<span class="keyword">if</span> (phase == PHASE_MASTER)</span><br><span class="line">		    mp_bundle_terminated();</span><br><span class="line">	    &#125;</span><br><span class="line">	    <span class="keyword">if</span> (open_ccp_flag) &#123;</span><br><span class="line">		<span class="keyword">if</span> (phase == PHASE_NETWORK || phase == PHASE_RUNNING) &#123;</span><br><span class="line">		    ccp_fsm[<span class="number">0</span>].flags = OPT_RESTART; <span class="comment">/* clears OPT_SILENT */</span></span><br><span class="line">		    (*ccp_protent.<span class="built_in">open</span>)(<span class="number">0</span>);</span><br><span class="line">		&#125;</span><br><span class="line">	    &#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">/* restore FSMs to original state */</span></span><br><span class="line">	lcp_close(<span class="number">0</span>, <span class="string">""</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (!persist || asked_to_quit || (maxfail &gt; <span class="number">0</span> &amp;&amp; unsuccess &gt;= maxfail))</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (demand)</span><br><span class="line">	    demand_discard();</span><br><span class="line">	t = need_holdoff? holdoff: <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">if</span> (holdoff_hook)</span><br><span class="line">	    t = (*holdoff_hook)();</span><br><span class="line">	<span class="keyword">if</span> (t &gt; <span class="number">0</span>) &#123;</span><br><span class="line">	    new_phase(PHASE_HOLDOFF);</span><br><span class="line">	    TIMEOUT(holdoff_end, <span class="literal">NULL</span>, t);</span><br><span class="line">	    <span class="keyword">do</span> &#123;</span><br><span class="line">		handle_events();</span><br><span class="line">		<span class="keyword">if</span> (kill_link)</span><br><span class="line">		    new_phase(PHASE_DORMANT); <span class="comment">/* allow signal to end holdoff */</span></span><br><span class="line">	    &#125; <span class="keyword">while</span> (phase == PHASE_HOLDOFF);</span><br><span class="line">	    <span class="keyword">if</span> (!persist)</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">	&#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Wait for scripts to finish */</span></span><br><span class="line">    reap_kids();</span><br><span class="line">    <span class="keyword">if</span> (n_children &gt; <span class="number">0</span>) &#123;</span><br><span class="line">	<span class="keyword">if</span> (child_wait &gt; <span class="number">0</span>)</span><br><span class="line">	    TIMEOUT(childwait_end, <span class="literal">NULL</span>, child_wait);</span><br><span class="line">	<span class="keyword">if</span> (debug) &#123;</span><br><span class="line">	    <span class="class"><span class="keyword">struct</span> <span class="title">subprocess</span> *<span class="title">chp</span>;</span></span><br><span class="line">	    dbglog(<span class="string">"Waiting for %d child processes..."</span>, n_children);</span><br><span class="line">	    <span class="keyword">for</span> (chp = children; chp != <span class="literal">NULL</span>; chp = chp-&gt;next)</span><br><span class="line">		dbglog(<span class="string">"  script %s, pid %d"</span>, chp-&gt;prog, chp-&gt;pid);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">while</span> (n_children &gt; <span class="number">0</span> &amp;&amp; !childwait_done) &#123;</span><br><span class="line">	    handle_events();</span><br><span class="line">	    <span class="keyword">if</span> (kill_link &amp;&amp; !childwait_done)</span><br><span class="line">		childwait_end(<span class="literal">NULL</span>);</span><br><span class="line">	&#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    die(status);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="main-函数解读"><a href="#main-函数解读" class="headerlink" title="main 函数解读"></a>main 函数解读</h2><pre><code class="c">int
+main(argc, argv)
+    int argc;
+    char *argv[];
+{
+    int i, t;
+    char *p;
+    struct passwd *pw;
+    struct protent *protp;
+    char numbuf[16];
 
+    link_stats_valid = 0;
+    new_phase(PHASE_INITIALIZE);
+
+    script_env = NULL;
+
+    /* Initialize syslog facilities */
+    reopen_log();
+
+    if (gethostname(hostname, MAXNAMELEN) &lt; 0 ) {
+    option_error(&quot;Couldn&#39;t get hostname: %m&quot;);
+    exit(1);
+    }
+    hostname[MAXNAMELEN-1] = 0;
+
+    /* make sure we don&#39;t create world or group writable files. */
+    umask(umask(0777) | 022);
+
+    uid = getuid();
+    privileged = uid == 0;
+    slprintf(numbuf, sizeof(numbuf), &quot;%d&quot;, uid);
+    script_setenv(&quot;ORIG_UID&quot;, numbuf, 0);
+
+    ngroups = getgroups(NGROUPS_MAX, groups);
+
+    /*
+     * Initialize magic number generator now so that protocols may
+     * use magic numbers in initialization.
+     */
+    magic_init();
+
+    /*
+     * Initialize each protocol.各种协议初始化
+     */
+    for (i = 0; (protp = protocols[i]) != NULL; ++i)
+        (*protp-&gt;init)(0);
+
+    /*
+     * Initialize the default channel.
+     */
+    tty_init();
+
+    progname = *argv;
+
+    /*
+     * Parse, in order, the system options file, the user&#39;s options file,
+     * and the command line arguments.
+     * 分别从三个地方获取参数，文件、用户、命令行，然后解析
+     */
+    if (!options_from_file(_PATH_SYSOPTIONS, !privileged, 0, 1)
+    || !options_from_user()
+    || !parse_args(argc-1, argv+1))
+    exit(EXIT_OPTION_ERROR);
+    devnam_fixed = 1;        /* can no longer change device name */
+
+    /*
+     * Work out the device name, if it hasn&#39;t already been specified,
+     * and parse the tty&#39;s options file.
+     */
+    if (the_channel-&gt;process_extra_options)
+    (*the_channel-&gt;process_extra_options)();
+
+    if (debug)
+    setlogmask(LOG_UPTO(LOG_DEBUG));
+
+    /*
+     * Check that we are running as root.
+     */
+    if (geteuid() != 0) {
+    option_error(&quot;must be root to run %s, since it is not setuid-root&quot;,
+             argv[0]);
+    exit(EXIT_NOT_ROOT);
+    }
+
+    if (!ppp_available()) {
+    option_error(&quot;%s&quot;, no_ppp_msg);
+    exit(EXIT_NO_KERNEL_SUPPORT);
+    }
+
+    /*
+     * Check that the options given are valid and consistent.
+     * 执行每个协议的 check_options 函数
+     */
+    check_options();
+    if (!sys_check_options())
+    exit(EXIT_OPTION_ERROR);
+    auth_check_options();
+#ifdef HAVE_MULTILINK
+    mp_check_options();
+#endif
+    for (i = 0; (protp = protocols[i]) != NULL; ++i)
+    if (protp-&gt;check_options != NULL)
+        (*protp-&gt;check_options)();
+    if (the_channel-&gt;check_options)
+    (*the_channel-&gt;check_options)();
+
+
+    if (dump_options || dryrun) {
+    init_pr_log(NULL, LOG_INFO);
+    print_options(pr_log, NULL);
+    end_pr_log();
+    }
+
+    if (dryrun)
+    die(0);
+
+    /* Make sure fds 0, 1, 2 are open to somewhere. */
+    fd_devnull = open(_PATH_DEVNULL, O_RDWR);
+    if (fd_devnull &lt; 0)
+    fatal(&quot;Couldn&#39;t open %s: %m&quot;, _PATH_DEVNULL);
+    while (fd_devnull &lt;= 2) {
+    i = dup(fd_devnull);
+    if (i &lt; 0)
+        fatal(&quot;Critical shortage of file descriptors: dup failed: %m&quot;);
+    fd_devnull = i;
+    }
+
+    /*
+     * Initialize system-dependent stuff.
+     */
+    sys_init();
+
+#ifdef USE_TDB      /* 使用宏 隔开的语句其实都不用看，用宏隔开，说明可有可无*/
+    pppdb = tdb_open(_PATH_PPPDB, 0, 0, O_RDWR|O_CREAT, 0644);
+    if (pppdb != NULL) {
+    slprintf(db_key, sizeof(db_key), &quot;pppd%d&quot;, getpid());
+    update_db_entry();
+    } else {
+    warn(&quot;Warning: couldn&#39;t open ppp database %s&quot;, _PATH_PPPDB);
+    if (multilink) {
+        warn(&quot;Warning: disabling multilink&quot;);
+        multilink = 0;
+    }
+    }
+#endif
+
+    /*
+     * Detach ourselves from the terminal, if required,
+     * and identify who is running us.
+     */
+    if (!nodetach &amp;&amp; !updetach)
+    detach();
+    p = getlogin();
+    if (p == NULL) {
+    pw = getpwuid(uid);
+    if (pw != NULL &amp;&amp; pw-&gt;pw_name != NULL)
+        p = pw-&gt;pw_name;
+    else
+        p = &quot;(unknown)&quot;;
+    }
+    syslog(LOG_NOTICE, &quot;pppd %s started by %s, uid %d&quot;, VERSION, p, uid);
+    script_setenv(&quot;PPPLOGNAME&quot;, p, 0);
+
+    if (devnam[0])
+    script_setenv(&quot;DEVICE&quot;, devnam, 1);
+    slprintf(numbuf, sizeof(numbuf), &quot;%d&quot;, getpid());
+    script_setenv(&quot;PPPD_PID&quot;, numbuf, 1);
+
+    setup_signals();
+
+    create_linkpidfile(getpid());
+
+    waiting = 0;
+
+    /*
+     * If we&#39;re doing dial-on-demand, set up the interface now.
+     * 这个条件想成立，除非显示在命令行指定
+     */
+    if (demand) {
+    /*
+     * Open the loopback channel and set it up to be the ppp interface.
+     */
+    fd_loop = open_ppp_loopback();  /*创建PPP虚设备*/
+    set_ifunit(1);
+    /*
+     * Configure the interface and mark it up, etc.
+     */
+    demand_conf();
+    }
+
+    do_callback = 0;
+    for (;;) {
+
+    bundle_eof = 0;
+    bundle_terminating = 0;
+    listen_time = 0;
+    need_holdoff = 1;
+    devfd = -1;
+    status = EXIT_OK;
+    ++unsuccess;
+    doing_callback = do_callback;
+    do_callback = 0;
+
+    if (demand &amp;&amp; !doing_callback) {
+        /*
+         * Don&#39;t do anything until we see some activity.
+         */
+        new_phase(PHASE_DORMANT);
+        demand_unblock();
+        add_fd(fd_loop);
+        for (;;) {
+        handle_events();
+        if (asked_to_quit)
+            break;
+        if (get_loop_output())
+            break;
+        }
+        remove_fd(fd_loop);
+        if (asked_to_quit)
+        break;
+
+        /*
+         * Now we want to bring up the link.
+         */
+        demand_block();
+        info(&quot;Starting link&quot;);
+    }
+
+    gettimeofday(&amp;start_time, NULL);
+    script_unsetenv(&quot;CONNECT_TIME&quot;);
+    script_unsetenv(&quot;BYTES_SENT&quot;);
+    script_unsetenv(&quot;BYTES_RCVD&quot;);
+
+    lcp_open(0);        /* Start protocol */
+    /* start_link 调用 rp-pppoe 插件，发起pppoe的 discovery连接，这个很重要*/
+    start_link(0);
+    /* 下面开始，就已经是ppp的 session 阶段了*/
+    while (phase != PHASE_DEAD) {
+        handle_events();    /* 监控各个fd，一旦就绪，就处理*/
+        get_input();        /*  这个函数 处理 sesseion 的输入*/
+        if (kill_link)
+        lcp_close(0, &quot;User request&quot;);
+        if (asked_to_quit) {
+        bundle_terminating = 1;
+        if (phase == PHASE_MASTER)
+            mp_bundle_terminated();
+        }
+        if (open_ccp_flag) {
+        if (phase == PHASE_NETWORK || phase == PHASE_RUNNING) {
+            ccp_fsm[0].flags = OPT_RESTART; /* clears OPT_SILENT */
+            (*ccp_protent.open)(0);
+        }
+        }
+    }
+    /* restore FSMs to original state */
+    lcp_close(0, &quot;&quot;);
+
+    if (!persist || asked_to_quit || (maxfail &gt; 0 &amp;&amp; unsuccess &gt;= maxfail))
+        break;
+
+    if (demand)
+        demand_discard();
+    t = need_holdoff? holdoff: 0;
+    if (holdoff_hook)
+        t = (*holdoff_hook)();
+    if (t &gt; 0) {
+        new_phase(PHASE_HOLDOFF);
+        TIMEOUT(holdoff_end, NULL, t);
+        do {
+        handle_events();
+        if (kill_link)
+            new_phase(PHASE_DORMANT); /* allow signal to end holdoff */
+        } while (phase == PHASE_HOLDOFF);
+        if (!persist)
+        break;
+    }
+    }
+
+    /* Wait for scripts to finish */
+    reap_kids();
+    if (n_children &gt; 0) {
+    if (child_wait &gt; 0)
+        TIMEOUT(childwait_end, NULL, child_wait);
+    if (debug) {
+        struct subprocess *chp;
+        dbglog(&quot;Waiting for %d child processes...&quot;, n_children);
+        for (chp = children; chp != NULL; chp = chp-&gt;next)
+        dbglog(&quot;  script %s, pid %d&quot;, chp-&gt;prog, chp-&gt;pid);
+    }
+    while (n_children &gt; 0 &amp;&amp; !childwait_done) {
+        handle_events();
+        if (kill_link &amp;&amp; !childwait_done)
+        childwait_end(NULL);
+    }
+    }
+
+    die(status);
+    return 0;
+}</code></pre>
 <h2 id="pppd-如何加载插件？"><a href="#pppd-如何加载插件？" class="headerlink" title="pppd 如何加载插件？"></a>pppd 如何加载插件？</h2><ol>
 <li>举个例子，我这里有个已经成功拨号的环境，查看pppd进程运行信息如下：</li>
 </ol>
@@ -117,27 +439,178 @@
 <ul>
 <li><code>parse_args(argc-1, argv+1)</code></li>
 </ul>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span></span><br><span class="line">parse_args(argc, argv)</span><br><span class="line">    <span class="keyword">int</span> argc;</span><br><span class="line">    <span class="keyword">char</span> **argv;</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">char</span> *arg;</span><br><span class="line">    <span class="keyword">option_t</span> *opt;</span><br><span class="line">    <span class="keyword">int</span> n;</span><br><span class="line"></span><br><span class="line">    privileged_option = privileged;</span><br><span class="line">    option_source = <span class="string">"command line"</span>;</span><br><span class="line">    option_priority = OPRIO_CMDLINE;</span><br><span class="line">    <span class="keyword">while</span> (argc &gt; <span class="number">0</span>) &#123;</span><br><span class="line">	arg = *argv++;</span><br><span class="line">	--argc;</span><br><span class="line">	opt = find_option(arg);     <span class="comment">/*玄机都在这个 find_option 函数中*/</span></span><br><span class="line">	<span class="keyword">if</span> (opt == <span class="literal">NULL</span>) &#123;</span><br><span class="line">	    option_error(<span class="string">"unrecognized option '%s'"</span>, arg);</span><br><span class="line">	    usage();</span><br><span class="line">	    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	n = n_arguments(opt);</span><br><span class="line">	<span class="keyword">if</span> (argc &lt; n) &#123;</span><br><span class="line">	    option_error(<span class="string">"too few parameters for option %s"</span>, arg);</span><br><span class="line">	    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> (!process_option(opt, arg, argv))</span><br><span class="line">	    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">	argc -= n;</span><br><span class="line">	argv += n;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="c">int
+parse_args(argc, argv)
+    int argc;
+    char **argv;
+{
+    char *arg;
+    option_t *opt;
+    int n;
 
+    privileged_option = privileged;
+    option_source = &quot;command line&quot;;
+    option_priority = OPRIO_CMDLINE;
+    while (argc &gt; 0) {
+    arg = *argv++;
+    --argc;
+    opt = find_option(arg);     /*玄机都在这个 find_option 函数中*/
+    if (opt == NULL) {
+        option_error(&quot;unrecognized option &#39;%s&#39;&quot;, arg);
+        usage();
+        return 0;
+    }
+    n = n_arguments(opt);
+    if (argc &lt; n) {
+        option_error(&quot;too few parameters for option %s&quot;, arg);
+        return 0;
+    }
+    if (!process_option(opt, arg, argv))
+        return 0;
+    argc -= n;
+    argv += n;
+    }
+    return 1;
+}</code></pre>
 <ul>
 <li><code>find_option(arg)</code></li>
 </ul>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">option_t</span> *</span><br><span class="line">find_option(name)</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *name;</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">option_t</span> *opt;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">option_list</span> *<span class="title">list</span>;</span></span><br><span class="line">	<span class="keyword">int</span> i, dowild;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> (dowild = <span class="number">0</span>; dowild &lt;= <span class="number">1</span>; ++dowild) &#123;</span><br><span class="line">		<span class="keyword">for</span> (opt = general_options; opt-&gt;name != <span class="literal">NULL</span>; ++opt)</span><br><span class="line">			<span class="keyword">if</span> (match_option(name, opt, dowild))</span><br><span class="line">				<span class="keyword">return</span> opt;</span><br><span class="line">		<span class="keyword">for</span> (opt = auth_options; opt-&gt;name != <span class="literal">NULL</span>; ++opt)</span><br><span class="line">			<span class="keyword">if</span> (match_option(name, opt, dowild))</span><br><span class="line">				<span class="keyword">return</span> opt;</span><br><span class="line">		<span class="keyword">for</span> (<span class="built_in">list</span> = extra_options; <span class="built_in">list</span> != <span class="literal">NULL</span>; <span class="built_in">list</span> = <span class="built_in">list</span>-&gt;next)</span><br><span class="line">			<span class="keyword">for</span> (opt = <span class="built_in">list</span>-&gt;options; opt-&gt;name != <span class="literal">NULL</span>; ++opt)</span><br><span class="line">				<span class="keyword">if</span> (match_option(name, opt, dowild))</span><br><span class="line">					<span class="keyword">return</span> opt;</span><br><span class="line">		<span class="keyword">for</span> (opt = the_channel-&gt;options; opt-&gt;name != <span class="literal">NULL</span>; ++opt)</span><br><span class="line">			<span class="keyword">if</span> (match_option(name, opt, dowild))</span><br><span class="line">				<span class="keyword">return</span> opt;</span><br><span class="line">		<span class="keyword">for</span> (i = <span class="number">0</span>; protocols[i] != <span class="literal">NULL</span>; ++i)</span><br><span class="line">			<span class="keyword">if</span> ((opt = protocols[i]-&gt;options) != <span class="literal">NULL</span>)</span><br><span class="line">				<span class="keyword">for</span> (; opt-&gt;name != <span class="literal">NULL</span>; ++opt)</span><br><span class="line">					<span class="keyword">if</span> (match_option(name, opt, dowild))</span><br><span class="line">						<span class="keyword">return</span> opt;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="c">static option_t *
+find_option(name)
+    const char *name;
+{
+    option_t *opt;
+    struct option_list *list;
+    int i, dowild;
 
+    for (dowild = 0; dowild &lt;= 1; ++dowild) {
+        for (opt = general_options; opt-&gt;name != NULL; ++opt)
+            if (match_option(name, opt, dowild))
+                return opt;
+        for (opt = auth_options; opt-&gt;name != NULL; ++opt)
+            if (match_option(name, opt, dowild))
+                return opt;
+        for (list = extra_options; list != NULL; list = list-&gt;next)
+            for (opt = list-&gt;options; opt-&gt;name != NULL; ++opt)
+                if (match_option(name, opt, dowild))
+                    return opt;
+        for (opt = the_channel-&gt;options; opt-&gt;name != NULL; ++opt)
+            if (match_option(name, opt, dowild))
+                return opt;
+        for (i = 0; protocols[i] != NULL; ++i)
+            if ((opt = protocols[i]-&gt;options) != NULL)
+                for (; opt-&gt;name != NULL; ++opt)
+                    if (match_option(name, opt, dowild))
+                        return opt;
+    }
+    return NULL;
+}</code></pre>
 <ul>
 <li>全局变量 <code>general_options</code></li>
 </ul>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * Valid arguments.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">option_t</span> general_options[] = &#123;</span><br><span class="line">    &#123; <span class="string">"debug"</span>, o_int, &amp;debug,</span><br><span class="line">      <span class="string">"Increase debugging level"</span>, OPT_INC | OPT_NOARG | <span class="number">1</span> &#125;,</span><br><span class="line">    ...</span><br><span class="line">    ...</span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">#ifdef PLUGIN</span><br><span class="line">    &#123; <span class="string">"plugin"</span>, o_special, (<span class="keyword">void</span> *)loadplugin,      <span class="comment">/* 如果参数匹配 plugin, 那么调用函数 loadplugin 加载插件*/</span></span><br><span class="line">      <span class="string">"Load a plug-in module into pppd"</span>, OPT_PRIV | OPT_A2LIST &#125;,</span><br><span class="line">#endif</span><br><span class="line"></span><br><span class="line">#ifdef MAXOCTETS</span><br><span class="line">    &#123; <span class="string">"maxoctets"</span>, o_int, &amp;maxoctets,</span><br><span class="line">      <span class="string">"Set connection traffic limit"</span>,</span><br><span class="line">      OPT_PRIO | OPT_LLIMIT | OPT_NOINCR | OPT_ZEROINF &#125;,</span><br><span class="line">    &#123; <span class="string">"mo"</span>, o_int, &amp;maxoctets,</span><br><span class="line">      <span class="string">"Set connection traffic limit"</span>,</span><br><span class="line">      OPT_ALIAS | OPT_PRIO | OPT_LLIMIT | OPT_NOINCR | OPT_ZEROINF &#125;,</span><br><span class="line">    &#123; <span class="string">"mo-direction"</span>, o_special, setmodir,</span><br><span class="line">      <span class="string">"Set direction for limit traffic (sum,in,out,max)"</span> &#125;,</span><br><span class="line">    &#123; <span class="string">"mo-timeout"</span>, o_int, &amp;maxoctets_timeout,</span><br><span class="line">      <span class="string">"Check for traffic limit every N seconds"</span>, OPT_PRIO | OPT_LLIMIT | <span class="number">1</span> &#125;,</span><br><span class="line">#endif</span><br><span class="line"></span><br><span class="line">    &#123; <span class="literal">NULL</span> &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<pre><code class="c">/*
+ * Valid arguments.
+ */
+option_t general_options[] = {
+    { &quot;debug&quot;, o_int, &amp;debug,
+      &quot;Increase debugging level&quot;, OPT_INC | OPT_NOARG | 1 },
+    ...
+    ...
+    ...
 
+#ifdef PLUGIN
+    { &quot;plugin&quot;, o_special, (void *)loadplugin,      /* 如果参数匹配 plugin, 那么调用函数 loadplugin 加载插件*/
+      &quot;Load a plug-in module into pppd&quot;, OPT_PRIV | OPT_A2LIST },
+#endif
+
+#ifdef MAXOCTETS
+    { &quot;maxoctets&quot;, o_int, &amp;maxoctets,
+      &quot;Set connection traffic limit&quot;,
+      OPT_PRIO | OPT_LLIMIT | OPT_NOINCR | OPT_ZEROINF },
+    { &quot;mo&quot;, o_int, &amp;maxoctets,
+      &quot;Set connection traffic limit&quot;,
+      OPT_ALIAS | OPT_PRIO | OPT_LLIMIT | OPT_NOINCR | OPT_ZEROINF },
+    { &quot;mo-direction&quot;, o_special, setmodir,
+      &quot;Set direction for limit traffic (sum,in,out,max)&quot; },
+    { &quot;mo-timeout&quot;, o_int, &amp;maxoctets_timeout,
+      &quot;Check for traffic limit every N seconds&quot;, OPT_PRIO | OPT_LLIMIT | 1 },
+#endif
+
+    { NULL }
+};</code></pre>
 <ul>
 <li><code>loadplugin</code> 相信到这里，你就明白这个插件是如何加载的了</li>
 </ul>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">int</span></span><br><span class="line">loadplugin(argv)</span><br><span class="line">    <span class="keyword">char</span> **argv;</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">char</span> *arg = *argv;</span><br><span class="line">    <span class="keyword">void</span> *handle;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *err;</span><br><span class="line">    <span class="keyword">void</span> (*init) __P((<span class="keyword">void</span>));</span><br><span class="line">    <span class="keyword">char</span> *path = arg;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *vers;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">strchr</span>(arg, <span class="string">'/'</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">	<span class="keyword">const</span> <span class="keyword">char</span> *base = _PATH_PLUGIN;</span><br><span class="line">	<span class="keyword">int</span> l = <span class="built_in">strlen</span>(base) + <span class="built_in">strlen</span>(arg) + <span class="number">2</span>;</span><br><span class="line">	path = <span class="built_in">malloc</span>(l);</span><br><span class="line">	<span class="keyword">if</span> (path == <span class="number">0</span>)</span><br><span class="line">	    novm(<span class="string">"plugin file path"</span>);</span><br><span class="line">	strlcpy(path, base, l);</span><br><span class="line">	strlcat(path, <span class="string">"/"</span>, l);</span><br><span class="line">	strlcat(path, arg, l);</span><br><span class="line">    &#125;</span><br><span class="line">    handle = dlopen(path, RTLD_GLOBAL | RTLD_NOW);</span><br><span class="line">    <span class="keyword">if</span> (handle == <span class="number">0</span>) &#123;</span><br><span class="line">	err = dlerror();</span><br><span class="line">	<span class="keyword">if</span> (err != <span class="number">0</span>)</span><br><span class="line">	    option_error(<span class="string">"%s"</span>, err);</span><br><span class="line">	option_error(<span class="string">"Couldn't load plugin %s"</span>, arg);</span><br><span class="line">	<span class="keyword">goto</span> err;</span><br><span class="line">    &#125;</span><br><span class="line">    init = (<span class="keyword">void</span> (*)(<span class="keyword">void</span>))dlsym(handle, <span class="string">"plugin_init"</span>);</span><br><span class="line">    <span class="keyword">if</span> (init == <span class="number">0</span>) &#123;</span><br><span class="line">	option_error(<span class="string">"%s has no initialization entry point"</span>, arg);</span><br><span class="line">	<span class="keyword">goto</span> errclose;</span><br><span class="line">    &#125;</span><br><span class="line">    vers = (<span class="keyword">const</span> <span class="keyword">char</span> *) dlsym(handle, <span class="string">"pppd_version"</span>);</span><br><span class="line">    <span class="keyword">if</span> (vers == <span class="number">0</span>) &#123;</span><br><span class="line">	warn(<span class="string">"Warning: plugin %s has no version information"</span>, arg);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="built_in">strcmp</span>(vers, VERSION) != <span class="number">0</span>) &#123;</span><br><span class="line">	option_error(<span class="string">"Plugin %s is for pppd version %s, this is %s"</span>,</span><br><span class="line">		     arg, vers, VERSION);</span><br><span class="line">	<span class="keyword">goto</span> errclose;</span><br><span class="line">    &#125;</span><br><span class="line">    info(<span class="string">"Plugin %s loaded."</span>, arg);</span><br><span class="line">    (*init)();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"> errclose:</span><br><span class="line">    dlclose(handle);</span><br><span class="line"> err:</span><br><span class="line">    <span class="keyword">if</span> (path != arg)</span><br><span class="line">	<span class="built_in">free</span>(path);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="c">static int
+loadplugin(argv)
+    char **argv;
+{
+    char *arg = *argv;
+    void *handle;
+    const char *err;
+    void (*init) __P((void));
+    char *path = arg;
+    const char *vers;
+
+    if (strchr(arg, &#39;/&#39;) == 0) {
+    const char *base = _PATH_PLUGIN;
+    int l = strlen(base) + strlen(arg) + 2;
+    path = malloc(l);
+    if (path == 0)
+        novm(&quot;plugin file path&quot;);
+    strlcpy(path, base, l);
+    strlcat(path, &quot;/&quot;, l);
+    strlcat(path, arg, l);
+    }
+    handle = dlopen(path, RTLD_GLOBAL | RTLD_NOW);
+    if (handle == 0) {
+    err = dlerror();
+    if (err != 0)
+        option_error(&quot;%s&quot;, err);
+    option_error(&quot;Couldn&#39;t load plugin %s&quot;, arg);
+    goto err;
+    }
+    init = (void (*)(void))dlsym(handle, &quot;plugin_init&quot;);
+    if (init == 0) {
+    option_error(&quot;%s has no initialization entry point&quot;, arg);
+    goto errclose;
+    }
+    vers = (const char *) dlsym(handle, &quot;pppd_version&quot;);
+    if (vers == 0) {
+    warn(&quot;Warning: plugin %s has no version information&quot;, arg);
+    } else if (strcmp(vers, VERSION) != 0) {
+    option_error(&quot;Plugin %s is for pppd version %s, this is %s&quot;,
+             arg, vers, VERSION);
+    goto errclose;
+    }
+    info(&quot;Plugin %s loaded.&quot;, arg);
+    (*init)();
+    return 1;
+
+ errclose:
+    dlclose(handle);
+ err:
+    if (path != arg)
+    free(path);
+    return 0;
+}</code></pre>
 
   <script>
     var dom = document.getElementsByClassName('code');
     for(var i=0,len=dom.length; i<len; i++){
       dom[i].style.width = '750px';
+    }
+    var dom = document.getElementsByTagName('h1');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].className  += 'page_title';
+    }
+    var dom = document.getElementsByTagName('p');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#303333';
+    }
+    var dom = document.getElementsByTagName('a');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#2d96bd';
     }
   </script>
 

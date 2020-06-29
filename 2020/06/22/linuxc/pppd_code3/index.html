@@ -62,6 +62,25 @@
   <script src="/js/prettify.js"></script>
   <link rel="stylesheet" href="/css/tomorrow_night.css">
   <link rel="stylesheet" href="/css/tomorrow_night.min.css">
+  <link rel="stylesheet" href="/css/my.css">
+  <script>
+    Date.prototype.Format = function (fmt) {
+      var o = {
+              "M+": this.getMonth() + 1, // 月份
+              "d+": this.getDate(), // 日
+              "h+": this.getHours(), // 小时
+              "m+": this.getMinutes(), // 分
+              "s+": this.getSeconds(), // 秒
+              "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+              "S": this.getMilliseconds() // 毫秒
+      };
+      if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+      for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+      return fmt;
+    }
+  </script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -81,22 +100,28 @@
     </div>
   </nav>
   <div class="page-container">
-    <div style="float:right">
-      <span>
-        <em class="post-meta-item-text">Author:Yake Pei,</em>
+  <h1 id="pppd源码详解三 ---（ppp协议处理）" class="page_title">
+    <a href="#pppd源码详解三 ---（ppp协议处理）" class="headerlink" title="pppd源码详解三 ---（ppp协议处理）"></a>
+    pppd源码详解三 ---（ppp协议处理）
+  </h1>
+  <div>
+    <em class="page_meta">Written by </em>
+    <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+    <em class="page_meta">,Last update
+      <span class="post-time">on 
+        <time datetime="1592824242000" itemprop="datePublished"><script>var date = new Date().Format('yy-MM-dd hh:mm');document.write(date);</script></time>
       </span>
-      <span id="/2020/06/22/linuxc/pppd_code3/" class="leancloud_visitors" data-flag-title="pppd源码详解三 ---（ppp协议处理）">
-        <em class="post-meta-item-text">Pageviews:</em>
-        <i class="leancloud-visitors-count">loading</i>
-      </span>
-    </div>
-  <h1 id="pppd源码详解三-—（ppp协议处理）"><a href="#pppd源码详解三-—（ppp协议处理）" class="headerlink" title="pppd源码详解三 —（ppp协议处理）"></a>pppd源码详解三 —（ppp协议处理）</h1><ul>
-<li>pppd-2.4.5</li>
-<li>CentOS-7.5.1804</li>
-</ul>
-<h2 id="获取rpm包中源码"><a href="#获取rpm包中源码" class="headerlink" title="获取rpm包中源码"></a>获取rpm包中源码</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">wget http:&#x2F;&#x2F;vault.centos.org&#x2F;7.5.1804&#x2F;os&#x2F;Source&#x2F;SPackages&#x2F;ppp-2.4.5-33.el7.src.rpm</span><br><span class="line">rpm -ivh ppp-2.4.5-33.el7.src.rpm</span><br><span class="line">ls .&#x2F;rpmbuild&#x2F;SOURCE&#x2F;ppp-2.4.5.tar.gz</span><br></pre></td></tr></table></figure>
-
-<h2 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h2><p>解读pppd的源码，重点想知道如下信息：</p>
+    </em>
+    <span id="/2020/06/22/linuxc/pppd_code3/" class="leancloud_visitors" data-flag-title="pppd源码详解三 ---（ppp协议处理）">
+      <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+      <i class="leancloud-visitors-count">loading</i>
+    </span>
+  </div>
+  <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+  <p>本文使用 <code>pppd-2.4.5</code>在<code>CentOS-7.5.1804</code>进行测试.</p>
+<h2 id="获取rpm包中源码"><a href="#获取rpm包中源码" class="headerlink" title="获取rpm包中源码"></a>获取rpm包中源码</h2><pre><code>wget http://vault.centos.org/7.5.1804/os/Source/SPackages/ppp-2.4.5-33.el7.src.rpm
+rpm -ivh ppp-2.4.5-33.el7.src.rpm
+ls ./rpmbuild/SOURCE/ppp-2.4.5.tar.gz</code></pre><h2 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h2><p>解读pppd的源码，重点想知道如下信息：</p>
 <ol>
 <li>pppd 如何加载插件？</li>
 <li>pppd 如何发起 ppp的 discovery连接？</li>
@@ -104,43 +129,545 @@
 <li>pppd 如何创建虚端口</li>
 </ol>
 <h2 id="PPP协议处理"><a href="#PPP协议处理" class="headerlink" title="PPP协议处理"></a>PPP协议处理</h2><p>有哪些ppp协议呢？</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;*</span><br><span class="line"> * Protocol field values.</span><br><span class="line"> *&#x2F;</span><br><span class="line">#define PPP_IP		0x21	&#x2F;* Internet Protocol *&#x2F;</span><br><span class="line">#define PPP_AT		0x29	&#x2F;* AppleTalk Protocol *&#x2F;</span><br><span class="line">#define PPP_IPX		0x2b	&#x2F;* IPX protocol *&#x2F;</span><br><span class="line">#define	PPP_VJC_COMP	0x2d	&#x2F;* VJ compressed TCP *&#x2F;</span><br><span class="line">#define	PPP_VJC_UNCOMP	0x2f	&#x2F;* VJ uncompressed TCP *&#x2F;</span><br><span class="line">#define PPP_MP		0x3d	&#x2F;* Multilink protocol *&#x2F;</span><br><span class="line">#define PPP_IPV6	0x57	&#x2F;* Internet Protocol Version 6 *&#x2F;</span><br><span class="line">#define PPP_COMPFRAG	0xfb	&#x2F;* fragment compressed below bundle *&#x2F;</span><br><span class="line">#define PPP_COMP	0xfd	&#x2F;* compressed packet *&#x2F;</span><br><span class="line">#define PPP_IPCP	0x8021	&#x2F;* IP Control Protocol *&#x2F;</span><br><span class="line">#define PPP_ATCP	0x8029	&#x2F;* AppleTalk Control Protocol *&#x2F;</span><br><span class="line">#define PPP_IPXCP	0x802b	&#x2F;* IPX Control Protocol *&#x2F;</span><br><span class="line">#define PPP_IPV6CP	0x8057	&#x2F;* IPv6 Control Protocol *&#x2F;</span><br><span class="line">#define PPP_CCPFRAG	0x80fb	&#x2F;* CCP at link level (below MP bundle) *&#x2F;</span><br><span class="line">#define PPP_CCP		0x80fd	&#x2F;* Compression Control Protocol *&#x2F;</span><br><span class="line">#define PPP_ECPFRAG	0x8055	&#x2F;* ECP at link level (below MP bundle) *&#x2F;</span><br><span class="line">#define PPP_ECP		0x8053	&#x2F;* Encryption Control Protocol *&#x2F;</span><br><span class="line">#define PPP_LCP		0xc021	&#x2F;* Link Control Protocol *&#x2F;</span><br><span class="line">#define PPP_PAP		0xc023	&#x2F;* Password Authentication Protocol *&#x2F;</span><br><span class="line">#define PPP_LQR		0xc025	&#x2F;* Link Quality Report protocol *&#x2F;</span><br><span class="line">#define PPP_CHAP	0xc223	&#x2F;* Cryptographic Handshake Auth. Protocol *&#x2F;</span><br><span class="line">#define PPP_CBCP	0xc029	&#x2F;* Callback Control Protocol *&#x2F;</span><br></pre></td></tr></table></figure>
-
-<p>这里我们介绍一下，<code>PPP_IPCP</code> ，这个协议用来为ppp客户端分配网络配置（IP/dns等）</p>
+<pre><code>/*
+ * Protocol field values.
+ */
+#define PPP_IP        0x21    /* Internet Protocol */
+#define PPP_AT        0x29    /* AppleTalk Protocol */
+#define PPP_IPX        0x2b    /* IPX protocol */
+#define    PPP_VJC_COMP    0x2d    /* VJ compressed TCP */
+#define    PPP_VJC_UNCOMP    0x2f    /* VJ uncompressed TCP */
+#define PPP_MP        0x3d    /* Multilink protocol */
+#define PPP_IPV6    0x57    /* Internet Protocol Version 6 */
+#define PPP_COMPFRAG    0xfb    /* fragment compressed below bundle */
+#define PPP_COMP    0xfd    /* compressed packet */
+#define PPP_IPCP    0x8021    /* IP Control Protocol */
+#define PPP_ATCP    0x8029    /* AppleTalk Control Protocol */
+#define PPP_IPXCP    0x802b    /* IPX Control Protocol */
+#define PPP_IPV6CP    0x8057    /* IPv6 Control Protocol */
+#define PPP_CCPFRAG    0x80fb    /* CCP at link level (below MP bundle) */
+#define PPP_CCP        0x80fd    /* Compression Control Protocol */
+#define PPP_ECPFRAG    0x8055    /* ECP at link level (below MP bundle) */
+#define PPP_ECP        0x8053    /* Encryption Control Protocol */
+#define PPP_LCP        0xc021    /* Link Control Protocol */
+#define PPP_PAP        0xc023    /* Password Authentication Protocol */
+#define PPP_LQR        0xc025    /* Link Quality Report protocol */
+#define PPP_CHAP    0xc223    /* Cryptographic Handshake Auth. Protocol */
+#define PPP_CBCP    0xc029    /* Callback Control Protocol */</code></pre><p>这里我们介绍一下，<code>PPP_IPCP</code> ，这个协议用来为ppp客户端分配网络配置（IP/dns等）</p>
 <h3 id="代码流程"><a href="#代码流程" class="headerlink" title="代码流程"></a>代码流程</h3><p><code>main</code> -&gt; <code>get_input()</code></p>
 <ul>
 <li><code>get_input</code></li>
 </ul>
 <p>需要注意的是，这里收到的ppp报文，是不包含 ppp协议的头的前4个字节的，下图：</p>
 <p><img src="images/pppcap.png" alt="ppp协议"></p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span></span><br><span class="line">get_input()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">int</span> len, i;</span><br><span class="line">    u_char *p;</span><br><span class="line">    u_short protocol;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">protent</span> *<span class="title">protp</span>;</span></span><br><span class="line"></span><br><span class="line">    p = inpacket_buf;	<span class="comment">/* point to beginning of packet buffer */</span></span><br><span class="line"></span><br><span class="line">    len = read_packet(inpacket_buf);</span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">0</span>)</span><br><span class="line">	<span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (len == <span class="number">0</span>) &#123;</span><br><span class="line">	<span class="keyword">if</span> (bundle_eof &amp;&amp; multilink_master) &#123;</span><br><span class="line">	    notice(<span class="string">"Last channel has disconnected"</span>);</span><br><span class="line">	    mp_bundle_terminated();</span><br><span class="line">	    <span class="keyword">return</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	notice(<span class="string">"Modem hangup"</span>);</span><br><span class="line">	hungup = <span class="number">1</span>;</span><br><span class="line">	status = EXIT_HANGUP;</span><br><span class="line">	lcp_lowerdown(<span class="number">0</span>);	<span class="comment">/* serial link is no longer available */</span></span><br><span class="line">	link_terminated(<span class="number">0</span>);</span><br><span class="line">	<span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (len &lt; PPP_HDRLEN) &#123;</span><br><span class="line">	dbglog(<span class="string">"received short packet:%.*B"</span>, len, p);</span><br><span class="line">	<span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    dump_packet(<span class="string">"rcvd"</span>, p, len);</span><br><span class="line">    <span class="keyword">if</span> (snoop_recv_hook) snoop_recv_hook(p, len);</span><br><span class="line"></span><br><span class="line">    p += <span class="number">2</span>;				<span class="comment">/* Skip address and control, 参照上图，就知道为什么这里 + 2 了， */</span></span><br><span class="line">    GETSHORT(protocol, p);  <span class="comment">/* 获取到协议ID*/</span></span><br><span class="line">    len -= PPP_HDRLEN;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Toss all non-LCP packets unless LCP is OPEN.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (protocol != PPP_LCP &amp;&amp; lcp_fsm[<span class="number">0</span>].state != OPENED) &#123;</span><br><span class="line">	dbglog(<span class="string">"Discarded non-LCP packet when LCP not open"</span>);</span><br><span class="line">	<span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Until we get past the authentication phase, toss all packets</span></span><br><span class="line"><span class="comment">     * except LCP, LQR and authentication packets.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (phase &lt;= PHASE_AUTHENTICATE</span><br><span class="line">	&amp;&amp; !(protocol == PPP_LCP || protocol == PPP_LQR</span><br><span class="line">	     || protocol == PPP_PAP || protocol == PPP_CHAP ||</span><br><span class="line">		protocol == PPP_EAP)) &#123;</span><br><span class="line">	dbglog(<span class="string">"discarding proto 0x%x in phase %d"</span>,</span><br><span class="line">		   protocol, phase);</span><br><span class="line">	<span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Upcall the proper protocol input routine.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line"></span><br><span class="line">     <span class="comment">/*重点就是这个for循环，这里一次调用了每个协议的的input函数</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; (protp = protocols[i]) != <span class="literal">NULL</span>; ++i) &#123;</span><br><span class="line">	<span class="keyword">if</span> (protp-&gt;protocol == protocol &amp;&amp; protp-&gt;enabled_flag) &#123;</span><br><span class="line">	    (*protp-&gt;input)(<span class="number">0</span>, p, len);</span><br><span class="line">	    <span class="keyword">return</span>;</span><br><span class="line">	&#125;</span><br><span class="line">        <span class="keyword">if</span> (protocol == (protp-&gt;protocol &amp; ~<span class="number">0x8000</span>) &amp;&amp; protp-&gt;enabled_flag</span><br><span class="line">	    &amp;&amp; protp-&gt;datainput != <span class="literal">NULL</span>) &#123;</span><br><span class="line">	    (*protp-&gt;datainput)(<span class="number">0</span>, p, len);</span><br><span class="line">	    <span class="keyword">return</span>;</span><br><span class="line">	&#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (debug) &#123;</span><br><span class="line">	<span class="keyword">const</span> <span class="keyword">char</span> *pname = protocol_name(protocol);</span><br><span class="line">	<span class="keyword">if</span> (pname != <span class="literal">NULL</span>)</span><br><span class="line">	    warn(<span class="string">"Unsupported protocol '%s' (0x%x) received"</span>, pname, protocol);</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">	    warn(<span class="string">"Unsupported protocol 0x%x received"</span>, protocol);</span><br><span class="line">    &#125;</span><br><span class="line">    lcp_sprotrej(<span class="number">0</span>, p - PPP_HDRLEN, len + PPP_HDRLEN);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="c">static void
+get_input()
+{
+    int len, i;
+    u_char *p;
+    u_short protocol;
+    struct protent *protp;
 
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">struct protent *protocols[] &#x3D; &#123;</span><br><span class="line">    &amp;lcp_protent,</span><br><span class="line">    &amp;pap_protent,</span><br><span class="line">    &amp;chap_protent,</span><br><span class="line">#ifdef CBCP_SUPPORT</span><br><span class="line">    &amp;cbcp_protent,</span><br><span class="line">#endif</span><br><span class="line">    &amp;ipcp_protent,</span><br><span class="line">#ifdef INET6</span><br><span class="line">    &amp;ipv6cp_protent,</span><br><span class="line">#endif</span><br><span class="line">    &amp;ccp_protent,</span><br><span class="line">    &amp;ecp_protent,</span><br><span class="line">#ifdef IPX_CHANGE</span><br><span class="line">    &amp;ipxcp_protent,</span><br><span class="line">#endif</span><br><span class="line">#ifdef AT_CHANGE</span><br><span class="line">    &amp;atcp_protent,</span><br><span class="line">#endif</span><br><span class="line">    &amp;eap_protent,</span><br><span class="line">    NULL</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">struct protent ipcp_protent &#x3D; &#123;</span><br><span class="line">    PPP_IPCP,</span><br><span class="line">    ipcp_init,</span><br><span class="line">    ipcp_input,</span><br><span class="line">    ipcp_protrej,</span><br><span class="line">    ipcp_lowerup,</span><br><span class="line">    ipcp_lowerdown,</span><br><span class="line">    ipcp_open,</span><br><span class="line">    ipcp_close,</span><br><span class="line">    ipcp_printpkt,</span><br><span class="line">    NULL,</span><br><span class="line">    1,</span><br><span class="line">    &quot;IPCP&quot;,</span><br><span class="line">    &quot;IP&quot;,</span><br><span class="line">    ipcp_option_list,</span><br><span class="line">    ip_check_options,</span><br><span class="line">    ip_demand_conf,</span><br><span class="line">    ip_active_pkt</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+    p = inpacket_buf;    /* point to beginning of packet buffer */
 
-<ul>
+    len = read_packet(inpacket_buf);
+    if (len &lt; 0)
+    return;
+
+    if (len == 0) {
+    if (bundle_eof &amp;&amp; multilink_master) {
+        notice(&quot;Last channel has disconnected&quot;);
+        mp_bundle_terminated();
+        return;
+    }
+    notice(&quot;Modem hangup&quot;);
+    hungup = 1;
+    status = EXIT_HANGUP;
+    lcp_lowerdown(0);    /* serial link is no longer available */
+    link_terminated(0);
+    return;
+    }
+
+    if (len &lt; PPP_HDRLEN) {
+    dbglog(&quot;received short packet:%.*B&quot;, len, p);
+    return;
+    }
+
+    dump_packet(&quot;rcvd&quot;, p, len);
+    if (snoop_recv_hook) snoop_recv_hook(p, len);
+
+    p += 2;                /* Skip address and control, 参照上图，就知道为什么这里 + 2 了， */
+    GETSHORT(protocol, p);  /* 获取到协议ID*/
+    len -= PPP_HDRLEN;
+
+    /*
+     * Toss all non-LCP packets unless LCP is OPEN.
+     */
+    if (protocol != PPP_LCP &amp;&amp; lcp_fsm[0].state != OPENED) {
+    dbglog(&quot;Discarded non-LCP packet when LCP not open&quot;);
+    return;
+    }
+
+    /*
+     * Until we get past the authentication phase, toss all packets
+     * except LCP, LQR and authentication packets.
+     */
+    if (phase &lt;= PHASE_AUTHENTICATE
+    &amp;&amp; !(protocol == PPP_LCP || protocol == PPP_LQR
+         || protocol == PPP_PAP || protocol == PPP_CHAP ||
+        protocol == PPP_EAP)) {
+    dbglog(&quot;discarding proto 0x%x in phase %d&quot;,
+           protocol, phase);
+    return;
+    }
+
+    /*
+     * Upcall the proper protocol input routine.
+     */
+
+     /*重点就是这个for循环，这里一次调用了每个协议的的input函数
+     */
+    for (i = 0; (protp = protocols[i]) != NULL; ++i) {
+    if (protp-&gt;protocol == protocol &amp;&amp; protp-&gt;enabled_flag) {
+        (*protp-&gt;input)(0, p, len);
+        return;
+    }
+        if (protocol == (protp-&gt;protocol &amp; ~0x8000) &amp;&amp; protp-&gt;enabled_flag
+        &amp;&amp; protp-&gt;datainput != NULL) {
+        (*protp-&gt;datainput)(0, p, len);
+        return;
+    }
+    }
+
+    if (debug) {
+    const char *pname = protocol_name(protocol);
+    if (pname != NULL)
+        warn(&quot;Unsupported protocol &#39;%s&#39; (0x%x) received&quot;, pname, protocol);
+    else
+        warn(&quot;Unsupported protocol 0x%x received&quot;, protocol);
+    }
+    lcp_sprotrej(0, p - PPP_HDRLEN, len + PPP_HDRLEN);
+}</code></pre>
+<pre><code>struct protent *protocols[] = {
+    &amp;lcp_protent,
+    &amp;pap_protent,
+    &amp;chap_protent,
+#ifdef CBCP_SUPPORT
+    &amp;cbcp_protent,
+#endif
+    &amp;ipcp_protent,
+#ifdef INET6
+    &amp;ipv6cp_protent,
+#endif
+    &amp;ccp_protent,
+    &amp;ecp_protent,
+#ifdef IPX_CHANGE
+    &amp;ipxcp_protent,
+#endif
+#ifdef AT_CHANGE
+    &amp;atcp_protent,
+#endif
+    &amp;eap_protent,
+    NULL
+};
+
+struct protent ipcp_protent = {
+    PPP_IPCP,
+    ipcp_init,
+    ipcp_input,
+    ipcp_protrej,
+    ipcp_lowerup,
+    ipcp_lowerdown,
+    ipcp_open,
+    ipcp_close,
+    ipcp_printpkt,
+    NULL,
+    1,
+    &quot;IPCP&quot;,
+    &quot;IP&quot;,
+    ipcp_option_list,
+    ip_check_options,
+    ip_demand_conf,
+    ip_active_pkt
+};</code></pre><ul>
 <li><code>ipcp_input</code></li>
 </ul>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span></span><br><span class="line">ipcp_input(unit, p, len)</span><br><span class="line">    <span class="keyword">int</span> unit;</span><br><span class="line">    u_char *p;</span><br><span class="line">    <span class="keyword">int</span> len;</span><br><span class="line">&#123;</span><br><span class="line">    fsm_input(&amp;ipcp_fsm[unit], p, len);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre><code class="c">static void
+ipcp_input(unit, p, len)
+    int unit;
+    u_char *p;
+    int len;
+{
+    fsm_input(&amp;ipcp_fsm[unit], p, len);
+}
+</code></pre>
 <ul>
 <li><code>fsm_input</code></li>
 </ul>
 <p>根据连接状态机，分阶段处理</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span></span><br><span class="line">fsm_input(f, inpacket, l)</span><br><span class="line">    fsm *f;</span><br><span class="line">    u_char *inpacket;</span><br><span class="line">    <span class="keyword">int</span> l;</span><br><span class="line">&#123;</span><br><span class="line">    u_char *inp;</span><br><span class="line">    u_char code, id;</span><br><span class="line">    <span class="keyword">int</span> len;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Parse header (code, id and length).</span></span><br><span class="line"><span class="comment">     * If packet too short, drop it.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    inp = inpacket;</span><br><span class="line">    <span class="keyword">if</span> (l &lt; HEADERLEN) &#123;</span><br><span class="line">	FSMDEBUG((<span class="string">"fsm_input(%x): Rcvd short header."</span>, f-&gt;protocol));</span><br><span class="line">	<span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    GETCHAR(code, inp);</span><br><span class="line">    GETCHAR(id, inp);</span><br><span class="line">    GETSHORT(len, inp);</span><br><span class="line">    <span class="keyword">if</span> (len &lt; HEADERLEN) &#123;</span><br><span class="line">	FSMDEBUG((<span class="string">"fsm_input(%x): Rcvd illegal length."</span>, f-&gt;protocol));</span><br><span class="line">	<span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (len &gt; l) &#123;</span><br><span class="line">	FSMDEBUG((<span class="string">"fsm_input(%x): Rcvd short packet."</span>, f-&gt;protocol));</span><br><span class="line">	<span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    len -= HEADERLEN;		<span class="comment">/* subtract header length */</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>( f-&gt;state == INITIAL || f-&gt;state == STARTING )&#123;</span><br><span class="line">	FSMDEBUG((<span class="string">"fsm_input(%x): Rcvd packet in state %d."</span>,</span><br><span class="line">		  f-&gt;protocol, f-&gt;state));</span><br><span class="line">	<span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Action depends on code.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">switch</span> (code) &#123;</span><br><span class="line">    <span class="keyword">case</span> CONFREQ:</span><br><span class="line">	fsm_rconfreq(f, id, inp, len);</span><br><span class="line">	<span class="keyword">break</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">case</span> CONFACK:</span><br><span class="line">	fsm_rconfack(f, id, inp, len);</span><br><span class="line">	<span class="keyword">break</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">case</span> CONFNAK:</span><br><span class="line">    <span class="keyword">case</span> CONFREJ:</span><br><span class="line">	fsm_rconfnakrej(f, code, id, inp, len);</span><br><span class="line">	<span class="keyword">break</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">case</span> TERMREQ:</span><br><span class="line">	fsm_rtermreq(f, id, inp, len);</span><br><span class="line">	<span class="keyword">break</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">case</span> TERMACK:</span><br><span class="line">	fsm_rtermack(f);</span><br><span class="line">	<span class="keyword">break</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">case</span> CODEREJ:</span><br><span class="line">	fsm_rcoderej(f, inp, len);</span><br><span class="line">	<span class="keyword">break</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">	<span class="keyword">if</span>( !f-&gt;callbacks-&gt;extcode</span><br><span class="line">	   || !(*f-&gt;callbacks-&gt;extcode)(f, code, id, inp, len) )</span><br><span class="line">	    fsm_sdata(f, CODEREJ, ++f-&gt;id, inpacket, len + HEADERLEN);</span><br><span class="line">	<span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="c">void
+fsm_input(f, inpacket, l)
+    fsm *f;
+    u_char *inpacket;
+    int l;
+{
+    u_char *inp;
+    u_char code, id;
+    int len;
 
+    /*
+     * Parse header (code, id and length).
+     * If packet too short, drop it.
+     */
+    inp = inpacket;
+    if (l &lt; HEADERLEN) {
+    FSMDEBUG((&quot;fsm_input(%x): Rcvd short header.&quot;, f-&gt;protocol));
+    return;
+    }
+    GETCHAR(code, inp);
+    GETCHAR(id, inp);
+    GETSHORT(len, inp);
+    if (len &lt; HEADERLEN) {
+    FSMDEBUG((&quot;fsm_input(%x): Rcvd illegal length.&quot;, f-&gt;protocol));
+    return;
+    }
+    if (len &gt; l) {
+    FSMDEBUG((&quot;fsm_input(%x): Rcvd short packet.&quot;, f-&gt;protocol));
+    return;
+    }
+    len -= HEADERLEN;        /* subtract header length */
+
+    if( f-&gt;state == INITIAL || f-&gt;state == STARTING ){
+    FSMDEBUG((&quot;fsm_input(%x): Rcvd packet in state %d.&quot;,
+          f-&gt;protocol, f-&gt;state));
+    return;
+    }
+
+    /*
+     * Action depends on code.
+     */
+    switch (code) {
+    case CONFREQ:
+    fsm_rconfreq(f, id, inp, len);
+    break;
+
+    case CONFACK:
+    fsm_rconfack(f, id, inp, len);
+    break;
+
+    case CONFNAK:
+    case CONFREJ:
+    fsm_rconfnakrej(f, code, id, inp, len);
+    break;
+
+    case TERMREQ:
+    fsm_rtermreq(f, id, inp, len);
+    break;
+
+    case TERMACK:
+    fsm_rtermack(f);
+    break;
+
+    case CODEREJ:
+    fsm_rcoderej(f, inp, len);
+    break;
+
+    default:
+    if( !f-&gt;callbacks-&gt;extcode
+       || !(*f-&gt;callbacks-&gt;extcode)(f, code, id, inp, len) )
+        fsm_sdata(f, CODEREJ, ++f-&gt;id, inpacket, len + HEADERLEN);
+    break;
+    }
+}</code></pre>
 <ul>
 <li>如何解析IP地址，并设置生效？</li>
 </ul>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span></span><br><span class="line">fsm_rconfreq(f, id, inp, len)</span><br><span class="line">    fsm *f;</span><br><span class="line">    u_char id;</span><br><span class="line">    u_char *inp;</span><br><span class="line">    <span class="keyword">int</span> len;</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">int</span> code, reject_if_disagree;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">switch</span>( f-&gt;state )&#123;</span><br><span class="line">    <span class="keyword">case</span> CLOSED:</span><br><span class="line">	<span class="comment">/* Go away, we're closed */</span></span><br><span class="line">	fsm_sdata(f, TERMACK, id, <span class="literal">NULL</span>, <span class="number">0</span>);</span><br><span class="line">	<span class="keyword">return</span>;</span><br><span class="line">    <span class="keyword">case</span> CLOSING:</span><br><span class="line">    <span class="keyword">case</span> STOPPING:</span><br><span class="line">	<span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">case</span> OPENED:</span><br><span class="line">	<span class="comment">/* Go down and restart negotiation */</span></span><br><span class="line">	<span class="keyword">if</span>( f-&gt;callbacks-&gt;down )</span><br><span class="line">	    (*f-&gt;callbacks-&gt;down)(f);	<span class="comment">/* Inform upper layers */</span></span><br><span class="line">	fsm_sconfreq(f, <span class="number">0</span>);		<span class="comment">/* Send initial Configure-Request */</span></span><br><span class="line">	f-&gt;state = REQSENT;</span><br><span class="line">	<span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">case</span> STOPPED:</span><br><span class="line">	<span class="comment">/* Negotiation started by our peer */</span></span><br><span class="line">	fsm_sconfreq(f, <span class="number">0</span>);		<span class="comment">/* Send initial Configure-Request */</span></span><br><span class="line">	f-&gt;state = REQSENT;</span><br><span class="line">	<span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Pass the requested configuration options</span></span><br><span class="line"><span class="comment">     * to protocol-specific code for checking.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (f-&gt;callbacks-&gt;reqci)&#123;		<span class="comment">/* Check CI */</span></span><br><span class="line">	reject_if_disagree = (f-&gt;nakloops &gt;= f-&gt;maxnakloops);</span><br><span class="line">	code = (*f-&gt;callbacks-&gt;reqci)(f, inp, &amp;len, reject_if_disagree);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (len)</span><br><span class="line">	code = CONFREJ;			<span class="comment">/* Reject all CI */</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">	code = CONFACK;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* send the Ack, Nak or Rej to the peer */</span></span><br><span class="line">    fsm_sdata(f, code, id, inp, len);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (code == CONFACK) &#123;</span><br><span class="line">	<span class="keyword">if</span> (f-&gt;state == ACKRCVD) &#123;</span><br><span class="line">	    UNTIMEOUT(fsm_timeout, f);	<span class="comment">/* Cancel timeout */</span></span><br><span class="line">	    f-&gt;state = OPENED;</span><br><span class="line">	    <span class="keyword">if</span> (f-&gt;callbacks-&gt;up)</span><br><span class="line">		(*f-&gt;callbacks-&gt;up)(f);	<span class="comment">/* Inform upper layers (注意这个 up 函数 )*/</span></span><br><span class="line">	&#125; <span class="keyword">else</span></span><br><span class="line">	    f-&gt;state = ACKSENT;</span><br><span class="line">	f-&gt;nakloops = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">	<span class="comment">/* we sent CONFACK or CONFREJ */</span></span><br><span class="line">	<span class="keyword">if</span> (f-&gt;state != ACKRCVD)</span><br><span class="line">	    f-&gt;state = REQSENT;</span><br><span class="line">	<span class="keyword">if</span>( code == CONFNAK )</span><br><span class="line">	    ++f-&gt;nakloops;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="c">static void
+fsm_rconfreq(f, id, inp, len)
+    fsm *f;
+    u_char id;
+    u_char *inp;
+    int len;
+{
+    int code, reject_if_disagree;
 
+    switch( f-&gt;state ){
+    case CLOSED:
+    /* Go away, we&#39;re closed */
+    fsm_sdata(f, TERMACK, id, NULL, 0);
+    return;
+    case CLOSING:
+    case STOPPING:
+    return;
+
+    case OPENED:
+    /* Go down and restart negotiation */
+    if( f-&gt;callbacks-&gt;down )
+        (*f-&gt;callbacks-&gt;down)(f);    /* Inform upper layers */
+    fsm_sconfreq(f, 0);        /* Send initial Configure-Request */
+    f-&gt;state = REQSENT;
+    break;
+
+    case STOPPED:
+    /* Negotiation started by our peer */
+    fsm_sconfreq(f, 0);        /* Send initial Configure-Request */
+    f-&gt;state = REQSENT;
+    break;
+    }
+
+    /*
+     * Pass the requested configuration options
+     * to protocol-specific code for checking.
+     */
+    if (f-&gt;callbacks-&gt;reqci){        /* Check CI */
+    reject_if_disagree = (f-&gt;nakloops &gt;= f-&gt;maxnakloops);
+    code = (*f-&gt;callbacks-&gt;reqci)(f, inp, &amp;len, reject_if_disagree);
+    } else if (len)
+    code = CONFREJ;            /* Reject all CI */
+    else
+    code = CONFACK;
+
+    /* send the Ack, Nak or Rej to the peer */
+    fsm_sdata(f, code, id, inp, len);
+
+    if (code == CONFACK) {
+    if (f-&gt;state == ACKRCVD) {
+        UNTIMEOUT(fsm_timeout, f);    /* Cancel timeout */
+        f-&gt;state = OPENED;
+        if (f-&gt;callbacks-&gt;up)
+        (*f-&gt;callbacks-&gt;up)(f);    /* Inform upper layers (注意这个 up 函数 )*/
+    } else
+        f-&gt;state = ACKSENT;
+    f-&gt;nakloops = 0;
+
+    } else {
+    /* we sent CONFACK or CONFREJ */
+    if (f-&gt;state != ACKRCVD)
+        f-&gt;state = REQSENT;
+    if( code == CONFNAK )
+        ++f-&gt;nakloops;
+    }
+}</code></pre>
 <ul>
 <li><code>(*f-&gt;callbacks-&gt;up)(f)</code></li>
 </ul>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> fsm_callbacks ipcp_callbacks = &#123; <span class="comment">/* IPCP callback routines */</span></span><br><span class="line">    ipcp_resetci,		<span class="comment">/* Reset our Configuration Information */</span></span><br><span class="line">    ipcp_cilen,			<span class="comment">/* Length of our Configuration Information */</span></span><br><span class="line">    ipcp_addci,			<span class="comment">/* Add our Configuration Information */</span></span><br><span class="line">    ipcp_ackci,			<span class="comment">/* ACK our Configuration Information */</span></span><br><span class="line">    ipcp_nakci,			<span class="comment">/* NAK our Configuration Information */</span></span><br><span class="line">    ipcp_rejci,			<span class="comment">/* Reject our Configuration Information */</span></span><br><span class="line">    ipcp_reqci,			<span class="comment">/* Request peer's Configuration Information */</span></span><br><span class="line">    ipcp_up,			<span class="comment">/* Called when fsm reaches OPENED state */</span></span><br><span class="line">    ipcp_down,			<span class="comment">/* Called when fsm leaves OPENED state */</span></span><br><span class="line">    <span class="literal">NULL</span>,			<span class="comment">/* Called when we want the lower layer up */</span></span><br><span class="line">    ipcp_finished,		<span class="comment">/* Called when we want the lower layer down */</span></span><br><span class="line">    <span class="literal">NULL</span>,			<span class="comment">/* Called when Protocol-Reject received */</span></span><br><span class="line">    <span class="literal">NULL</span>,			<span class="comment">/* Retransmission is necessary */</span></span><br><span class="line">    <span class="literal">NULL</span>,			<span class="comment">/* Called to handle protocol-specific codes */</span></span><br><span class="line">    <span class="string">"IPCP"</span>			<span class="comment">/* String name of protocol */</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">void</span></span><br><span class="line">ipcp_up(f)</span><br><span class="line">    fsm *f;</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">u_int32_t</span> mask;</span><br><span class="line">    ipcp_options *ho = &amp;ipcp_hisoptions[f-&gt;unit];</span><br><span class="line">    ipcp_options *go = &amp;ipcp_gotoptions[f-&gt;unit];</span><br><span class="line">    ipcp_options *wo = &amp;ipcp_wantoptions[f-&gt;unit];</span><br><span class="line"></span><br><span class="line">    IPCPDEBUG((<span class="string">"ipcp: up"</span>));</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * We must have a non-zero IP address for both ends of the link.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (!ho-&gt;neg_addr &amp;&amp; !ho-&gt;old_addrs)</span><br><span class="line">	ho-&gt;hisaddr = wo-&gt;hisaddr;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!(go-&gt;neg_addr || go-&gt;old_addrs) &amp;&amp; (wo-&gt;neg_addr || wo-&gt;old_addrs)</span><br><span class="line">	&amp;&amp; wo-&gt;ouraddr != <span class="number">0</span>) &#123;</span><br><span class="line">	error(<span class="string">"Peer refused to agree to our IP address"</span>);</span><br><span class="line">	ipcp_close(f-&gt;unit, <span class="string">"Refused our IP address"</span>);</span><br><span class="line">	<span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (go-&gt;ouraddr == <span class="number">0</span>) &#123;</span><br><span class="line">	error(<span class="string">"Could not determine local IP address"</span>);</span><br><span class="line">	ipcp_close(f-&gt;unit, <span class="string">"Could not determine local IP address"</span>);</span><br><span class="line">	<span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (ho-&gt;hisaddr == <span class="number">0</span> &amp;&amp; !noremoteip) &#123;</span><br><span class="line">	ho-&gt;hisaddr = htonl(<span class="number">0x0a404040</span> + ifunit);</span><br><span class="line">	warn(<span class="string">"Could not determine remote IP address: defaulting to %I"</span>,</span><br><span class="line">	     ho-&gt;hisaddr);</span><br><span class="line">    &#125;</span><br><span class="line">    script_setenv(<span class="string">"IPLOCAL"</span>, ip_ntoa(go-&gt;ouraddr), <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span> (ho-&gt;hisaddr != <span class="number">0</span>)</span><br><span class="line">	script_setenv(<span class="string">"IPREMOTE"</span>, ip_ntoa(ho-&gt;hisaddr), <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!go-&gt;req_dns1)</span><br><span class="line">	    go-&gt;dnsaddr[<span class="number">0</span>] = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span> (!go-&gt;req_dns2)</span><br><span class="line">	    go-&gt;dnsaddr[<span class="number">1</span>] = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span> (go-&gt;dnsaddr[<span class="number">0</span>])</span><br><span class="line">	script_setenv(<span class="string">"DNS1"</span>, ip_ntoa(go-&gt;dnsaddr[<span class="number">0</span>]), <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span> (go-&gt;dnsaddr[<span class="number">1</span>])</span><br><span class="line">	script_setenv(<span class="string">"DNS2"</span>, ip_ntoa(go-&gt;dnsaddr[<span class="number">1</span>]), <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span> (usepeerdns &amp;&amp; (go-&gt;dnsaddr[<span class="number">0</span>] || go-&gt;dnsaddr[<span class="number">1</span>])) &#123;</span><br><span class="line">	script_setenv(<span class="string">"USEPEERDNS"</span>, <span class="string">"1"</span>, <span class="number">0</span>);</span><br><span class="line">	create_resolv(go-&gt;dnsaddr[<span class="number">0</span>], go-&gt;dnsaddr[<span class="number">1</span>]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Check that the peer is allowed to use the IP address it wants.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (ho-&gt;hisaddr != <span class="number">0</span> &amp;&amp; !auth_ip_addr(f-&gt;unit, ho-&gt;hisaddr)) &#123;</span><br><span class="line">	error(<span class="string">"Peer is not authorized to use remote address %I"</span>, ho-&gt;hisaddr);</span><br><span class="line">	ipcp_close(f-&gt;unit, <span class="string">"Unauthorized remote IP address"</span>);</span><br><span class="line">	<span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* set tcp compression */</span></span><br><span class="line">    sifvjcomp(f-&gt;unit, ho-&gt;neg_vj, ho-&gt;cflag, ho-&gt;maxslotindex);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * If we are doing dial-on-demand, the interface is already</span></span><br><span class="line"><span class="comment">     * configured, so we put out any saved-up packets, then set the</span></span><br><span class="line"><span class="comment">     * interface to pass IP packets.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (demand) &#123;</span><br><span class="line">	<span class="keyword">if</span> (go-&gt;ouraddr != wo-&gt;ouraddr || ho-&gt;hisaddr != wo-&gt;hisaddr) &#123;</span><br><span class="line">	    ipcp_clear_addrs(f-&gt;unit, wo-&gt;ouraddr, wo-&gt;hisaddr);</span><br><span class="line">	    <span class="keyword">if</span> (go-&gt;ouraddr != wo-&gt;ouraddr) &#123;</span><br><span class="line">		warn(<span class="string">"Local IP address changed to %I"</span>, go-&gt;ouraddr);</span><br><span class="line">		script_setenv(<span class="string">"OLDIPLOCAL"</span>, ip_ntoa(wo-&gt;ouraddr), <span class="number">0</span>);</span><br><span class="line">		wo-&gt;ouraddr = go-&gt;ouraddr;</span><br><span class="line">	    &#125; <span class="keyword">else</span></span><br><span class="line">		script_unsetenv(<span class="string">"OLDIPLOCAL"</span>);</span><br><span class="line">	    <span class="keyword">if</span> (ho-&gt;hisaddr != wo-&gt;hisaddr &amp;&amp; wo-&gt;hisaddr != <span class="number">0</span>) &#123;</span><br><span class="line">		warn(<span class="string">"Remote IP address changed to %I"</span>, ho-&gt;hisaddr);</span><br><span class="line">		script_setenv(<span class="string">"OLDIPREMOTE"</span>, ip_ntoa(wo-&gt;hisaddr), <span class="number">0</span>);</span><br><span class="line">		wo-&gt;hisaddr = ho-&gt;hisaddr;</span><br><span class="line">	    &#125; <span class="keyword">else</span></span><br><span class="line">		script_unsetenv(<span class="string">"OLDIPREMOTE"</span>);</span><br><span class="line"></span><br><span class="line">	    <span class="comment">/* Set the interface to the new addresses */</span></span><br><span class="line">	    mask = GetMask(go-&gt;ouraddr);</span><br><span class="line">	    <span class="keyword">if</span> (!sifaddr(f-&gt;unit, go-&gt;ouraddr, ho-&gt;hisaddr, mask)) &#123;</span><br><span class="line">		<span class="keyword">if</span> (debug)</span><br><span class="line">		    warn(<span class="string">"Interface configuration failed"</span>);</span><br><span class="line">		ipcp_close(f-&gt;unit, <span class="string">"Interface configuration failed"</span>);</span><br><span class="line">		<span class="keyword">return</span>;</span><br><span class="line">	    &#125;</span><br><span class="line"></span><br><span class="line">	    <span class="comment">/* assign a default route through the interface if required */</span></span><br><span class="line">	    <span class="keyword">if</span> (ipcp_wantoptions[f-&gt;unit].default_route) </span><br><span class="line">		<span class="keyword">if</span> (sifdefaultroute(f-&gt;unit, go-&gt;ouraddr, ho-&gt;hisaddr))</span><br><span class="line">		    default_route_set[f-&gt;unit] = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">	    <span class="comment">/* Make a proxy ARP entry if requested. */</span></span><br><span class="line">	    <span class="keyword">if</span> (ho-&gt;hisaddr != <span class="number">0</span> &amp;&amp; ipcp_wantoptions[f-&gt;unit].proxy_arp)</span><br><span class="line">		<span class="keyword">if</span> (sifproxyarp(f-&gt;unit, ho-&gt;hisaddr))</span><br><span class="line">		    proxy_arp_set[f-&gt;unit] = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">	&#125;</span><br><span class="line">	demand_rexmit(PPP_IP);</span><br><span class="line">	sifnpmode(f-&gt;unit, PPP_IP, NPMODE_PASS);</span><br><span class="line"></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * Set IP addresses and (if specified) netmask.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	mask = GetMask(go-&gt;ouraddr);</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> !(defined(SVR4) &amp;&amp; (defined(SNI) || defined(__USLC__)))</span></span><br><span class="line">	<span class="keyword">if</span> (!sifaddr(f-&gt;unit, go-&gt;ouraddr, ho-&gt;hisaddr, mask)) &#123;</span><br><span class="line">	    <span class="keyword">if</span> (debug)</span><br><span class="line">		warn(<span class="string">"Interface configuration failed"</span>);</span><br><span class="line">	    ipcp_close(f-&gt;unit, <span class="string">"Interface configuration failed"</span>);</span><br><span class="line">	    <span class="keyword">return</span>;</span><br><span class="line">	&#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">	<span class="comment">/* run the pre-up script, if any, and wait for it to finish */</span></span><br><span class="line">	ipcp_script(_PATH_IPPREUP, <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* bring the interface up for IP */</span></span><br><span class="line">	<span class="keyword">if</span> (!sifup(f-&gt;unit)) &#123;</span><br><span class="line">	    <span class="keyword">if</span> (debug)</span><br><span class="line">		warn(<span class="string">"Interface failed to come up"</span>);</span><br><span class="line">	    ipcp_close(f-&gt;unit, <span class="string">"Interface configuration failed"</span>);</span><br><span class="line">	    <span class="keyword">return</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> (defined(SVR4) &amp;&amp; (defined(SNI) || defined(__USLC__)))</span></span><br><span class="line">	<span class="keyword">if</span> (!sifaddr(f-&gt;unit, go-&gt;ouraddr, ho-&gt;hisaddr, mask)) &#123;</span><br><span class="line">	    <span class="keyword">if</span> (debug)</span><br><span class="line">		warn(<span class="string">"Interface configuration failed"</span>);</span><br><span class="line">	    ipcp_close(f-&gt;unit, <span class="string">"Interface configuration failed"</span>);</span><br><span class="line">	    <span class="keyword">return</span>;</span><br><span class="line">	&#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">	sifnpmode(f-&gt;unit, PPP_IP, NPMODE_PASS);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* assign a default route through the interface if required */</span></span><br><span class="line">	<span class="keyword">if</span> (ipcp_wantoptions[f-&gt;unit].default_route) </span><br><span class="line">	    <span class="keyword">if</span> (sifdefaultroute(f-&gt;unit, go-&gt;ouraddr, ho-&gt;hisaddr))</span><br><span class="line">		default_route_set[f-&gt;unit] = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* Make a proxy ARP entry if requested. */</span></span><br><span class="line">	<span class="keyword">if</span> (ho-&gt;hisaddr != <span class="number">0</span> &amp;&amp; ipcp_wantoptions[f-&gt;unit].proxy_arp)</span><br><span class="line">	    <span class="keyword">if</span> (sifproxyarp(f-&gt;unit, ho-&gt;hisaddr))</span><br><span class="line">		proxy_arp_set[f-&gt;unit] = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">	ipcp_wantoptions[<span class="number">0</span>].ouraddr = go-&gt;ouraddr;</span><br><span class="line"></span><br><span class="line">	notice(<span class="string">"local  IP address %I"</span>, go-&gt;ouraddr);</span><br><span class="line">	<span class="keyword">if</span> (ho-&gt;hisaddr != <span class="number">0</span>)</span><br><span class="line">	    notice(<span class="string">"remote IP address %I"</span>, ho-&gt;hisaddr);</span><br><span class="line">	<span class="keyword">if</span> (go-&gt;dnsaddr[<span class="number">0</span>])</span><br><span class="line">	    notice(<span class="string">"primary   DNS address %I"</span>, go-&gt;dnsaddr[<span class="number">0</span>]);</span><br><span class="line">	<span class="keyword">if</span> (go-&gt;dnsaddr[<span class="number">1</span>])</span><br><span class="line">	    notice(<span class="string">"secondary DNS address %I"</span>, go-&gt;dnsaddr[<span class="number">1</span>]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    reset_link_stats(f-&gt;unit);</span><br><span class="line"></span><br><span class="line">    np_up(f-&gt;unit, PPP_IP);</span><br><span class="line">    ipcp_is_up = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    notify(ip_up_notifier, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span> (ip_up_hook)</span><br><span class="line">	ip_up_hook();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Execute the ip-up script, like this:</span></span><br><span class="line"><span class="comment">     *	/etc/ppp/ip-up interface tty speed local-IP remote-IP</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (ipcp_script_state == s_down &amp;&amp; ipcp_script_pid == <span class="number">0</span>) &#123;</span><br><span class="line">	ipcp_script_state = s_up;</span><br><span class="line">	ipcp_script(_PATH_IPUP, <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="c">static fsm_callbacks ipcp_callbacks = { /* IPCP callback routines */
+    ipcp_resetci,        /* Reset our Configuration Information */
+    ipcp_cilen,            /* Length of our Configuration Information */
+    ipcp_addci,            /* Add our Configuration Information */
+    ipcp_ackci,            /* ACK our Configuration Information */
+    ipcp_nakci,            /* NAK our Configuration Information */
+    ipcp_rejci,            /* Reject our Configuration Information */
+    ipcp_reqci,            /* Request peer&#39;s Configuration Information */
+    ipcp_up,            /* Called when fsm reaches OPENED state */
+    ipcp_down,            /* Called when fsm leaves OPENED state */
+    NULL,            /* Called when we want the lower layer up */
+    ipcp_finished,        /* Called when we want the lower layer down */
+    NULL,            /* Called when Protocol-Reject received */
+    NULL,            /* Retransmission is necessary */
+    NULL,            /* Called to handle protocol-specific codes */
+    &quot;IPCP&quot;            /* String name of protocol */
+};
+
+
+static void
+ipcp_up(f)
+    fsm *f;
+{
+    u_int32_t mask;
+    ipcp_options *ho = &amp;ipcp_hisoptions[f-&gt;unit];
+    ipcp_options *go = &amp;ipcp_gotoptions[f-&gt;unit];
+    ipcp_options *wo = &amp;ipcp_wantoptions[f-&gt;unit];
+
+    IPCPDEBUG((&quot;ipcp: up&quot;));
+
+    /*
+     * We must have a non-zero IP address for both ends of the link.
+     */
+    if (!ho-&gt;neg_addr &amp;&amp; !ho-&gt;old_addrs)
+    ho-&gt;hisaddr = wo-&gt;hisaddr;
+
+    if (!(go-&gt;neg_addr || go-&gt;old_addrs) &amp;&amp; (wo-&gt;neg_addr || wo-&gt;old_addrs)
+    &amp;&amp; wo-&gt;ouraddr != 0) {
+    error(&quot;Peer refused to agree to our IP address&quot;);
+    ipcp_close(f-&gt;unit, &quot;Refused our IP address&quot;);
+    return;
+    }
+    if (go-&gt;ouraddr == 0) {
+    error(&quot;Could not determine local IP address&quot;);
+    ipcp_close(f-&gt;unit, &quot;Could not determine local IP address&quot;);
+    return;
+    }
+    if (ho-&gt;hisaddr == 0 &amp;&amp; !noremoteip) {
+    ho-&gt;hisaddr = htonl(0x0a404040 + ifunit);
+    warn(&quot;Could not determine remote IP address: defaulting to %I&quot;,
+         ho-&gt;hisaddr);
+    }
+    script_setenv(&quot;IPLOCAL&quot;, ip_ntoa(go-&gt;ouraddr), 0);
+    if (ho-&gt;hisaddr != 0)
+    script_setenv(&quot;IPREMOTE&quot;, ip_ntoa(ho-&gt;hisaddr), 1);
+
+    if (!go-&gt;req_dns1)
+        go-&gt;dnsaddr[0] = 0;
+    if (!go-&gt;req_dns2)
+        go-&gt;dnsaddr[1] = 0;
+    if (go-&gt;dnsaddr[0])
+    script_setenv(&quot;DNS1&quot;, ip_ntoa(go-&gt;dnsaddr[0]), 0);
+    if (go-&gt;dnsaddr[1])
+    script_setenv(&quot;DNS2&quot;, ip_ntoa(go-&gt;dnsaddr[1]), 0);
+    if (usepeerdns &amp;&amp; (go-&gt;dnsaddr[0] || go-&gt;dnsaddr[1])) {
+    script_setenv(&quot;USEPEERDNS&quot;, &quot;1&quot;, 0);
+    create_resolv(go-&gt;dnsaddr[0], go-&gt;dnsaddr[1]);
+    }
+
+    /*
+     * Check that the peer is allowed to use the IP address it wants.
+     */
+    if (ho-&gt;hisaddr != 0 &amp;&amp; !auth_ip_addr(f-&gt;unit, ho-&gt;hisaddr)) {
+    error(&quot;Peer is not authorized to use remote address %I&quot;, ho-&gt;hisaddr);
+    ipcp_close(f-&gt;unit, &quot;Unauthorized remote IP address&quot;);
+    return;
+    }
+
+    /* set tcp compression */
+    sifvjcomp(f-&gt;unit, ho-&gt;neg_vj, ho-&gt;cflag, ho-&gt;maxslotindex);
+
+    /*
+     * If we are doing dial-on-demand, the interface is already
+     * configured, so we put out any saved-up packets, then set the
+     * interface to pass IP packets.
+     */
+    if (demand) {
+    if (go-&gt;ouraddr != wo-&gt;ouraddr || ho-&gt;hisaddr != wo-&gt;hisaddr) {
+        ipcp_clear_addrs(f-&gt;unit, wo-&gt;ouraddr, wo-&gt;hisaddr);
+        if (go-&gt;ouraddr != wo-&gt;ouraddr) {
+        warn(&quot;Local IP address changed to %I&quot;, go-&gt;ouraddr);
+        script_setenv(&quot;OLDIPLOCAL&quot;, ip_ntoa(wo-&gt;ouraddr), 0);
+        wo-&gt;ouraddr = go-&gt;ouraddr;
+        } else
+        script_unsetenv(&quot;OLDIPLOCAL&quot;);
+        if (ho-&gt;hisaddr != wo-&gt;hisaddr &amp;&amp; wo-&gt;hisaddr != 0) {
+        warn(&quot;Remote IP address changed to %I&quot;, ho-&gt;hisaddr);
+        script_setenv(&quot;OLDIPREMOTE&quot;, ip_ntoa(wo-&gt;hisaddr), 0);
+        wo-&gt;hisaddr = ho-&gt;hisaddr;
+        } else
+        script_unsetenv(&quot;OLDIPREMOTE&quot;);
+
+        /* Set the interface to the new addresses */
+        mask = GetMask(go-&gt;ouraddr);
+        if (!sifaddr(f-&gt;unit, go-&gt;ouraddr, ho-&gt;hisaddr, mask)) {
+        if (debug)
+            warn(&quot;Interface configuration failed&quot;);
+        ipcp_close(f-&gt;unit, &quot;Interface configuration failed&quot;);
+        return;
+        }
+
+        /* assign a default route through the interface if required */
+        if (ipcp_wantoptions[f-&gt;unit].default_route) 
+        if (sifdefaultroute(f-&gt;unit, go-&gt;ouraddr, ho-&gt;hisaddr))
+            default_route_set[f-&gt;unit] = 1;
+
+        /* Make a proxy ARP entry if requested. */
+        if (ho-&gt;hisaddr != 0 &amp;&amp; ipcp_wantoptions[f-&gt;unit].proxy_arp)
+        if (sifproxyarp(f-&gt;unit, ho-&gt;hisaddr))
+            proxy_arp_set[f-&gt;unit] = 1;
+
+    }
+    demand_rexmit(PPP_IP);
+    sifnpmode(f-&gt;unit, PPP_IP, NPMODE_PASS);
+
+    } else {
+    /*
+     * Set IP addresses and (if specified) netmask.
+     */
+    mask = GetMask(go-&gt;ouraddr);
+
+#if !(defined(SVR4) &amp;&amp; (defined(SNI) || defined(__USLC__)))
+    if (!sifaddr(f-&gt;unit, go-&gt;ouraddr, ho-&gt;hisaddr, mask)) {
+        if (debug)
+        warn(&quot;Interface configuration failed&quot;);
+        ipcp_close(f-&gt;unit, &quot;Interface configuration failed&quot;);
+        return;
+    }
+#endif
+
+    /* run the pre-up script, if any, and wait for it to finish */
+    ipcp_script(_PATH_IPPREUP, 1);
+
+    /* bring the interface up for IP */
+    if (!sifup(f-&gt;unit)) {
+        if (debug)
+        warn(&quot;Interface failed to come up&quot;);
+        ipcp_close(f-&gt;unit, &quot;Interface configuration failed&quot;);
+        return;
+    }
+
+#if (defined(SVR4) &amp;&amp; (defined(SNI) || defined(__USLC__)))
+    if (!sifaddr(f-&gt;unit, go-&gt;ouraddr, ho-&gt;hisaddr, mask)) {
+        if (debug)
+        warn(&quot;Interface configuration failed&quot;);
+        ipcp_close(f-&gt;unit, &quot;Interface configuration failed&quot;);
+        return;
+    }
+#endif
+    sifnpmode(f-&gt;unit, PPP_IP, NPMODE_PASS);
+
+    /* assign a default route through the interface if required */
+    if (ipcp_wantoptions[f-&gt;unit].default_route) 
+        if (sifdefaultroute(f-&gt;unit, go-&gt;ouraddr, ho-&gt;hisaddr))
+        default_route_set[f-&gt;unit] = 1;
+
+    /* Make a proxy ARP entry if requested. */
+    if (ho-&gt;hisaddr != 0 &amp;&amp; ipcp_wantoptions[f-&gt;unit].proxy_arp)
+        if (sifproxyarp(f-&gt;unit, ho-&gt;hisaddr))
+        proxy_arp_set[f-&gt;unit] = 1;
+
+    ipcp_wantoptions[0].ouraddr = go-&gt;ouraddr;
+
+    notice(&quot;local  IP address %I&quot;, go-&gt;ouraddr);
+    if (ho-&gt;hisaddr != 0)
+        notice(&quot;remote IP address %I&quot;, ho-&gt;hisaddr);
+    if (go-&gt;dnsaddr[0])
+        notice(&quot;primary   DNS address %I&quot;, go-&gt;dnsaddr[0]);
+    if (go-&gt;dnsaddr[1])
+        notice(&quot;secondary DNS address %I&quot;, go-&gt;dnsaddr[1]);
+    }
+
+    reset_link_stats(f-&gt;unit);
+
+    np_up(f-&gt;unit, PPP_IP);
+    ipcp_is_up = 1;
+
+    notify(ip_up_notifier, 0);
+    if (ip_up_hook)
+    ip_up_hook();
+
+    /*
+     * Execute the ip-up script, like this:
+     *    /etc/ppp/ip-up interface tty speed local-IP remote-IP
+     */
+    if (ipcp_script_state == s_down &amp;&amp; ipcp_script_pid == 0) {
+    ipcp_script_state = s_up;
+    ipcp_script(_PATH_IPUP, 0);
+    }
+}</code></pre>
+
   <script>
     var dom = document.getElementsByClassName('code');
     for(var i=0,len=dom.length; i<len; i++){
       dom[i].style.width = '750px';
+    }
+    var dom = document.getElementsByTagName('h1');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].className  += 'page_title';
+    }
+    var dom = document.getElementsByTagName('p');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#303333';
+    }
+    var dom = document.getElementsByTagName('a');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#2d96bd';
     }
   </script>
 

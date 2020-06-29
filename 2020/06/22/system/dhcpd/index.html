@@ -62,6 +62,25 @@
   <script src="/js/prettify.js"></script>
   <link rel="stylesheet" href="/css/tomorrow_night.css">
   <link rel="stylesheet" href="/css/tomorrow_night.min.css">
+  <link rel="stylesheet" href="/css/my.css">
+  <script>
+    Date.prototype.Format = function (fmt) {
+      var o = {
+              "M+": this.getMonth() + 1, // 月份
+              "d+": this.getDate(), // 日
+              "h+": this.getHours(), // 小时
+              "m+": this.getMinutes(), // 分
+              "s+": this.getSeconds(), // 秒
+              "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+              "S": this.getMilliseconds() // 毫秒
+      };
+      if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+      for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+      return fmt;
+    }
+  </script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -81,16 +100,25 @@
     </div>
   </nav>
   <div class="page-container">
-    <div style="float:right">
-      <span>
-        <em class="post-meta-item-text">Author:Yake Pei,</em>
+  <h1 id="isc-dhcpd 搭建dhcp服务器及配置文件详解" class="page_title">
+    <a href="#isc-dhcpd 搭建dhcp服务器及配置文件详解" class="headerlink" title="isc-dhcpd 搭建dhcp服务器及配置文件详解"></a>
+    isc-dhcpd 搭建dhcp服务器及配置文件详解
+  </h1>
+  <div>
+    <em class="page_meta">Written by </em>
+    <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+    <em class="page_meta">,Last update
+      <span class="post-time">on 
+        <time datetime="1592824242000" itemprop="datePublished"><script>var date = new Date().Format('yy-MM-dd hh:mm');document.write(date);</script></time>
       </span>
-      <span id="/2020/06/22/system/dhcpd/" class="leancloud_visitors" data-flag-title="isc-dhcpd 搭建dhcp服务器及配置文件详解">
-        <em class="post-meta-item-text">Pageviews:</em>
-        <i class="leancloud-visitors-count">loading</i>
-      </span>
-    </div>
-  <h1 id="isc-dhcpd-搭建dhcp服务器及配置文件详解"><a href="#isc-dhcpd-搭建dhcp服务器及配置文件详解" class="headerlink" title="isc-dhcpd 搭建dhcp服务器及配置文件详解"></a>isc-dhcpd 搭建dhcp服务器及配置文件详解</h1><blockquote>
+    </em>
+    <span id="/2020/06/22/system/dhcpd/" class="leancloud_visitors" data-flag-title="isc-dhcpd 搭建dhcp服务器及配置文件详解">
+      <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+      <i class="leancloud-visitors-count">loading</i>
+    </span>
+  </div>
+  <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+  <blockquote>
 <p>ISC DHCP offers a complete open source solution for implementing DHCP servers, relay agents, and clients. ISC DHCP supports both IPv4 and IPv6, and is suitable for use in high-volume and high-reliability applications. DHCP is available for free download under the terms of the MPL 2.0 license.</p>
 </blockquote>
 <p><strong>ISC-DHCPD</strong> 是一个开源项目。它提供了一个全面的DHCP协议解决方案，包括dhcp server、relay、client。并且它同时支持<br><strong>IPV4</strong> 和 <strong>IPV6</strong>，是一个 <strong>高容量、高可用</strong> 的一个DHCP项目，也是当下使用最多的一个DHCP协议实现方案。 <strong>ISC-DHCPD</strong><br>使用 <strong>MPL 2.0 许可证协议</strong></p>
@@ -105,6 +133,18 @@
     var dom = document.getElementsByClassName('code');
     for(var i=0,len=dom.length; i<len; i++){
       dom[i].style.width = '750px';
+    }
+    var dom = document.getElementsByTagName('h1');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].className  += 'page_title';
+    }
+    var dom = document.getElementsByTagName('p');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#303333';
+    }
+    var dom = document.getElementsByTagName('a');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#2d96bd';
     }
   </script>
 

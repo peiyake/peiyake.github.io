@@ -62,6 +62,25 @@
   <script src="/js/prettify.js"></script>
   <link rel="stylesheet" href="/css/tomorrow_night.css">
   <link rel="stylesheet" href="/css/tomorrow_night.min.css">
+  <link rel="stylesheet" href="/css/my.css">
+  <script>
+    Date.prototype.Format = function (fmt) {
+      var o = {
+              "M+": this.getMonth() + 1, // 月份
+              "d+": this.getDate(), // 日
+              "h+": this.getHours(), // 小时
+              "m+": this.getMinutes(), // 分
+              "s+": this.getSeconds(), // 秒
+              "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+              "S": this.getMilliseconds() // 毫秒
+      };
+      if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+      for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+      return fmt;
+    }
+  </script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -81,51 +100,137 @@
     </div>
   </nav>
   <div class="page-container">
-    <div style="float:right">
-      <span>
-        <em class="post-meta-item-text">Author:Yake Pei,</em>
+  <h1 id="VPP 编译、安装、运行" class="page_title">
+    <a href="#VPP 编译、安装、运行" class="headerlink" title="VPP 编译、安装、运行"></a>
+    VPP 编译、安装、运行
+  </h1>
+  <div>
+    <em class="page_meta">Written by </em>
+    <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+    <em class="page_meta">,Last update
+      <span class="post-time">on 
+        <time datetime="1592824242000" itemprop="datePublished"><script>var date = new Date().Format('yy-MM-dd hh:mm');document.write(date);</script></time>
       </span>
-      <span id="/2020/06/22/vpp/build_install/" class="leancloud_visitors" data-flag-title="VPP 编译、安装、运行">
-        <em class="post-meta-item-text">Pageviews:</em>
-        <i class="leancloud-visitors-count">loading</i>
-      </span>
-    </div>
-  <h1 id="VPP-编译、安装、运行"><a href="#VPP-编译、安装、运行" class="headerlink" title="VPP 编译、安装、运行"></a>VPP 编译、安装、运行</h1><h2 id="下载源码"><a href="#下载源码" class="headerlink" title="下载源码"></a>下载源码</h2><p><a href="https://wiki.fd.io/view/VPP/Pulling,_Building,_Running,_Hacking_and_Pushing_VPP_Code">参考官方文档</a></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost ~]git clone https:&#x2F;&#x2F;gerrit.fd.io&#x2F;r&#x2F;vpp</span><br><span class="line">[root@localhost ~]cd vpp</span><br><span class="line">[root@localhost ~]git branch -a                   #查看分支</span><br><span class="line">[root@localhost ~]git tag                         #查看标签</span><br><span class="line">[root@localhost ~]# git checkout -b v19.08 v19.08 #从tag  v19.08 检出分支 v19.08</span><br></pre></td></tr></table></figure>
+    </em>
+    <span id="/2020/06/22/vpp/build_install/" class="leancloud_visitors" data-flag-title="VPP 编译、安装、运行">
+      <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+      <i class="leancloud-visitors-count">loading</i>
+    </span>
+  </div>
+  <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+  <h2 id="下载源码"><a href="#下载源码" class="headerlink" title="下载源码"></a>下载源码</h2><p><a href="https://wiki.fd.io/view/VPP/Pulling,_Building,_Running,_Hacking_and_Pushing_VPP_Code">参考官方文档</a></p>
+<pre><code>[root@localhost ~]git clone https://gerrit.fd.io/r/vpp
+[root@localhost ~]cd vpp
+[root@localhost ~]git branch -a                   #查看分支
+[root@localhost ~]git tag                         #查看标签
+[root@localhost ~]# git checkout -b v19.08 v19.08 #从tag  v19.08 检出分支 v19.08</code></pre><h2 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h2><pre><code># if vpp&lt;08.10
 
-<h2 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># if vpp&lt;08.10</span><br><span class="line"></span><br><span class="line">make install-dep</span><br><span class="line">make bootstrap</span><br><span class="line">make build        # or &#96;make build-release&#96;</span><br><span class="line"></span><br><span class="line"># vpp 08.10+ (cmake)</span><br><span class="line">make install-dep</span><br><span class="line">make install-ext-deps</span><br><span class="line">make build        # or &#96;make build-release&#96;</span><br></pre></td></tr></table></figure>
+make install-dep
+make bootstrap
+make build        # or `make build-release`
 
-<h2 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h2><h3 id="构造配置文件-startup-conf"><a href="#构造配置文件-startup-conf" class="headerlink" title="构造配置文件 startup.conf"></a>构造配置文件 startup.conf</h3><ol>
+# vpp 08.10+ (cmake)
+make install-dep
+make install-ext-deps
+make build        # or `make build-release`</code></pre><h2 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h2><h3 id="构造配置文件-startup-conf"><a href="#构造配置文件-startup-conf" class="headerlink" title="构造配置文件 startup.conf"></a>构造配置文件 startup.conf</h3><ol>
 <li><p>查看设备端口</p>
 <p> 如下，我的测试设备有6个千兆口，还有4个扩展千兆口，我已经配置DPDK接管了其中PCI编号 <code>0000:03:00.0</code> 和 <code>0000:03:00.1</code> 两个网口。<br>对应的 <code>startup.conf</code> 配置文件如下：</p>
 </li>
 </ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost vpp]# .&#x2F;extras&#x2F;vpp_config&#x2F;scripts&#x2F;dpdk-devbind.py --status</span><br><span class="line"></span><br><span class="line">Network devices using DPDK-compatible driver</span><br><span class="line">&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</span><br><span class="line">0000:03:00.0 &#39;82580 Gigabit Fiber Network Connection&#39; drv&#x3D;uio_pci_generic unused&#x3D;igb</span><br><span class="line">0000:03:00.1 &#39;82580 Gigabit Fiber Network Connection&#39; drv&#x3D;uio_pci_generic unused&#x3D;igb</span><br><span class="line"></span><br><span class="line">Network devices using kernel driver</span><br><span class="line">&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</span><br><span class="line">0000:03:00.2 &#39;82580 Gigabit Fiber Network Connection&#39; if&#x3D;eth8 drv&#x3D;igb unused&#x3D;uio_pci_generic </span><br><span class="line">0000:03:00.3 &#39;82580 Gigabit Fiber Network Connection&#39; if&#x3D;eth9 drv&#x3D;igb unused&#x3D;uio_pci_generic </span><br><span class="line">0000:05:00.0 &#39;82583V Gigabit Network Connection&#39; if&#x3D;eth0 drv&#x3D;e1000e unused&#x3D;uio_pci_generic </span><br><span class="line">0000:06:00.0 &#39;82583V Gigabit Network Connection&#39; if&#x3D;eth1 drv&#x3D;e1000e unused&#x3D;uio_pci_generic </span><br><span class="line">0000:07:00.0 &#39;82583V Gigabit Network Connection&#39; if&#x3D;eth2 drv&#x3D;e1000e unused&#x3D;uio_pci_generic </span><br><span class="line">0000:08:00.0 &#39;82583V Gigabit Network Connection&#39; if&#x3D;eth3 drv&#x3D;e1000e unused&#x3D;uio_pci_generic </span><br><span class="line">0000:09:00.0 &#39;82583V Gigabit Network Connection&#39; if&#x3D;eth4 drv&#x3D;e1000e unused&#x3D;uio_pci_generic </span><br><span class="line">0000:0a:00.0 &#39;82583V Gigabit Network Connection&#39; if&#x3D;eth5 drv&#x3D;e1000e unused&#x3D;uio_pci_generic </span><br><span class="line"></span><br><span class="line">Other network devices</span><br><span class="line">&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</span><br><span class="line">&lt;none&gt;</span><br><span class="line"></span><br><span class="line">Crypto devices using DPDK-compatible driver</span><br><span class="line">&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</span><br><span class="line">&lt;none&gt;</span><br><span class="line"></span><br><span class="line">Crypto devices using kernel driver</span><br><span class="line">&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</span><br><span class="line">&lt;none&gt;</span><br><span class="line"></span><br><span class="line">Other crypto devices</span><br><span class="line">&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</span><br><span class="line">&lt;none&gt;</span><br></pre></td></tr></table></figure>
+<pre><code>[root@localhost vpp]# ./extras/vpp_config/scripts/dpdk-devbind.py --status
 
-<ol>
+Network devices using DPDK-compatible driver
+============================================
+0000:03:00.0 &#39;82580 Gigabit Fiber Network Connection&#39; drv=uio_pci_generic unused=igb
+0000:03:00.1 &#39;82580 Gigabit Fiber Network Connection&#39; drv=uio_pci_generic unused=igb
+
+Network devices using kernel driver
+===================================
+0000:03:00.2 &#39;82580 Gigabit Fiber Network Connection&#39; if=eth8 drv=igb unused=uio_pci_generic 
+0000:03:00.3 &#39;82580 Gigabit Fiber Network Connection&#39; if=eth9 drv=igb unused=uio_pci_generic 
+0000:05:00.0 &#39;82583V Gigabit Network Connection&#39; if=eth0 drv=e1000e unused=uio_pci_generic 
+0000:06:00.0 &#39;82583V Gigabit Network Connection&#39; if=eth1 drv=e1000e unused=uio_pci_generic 
+0000:07:00.0 &#39;82583V Gigabit Network Connection&#39; if=eth2 drv=e1000e unused=uio_pci_generic 
+0000:08:00.0 &#39;82583V Gigabit Network Connection&#39; if=eth3 drv=e1000e unused=uio_pci_generic 
+0000:09:00.0 &#39;82583V Gigabit Network Connection&#39; if=eth4 drv=e1000e unused=uio_pci_generic 
+0000:0a:00.0 &#39;82583V Gigabit Network Connection&#39; if=eth5 drv=e1000e unused=uio_pci_generic 
+
+Other network devices
+=====================
+&lt;none&gt;
+
+Crypto devices using DPDK-compatible driver
+===========================================
+&lt;none&gt;
+
+Crypto devices using kernel driver
+==================================
+&lt;none&gt;
+
+Other crypto devices
+====================
+&lt;none&gt;</code></pre><ol>
 <li><p>修改配置文件</p>
 <p> 配置中,除了<strong>dpdk</strong>部分是自己设置的，其它都是默认配置。（默认配置文件在<strong>build-root/install-vpp_debug-native/vpp/etc/vpp/startup.conf</strong>），如下：</p>
 </li>
 </ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">unix &#123;</span><br><span class="line">  nodaemon</span><br><span class="line">  log &#x2F;var&#x2F;log&#x2F;vpp&#x2F;vpp.log</span><br><span class="line">  full-coredump</span><br><span class="line">  cli-listen &#x2F;run&#x2F;vpp&#x2F;cli.sock</span><br><span class="line">  gid vpp</span><br><span class="line">&#125;</span><br><span class="line">api-trace &#123;</span><br><span class="line">  on</span><br><span class="line">&#125;</span><br><span class="line">api-segment &#123;</span><br><span class="line">  gid vpp</span><br><span class="line">&#125;</span><br><span class="line">socksvr &#123;</span><br><span class="line">  default</span><br><span class="line">&#125;</span><br><span class="line">cpu &#123;</span><br><span class="line">&#125;</span><br><span class="line"> dpdk &#123;</span><br><span class="line">         dev 0000:03:00.0 &#123;</span><br><span class="line">                name vpp0</span><br><span class="line">        &#125; </span><br><span class="line">         dev 0000:03:00.1 &#123;</span><br><span class="line">                name vpp1</span><br><span class="line">        &#125; </span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="运行VPP"><a href="#运行VPP" class="headerlink" title="运行VPP"></a>运行VPP</h3><p>注意： 这里我把构造好的配置文件，拷贝到了VPP主目录下面了一份</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost vpp]# .&#x2F;build-root&#x2F;build-vpp_debug-native&#x2F;vpp&#x2F;bin&#x2F;vpp -c &#x2F;root&#x2F;vpp&#x2F;startup.conf</span><br><span class="line">vlib_plugin_early_init:361: plugin path &#x2F;root&#x2F;vpp&#x2F;build-root&#x2F;build-vpp_debug-native&#x2F;vpp&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;vpp_plugins:&#x2F;root&#x2F;vpp&#x2F;build-root&#x2F;build-vpp_debug-native&#x2F;vpp&#x2F;lib&#x2F;vpp_plugins</span><br><span class="line">load_one_plugin:189: Loaded plugin: abf_plugin.so (Access Control List (ACL) Based Forwarding)</span><br><span class="line">load_one_plugin:189: Loaded plugin: acl_plugin.so (Access Control Lists (ACL))</span><br><span class="line">load_one_plugin:189: Loaded plugin: avf_plugin.so (Intel Adaptive Virtual Function (AVF) Device Driver)</span><br><span class="line">load_one_plugin:189: Loaded plugin: cdp_plugin.so (Cisco Discovery Protocol (CDP))</span><br><span class="line">load_one_plugin:189: Loaded plugin: crypto_ia32_plugin.so (Intel IA32 Software Crypto Engine)</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-
-<h3 id="错误处理"><a href="#错误处理" class="headerlink" title="错误处理"></a>错误处理</h3><p>安装上面运行，可能会出现如下错误</p>
+<pre><code>unix {
+  nodaemon
+  log /var/log/vpp/vpp.log
+  full-coredump
+  cli-listen /run/vpp/cli.sock
+  gid vpp
+}
+api-trace {
+  on
+}
+api-segment {
+  gid vpp
+}
+socksvr {
+  default
+}
+cpu {
+}
+ dpdk {
+         dev 0000:03:00.0 {
+                name vpp0
+        } 
+         dev 0000:03:00.1 {
+                name vpp1
+        } 
+ }</code></pre><h3 id="运行VPP"><a href="#运行VPP" class="headerlink" title="运行VPP"></a>运行VPP</h3><p>注意： 这里我把构造好的配置文件，拷贝到了VPP主目录下面了一份</p>
+<pre><code>[root@localhost vpp]# ./build-root/build-vpp_debug-native/vpp/bin/vpp -c /root/vpp/startup.conf
+vlib_plugin_early_init:361: plugin path /root/vpp/build-root/build-vpp_debug-native/vpp/lib/x86_64-linux-gnu/vpp_plugins:/root/vpp/build-root/build-vpp_debug-native/vpp/lib/vpp_plugins
+load_one_plugin:189: Loaded plugin: abf_plugin.so (Access Control List (ACL) Based Forwarding)
+load_one_plugin:189: Loaded plugin: acl_plugin.so (Access Control Lists (ACL))
+load_one_plugin:189: Loaded plugin: avf_plugin.so (Intel Adaptive Virtual Function (AVF) Device Driver)
+load_one_plugin:189: Loaded plugin: cdp_plugin.so (Cisco Discovery Protocol (CDP))
+load_one_plugin:189: Loaded plugin: crypto_ia32_plugin.so (Intel IA32 Software Crypto Engine)
+...
+</code></pre><h3 id="错误处理"><a href="#错误处理" class="headerlink" title="错误处理"></a>错误处理</h3><p>安装上面运行，可能会出现如下错误</p>
 <ol>
 <li><p><strong>api_segment_config: group vpp does not exist Aborted (core dumped)</strong></p>
 <p> 这种错误是由于配置文件 <code>startup.conf</code> 中 配置了 <code>gid vpp</code>导致的。 错误提示 <strong>组vpp不存子</strong>，那么我们只需要创建一下就可以了</p>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost vpp]# groupadd -r vpp</span><br></pre></td></tr></table></figure>
-
-
-</li>
+<pre><code> [root@localhost vpp]# groupadd -r vpp</code></pre></li>
 </ol>
 
   <script>
     var dom = document.getElementsByClassName('code');
     for(var i=0,len=dom.length; i<len; i++){
       dom[i].style.width = '750px';
+    }
+    var dom = document.getElementsByTagName('h1');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].className  += 'page_title';
+    }
+    var dom = document.getElementsByTagName('p');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#303333';
+    }
+    var dom = document.getElementsByTagName('a');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#2d96bd';
     }
   </script>
 

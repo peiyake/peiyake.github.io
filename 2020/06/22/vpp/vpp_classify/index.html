@@ -62,6 +62,25 @@
   <script src="/js/prettify.js"></script>
   <link rel="stylesheet" href="/css/tomorrow_night.css">
   <link rel="stylesheet" href="/css/tomorrow_night.min.css">
+  <link rel="stylesheet" href="/css/my.css">
+  <script>
+    Date.prototype.Format = function (fmt) {
+      var o = {
+              "M+": this.getMonth() + 1, // 月份
+              "d+": this.getDate(), // 日
+              "h+": this.getHours(), // 小时
+              "m+": this.getMinutes(), // 分
+              "s+": this.getSeconds(), // 秒
+              "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+              "S": this.getMilliseconds() // 毫秒
+      };
+      if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+      for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+      return fmt;
+    }
+  </script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -81,26 +100,57 @@
     </div>
   </nav>
   <div class="page-container">
-    <div style="float:right">
-      <span>
-        <em class="post-meta-item-text">Author:Yake Pei,</em>
+  <h1 id="VPP流表" class="page_title">
+    <a href="#VPP流表" class="headerlink" title="VPP流表"></a>
+    VPP流表
+  </h1>
+  <div>
+    <em class="page_meta">Written by </em>
+    <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+    <em class="page_meta">,Last update
+      <span class="post-time">on 
+        <time datetime="1592824242000" itemprop="datePublished"><script>var date = new Date().Format('yy-MM-dd hh:mm');document.write(date);</script></time>
       </span>
-      <span id="/2020/06/22/vpp/vpp_classify/" class="leancloud_visitors" data-flag-title="VPP流表">
-        <em class="post-meta-item-text">Pageviews:</em>
-        <i class="leancloud-visitors-count">loading</i>
-      </span>
-    </div>
-  <h1 id="VPP流表"><a href="#VPP流表" class="headerlink" title="VPP流表"></a>VPP流表</h1><h2 id="VPP流表原理"><a href="#VPP流表原理" class="headerlink" title="VPP流表原理"></a>VPP流表原理</h2><h2 id="命令详解"><a href="#命令详解" class="headerlink" title="命令详解"></a>命令详解</h2><ol>
+    </em>
+    <span id="/2020/06/22/vpp/vpp_classify/" class="leancloud_visitors" data-flag-title="VPP流表">
+      <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+      <i class="leancloud-visitors-count">loading</i>
+    </span>
+  </div>
+  <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+  <h2 id="VPP流表原理"><a href="#VPP流表原理" class="headerlink" title="VPP流表原理"></a>VPP流表原理</h2><h2 id="命令详解"><a href="#命令详解" class="headerlink" title="命令详解"></a>命令详解</h2><ol>
 <li>classify table</li>
 </ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">classify table </span><br><span class="line">          [miss-next|l2-miss_next|acl-miss-next &lt;next_index&gt;]</span><br><span class="line">          mask &lt;mask-value&gt; </span><br><span class="line">          buckets &lt;nn&gt; </span><br><span class="line">          [skip &lt;n&gt;] </span><br><span class="line">          [match &lt;n&gt;]</span><br><span class="line">          [current-data-flag &lt;n&gt;] </span><br><span class="line">          [current-data-offset &lt;n&gt;] </span><br><span class="line">          [table &lt;n&gt;]</span><br><span class="line">          [memory-size &lt;nn&gt;[M][G]] </span><br><span class="line">          [next-table &lt;n&gt;]</span><br><span class="line">          [del] </span><br><span class="line">          [del-chain]</span><br></pre></td></tr></table></figure>
-
-<p>未完待续 …</p>
+<pre><code>  classify table 
+            [miss-next|l2-miss_next|acl-miss-next &lt;next_index&gt;]
+            mask &lt;mask-value&gt; 
+            buckets &lt;nn&gt; 
+            [skip &lt;n&gt;] 
+            [match &lt;n&gt;]
+            [current-data-flag &lt;n&gt;] 
+            [current-data-offset &lt;n&gt;] 
+            [table &lt;n&gt;]
+            [memory-size &lt;nn&gt;[M][G]] 
+            [next-table &lt;n&gt;]
+            [del] 
+            [del-chain]</code></pre><p>未完待续 …</p>
 
   <script>
     var dom = document.getElementsByClassName('code');
     for(var i=0,len=dom.length; i<len; i++){
       dom[i].style.width = '750px';
+    }
+    var dom = document.getElementsByTagName('h1');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].className  += 'page_title';
+    }
+    var dom = document.getElementsByTagName('p');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#303333';
+    }
+    var dom = document.getElementsByTagName('a');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#2d96bd';
     }
   </script>
 

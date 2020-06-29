@@ -62,6 +62,25 @@
   <script src="/js/prettify.js"></script>
   <link rel="stylesheet" href="/css/tomorrow_night.css">
   <link rel="stylesheet" href="/css/tomorrow_night.min.css">
+  <link rel="stylesheet" href="/css/my.css">
+  <script>
+    Date.prototype.Format = function (fmt) {
+      var o = {
+              "M+": this.getMonth() + 1, // 月份
+              "d+": this.getDate(), // 日
+              "h+": this.getHours(), // 小时
+              "m+": this.getMinutes(), // 分
+              "s+": this.getSeconds(), // 秒
+              "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+              "S": this.getMilliseconds() // 毫秒
+      };
+      if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+      for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+      return fmt;
+    }
+  </script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -81,16 +100,26 @@
     </div>
   </nav>
   <div class="page-container">
-    <div style="float:right">
-      <span>
-        <em class="post-meta-item-text">Author:Yake Pei,</em>
+  <h1 id="Linux性能调节之IRQ/RPS" class="page_title">
+    <a href="#Linux性能调节之IRQ/RPS" class="headerlink" title="Linux性能调节之IRQ/RPS"></a>
+    Linux性能调节之IRQ/RPS
+  </h1>
+  <div>
+    <em class="page_meta">Written by </em>
+    <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+    <em class="page_meta">,Last update
+      <span class="post-time">on 
+        <time datetime="1592824242000" itemprop="datePublished"><script>var date = new Date().Format('yy-MM-dd hh:mm');document.write(date);</script></time>
       </span>
-      <span id="/2020/06/22/system/rsmp-rpsrfs-irqb/" class="leancloud_visitors" data-flag-title="Linux性能调节之IRQ/RPS">
-        <em class="post-meta-item-text">Pageviews:</em>
-        <i class="leancloud-visitors-count">loading</i>
-      </span>
-    </div>
-  <h1 id="Linux性能调优之irqbalance、smp-irq-affinity、rps-rfs"><a href="#Linux性能调优之irqbalance、smp-irq-affinity、rps-rfs" class="headerlink" title="Linux性能调优之irqbalance、smp irq affinity、rps/rfs"></a>Linux性能调优之irqbalance、smp irq affinity、rps/rfs</h1><h2 id="功能说明"><a href="#功能说明" class="headerlink" title="功能说明"></a>功能说明</h2><h3 id="irqbalance"><a href="#irqbalance" class="headerlink" title="irqbalance"></a>irqbalance</h3><h4 id="功能"><a href="#功能" class="headerlink" title="功能"></a>功能</h4><p> 引用 <a href="https://linux.die.net/man/1/irqbalance">Linux Man Page</a>上的解释：</p>
+    </em>
+    <span id="/2020/06/22/system/rsmp-rpsrfs-irqb/" class="leancloud_visitors" data-flag-title="Linux性能调节之IRQ/RPS">
+      <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+      <i class="leancloud-visitors-count">loading</i>
+    </span>
+  </div>
+  <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+  <p>irqbalance 是Linux内核自带的一个中断调节服务，它根据网络负载情况自动将网卡中断和CPU进行亲和请设置。事实上它就是 <strong>自动的 smp irq affinity</strong> 它有很好的动态调节效果，但是对于大量小包的网络环境，irqbalance几乎是无效的。</p>
+<h2 id="功能说明"><a href="#功能说明" class="headerlink" title="功能说明"></a>功能说明</h2><h3 id="irqbalance"><a href="#irqbalance" class="headerlink" title="irqbalance"></a>irqbalance</h3><h4 id="功能"><a href="#功能" class="headerlink" title="功能"></a>功能</h4><p> 引用 <a href="https://linux.die.net/man/1/irqbalance">Linux Man Page</a>上的解释：</p>
 <blockquote>
 <p>irqbalance - distribute（把…分散开） hardware interrupts across processors on a multiprocessor system.<br>The purpose of irqbalance is distribute hardware interrupts across processors on a multiprocessor system in order to increase performance.</p>
 </blockquote>
@@ -105,8 +134,32 @@
 <h4 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h4><pre><code>在linux系统网络设备上，使用irqbalance满足普通场景，但对于高负载网络环境，有时它并不能完全利用CPU的处理能力。</code></pre><h3 id="smp-irq-affinity"><a href="#smp-irq-affinity" class="headerlink" title="smp irq affinity"></a>smp irq affinity</h3><h4 id="功能-1"><a href="#功能-1" class="headerlink" title="功能"></a>功能</h4><pre><code>多处理器系统上，配置中断和CPU的亲和性。[更多官方解释](https://cs.uwaterloo.ca/~brecht/servers/apic/SMP-affinity.txt)</code></pre><h4 id="使用方式-1"><a href="#使用方式-1" class="headerlink" title="使用方式"></a>使用方式</h4><ol>
 <li>找到每个NIC对应的中断号(<strong>IrqNO</strong>) <code>cat /proc/interrupts</code></li>
 </ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">    [root@localhost~]# cat &#x2F;proc&#x2F;interrupts </span><br><span class="line">            CPU0       CPU1       CPU2       CPU3       </span><br><span class="line">    0:        164          0          0          0   IO-APIC-edge      timer</span><br><span class="line">    1:          1          1          0          0   IO-APIC-edge      i8042</span><br><span class="line">    4:        277        284        296        289   IO-APIC-edge      serial</span><br><span class="line">-&gt;  28:         40         37         33   60102094   PCI-MSI-edge      eth0</span><br><span class="line">-&gt;  29:          4    4524023          2          3   PCI-MSI-edge      eth1</span><br><span class="line">    30:    5533061       1759       1985       1631   PCI-MSI-edge      0000:00:1f.2</span><br><span class="line">    31:          0          0          1          1   PCI-MSI-edge      gma500</span><br><span class="line">-&gt;  32:          2          3     834989          0   PCI-MSI-edge      eth2</span><br><span class="line">-&gt;  33:       3347         47     644476     187124   PCI-MSI-edge      eth3</span><br><span class="line">    NMI:      74720     123133      42419     113126   Non-maskable interrupts</span><br><span class="line">    LOC:  488678875  312854283  356776267  309250165   Local timer interrupts</span><br><span class="line">    SPU:          0          0          0          0   Spurious interrupts</span><br><span class="line">    PMI:      74720     123133      42419     113126   Performance monitoring interrupts</span><br><span class="line">    IWI:    2875727    7429396    4221092    9896317   IRQ work interrupts</span><br><span class="line">    RTR:          0          0          0          0   APIC ICR read retries</span><br><span class="line">    RES:    9273280    7005313    7621455    6550609   Rescheduling interrupts</span><br><span class="line">    CAL: 4294919647 4294931395     393526     421503   Function call interrupts</span><br><span class="line">    TLB:    4806826   13109838    5281202   10316715   TLB shootdowns</span><br><span class="line">    TRM:          0          0          0          0   Thermal event interrupts</span><br><span class="line">    THR:          0          0          0          0   Threshold APIC interrupts</span><br><span class="line">    DFR:          0          0          0          0   Deferred Error APIC interrupts</span><br><span class="line">    MCE:          0          0          0          0   Machine check exceptions</span><br><span class="line">    MCP:       5567       5567       5567       5567   Machine check polls</span><br><span class="line">    ...</span><br></pre></td></tr></table></figure>
-<ol start="2">
+<pre><code>    [root@localhost~]# cat /proc/interrupts 
+            CPU0       CPU1       CPU2       CPU3       
+    0:        164          0          0          0   IO-APIC-edge      timer
+    1:          1          1          0          0   IO-APIC-edge      i8042
+    4:        277        284        296        289   IO-APIC-edge      serial
+-&gt;  28:         40         37         33   60102094   PCI-MSI-edge      eth0
+-&gt;  29:          4    4524023          2          3   PCI-MSI-edge      eth1
+    30:    5533061       1759       1985       1631   PCI-MSI-edge      0000:00:1f.2
+    31:          0          0          1          1   PCI-MSI-edge      gma500
+-&gt;  32:          2          3     834989          0   PCI-MSI-edge      eth2
+-&gt;  33:       3347         47     644476     187124   PCI-MSI-edge      eth3
+    NMI:      74720     123133      42419     113126   Non-maskable interrupts
+    LOC:  488678875  312854283  356776267  309250165   Local timer interrupts
+    SPU:          0          0          0          0   Spurious interrupts
+    PMI:      74720     123133      42419     113126   Performance monitoring interrupts
+    IWI:    2875727    7429396    4221092    9896317   IRQ work interrupts
+    RTR:          0          0          0          0   APIC ICR read retries
+    RES:    9273280    7005313    7621455    6550609   Rescheduling interrupts
+    CAL: 4294919647 4294931395     393526     421503   Function call interrupts
+    TLB:    4806826   13109838    5281202   10316715   TLB shootdowns
+    TRM:          0          0          0          0   Thermal event interrupts
+    THR:          0          0          0          0   Threshold APIC interrupts
+    DFR:          0          0          0          0   Deferred Error APIC interrupts
+    MCE:          0          0          0          0   Machine check exceptions
+    MCP:       5567       5567       5567       5567   Machine check polls
+    ...</code></pre><ol start="2">
 <li><p>每个中断号都有如下配置项</p>
 <p>/proc/irq/<strong>IrqNo</strong>/smp_affinity   （16进制，亲和CPU）</p>
 <p>/proc/irq/<strong>IrqNo</strong>/smp_affinity_list （10进制，亲和CPU）</p>
@@ -114,10 +167,21 @@
 <li><p>CPU位图配置方法</p>
 <p> 例如：在4核、4NIC设备上</p>
 <ul>
-<li>某一个NIC 和 某个CPU设置亲和性<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">        Binary       Hex(smp_affinity) </span><br><span class="line">CPU 0    0001         1 </span><br><span class="line">CPU 1    0010         2</span><br><span class="line">CPU 2    0100         4</span><br><span class="line">CPU 3    1000         8</span><br></pre></td></tr></table></figure></li>
-<li>某一个NIC 和 两个CPU设置亲和性<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">            Binary       Hex </span><br><span class="line">    CPU 0    0001         1 </span><br><span class="line">+   CPU 2    0100         4</span><br><span class="line">    -----------------------</span><br><span class="line">    both     0101         5</span><br></pre></td></tr></table></figure></li>
-<li>某一个NIC 和 全部4个CPU设置亲和性<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">            Binary       Hex </span><br><span class="line">    CPU 0    0001         1 </span><br><span class="line">    CPU 1    0010         2</span><br><span class="line">    CPU 2    0100         4</span><br><span class="line">+   CPU 3    1000         8</span><br><span class="line">    -----------------------</span><br><span class="line">    both     1111         f</span><br></pre></td></tr></table></figure>
-</li>
+<li>某一个NIC 和 某个CPU设置亲和性<pre><code>          Binary       Hex(smp_affinity) 
+  CPU 0    0001         1 
+  CPU 1    0010         2
+  CPU 2    0100         4
+  CPU 3    1000         8</code></pre></li>
+<li>某一个NIC 和 两个CPU设置亲和性<br>```<pre><code>      Binary       Hex </code></pre>  CPU 0    0001         1 </li>
+</ul>
+<ul>
+<li><h2 id="CPU-2-0100-4"><a href="#CPU-2-0100-4" class="headerlink" title="CPU 2    0100         4"></a>CPU 2    0100         4</h2>both     0101         5<br>```</li>
+</ul>
+<ul>
+<li>某一个NIC 和 全部4个CPU设置亲和性<br>```<pre><code>      Binary       Hex </code></pre>  CPU 0    0001         1<br>  CPU 1    0010         2<br>  CPU 2    0100         4</li>
+</ul>
+<ul>
+<li><h2 id="CPU-3-1000-8"><a href="#CPU-3-1000-8" class="headerlink" title="CPU 3    1000         8"></a>CPU 3    1000         8</h2>both     1111         f<pre><code></code></pre></li>
 </ul>
 </li>
 <li><p>配置示例如下：</p>
@@ -149,31 +213,279 @@
 <ol>
 <li>rps配置文件</li>
 </ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;sys&#x2F;class&#x2F;net&#x2F;&lt;dev&gt;&#x2F;queues&#x2F;rx-&lt;n&gt;&#x2F;rps_cpus</span><br></pre></td></tr></table></figure>
-<ol start="2">
-<li>rfs配置文件<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;proc&#x2F;sys&#x2F;net&#x2F;core&#x2F;rps_sock_flow_entries</span><br><span class="line">&#x2F;sys&#x2F;class&#x2F;net&#x2F;&lt;dev&gt;&#x2F;queues&#x2F;rx-&lt;n&gt;&#x2F;rps_flow_cnt</span><br></pre></td></tr></table></figure></li>
+<pre><code>/sys/class/net/&lt;dev&gt;/queues/rx-&lt;n&gt;/rps_cpus</code></pre><ol start="2">
+<li>rfs配置文件<pre><code>/proc/sys/net/core/rps_sock_flow_entries
+/sys/class/net/&lt;dev&gt;/queues/rx-&lt;n&gt;/rps_flow_cnt</code></pre></li>
 <li>rfs官方配置建议：</li>
 </ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Both of these need to be set before RFS is enabled for a receive queue.309 Values for both are rounded up to the nearest power of two. The310 suggested flow count depends on the expected number of active connections 311 at any given time, which may be significantly less than the number of open 312 connections. We have found that a value of 32768 for rps_sock_flow_entries 313 works fairly well on a moderately loaded server.</span><br><span class="line"></span><br><span class="line">For a single queue device, the rps_flow_cnt value for the single queue316 would normally be configured to the same value as rps_sock_flow_entries. 317 For a multi-queue device, the rps_flow_cnt for each queue might be318 configured as rps_sock_flow_entries &#x2F; N, where N is the number of319 queues. So for instance, if rps_sock_flow_entries is set to 32768 and there 320 are 16 configured receive queues, rps_flow_cnt for each queue might be321 configured as 2048.</span><br></pre></td></tr></table></figure>
+<pre><code>    Both of these need to be set before RFS is enabled for a receive queue.309 Values for both are rounded up to the nearest power of two. The310 suggested flow count depends on the expected number of active connections 311 at any given time, which may be significantly less than the number of open 312 connections. We have found that a value of 32768 for rps_sock_flow_entries 313 works fairly well on a moderately loaded server.
 
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">    测试总结，当rps_sock_flow_entries 的值设置为 32768效果最好。</span><br><span class="line">    对于单队列网卡，rps_flow_cnt的值最好配置成和rps_sock_flow_entries的值一样。</span><br><span class="line">对于多队列网卡，假如队列数为N， rps_flow_cnt的值最好满足如下公式：rps_flow_cnt &#x3D; rps_sock_flow_entries &#x2F; N</span><br></pre></td></tr></table></figure>
-
-<h4 id="特点-2"><a href="#特点-2" class="headerlink" title="特点"></a>特点</h4><ol>
+    For a single queue device, the rps_flow_cnt value for the single queue316 would normally be configured to the same value as rps_sock_flow_entries. 317 For a multi-queue device, the rps_flow_cnt for each queue might be318 configured as rps_sock_flow_entries / N, where N is the number of319 queues. So for instance, if rps_sock_flow_entries is set to 32768 and there 320 are 16 configured receive queues, rps_flow_cnt for each queue might be321 configured as 2048.</code></pre><pre><code>    测试总结，当rps_sock_flow_entries 的值设置为 32768效果最好。
+    对于单队列网卡，rps_flow_cnt的值最好配置成和rps_sock_flow_entries的值一样。
+对于多队列网卡，假如队列数为N， rps_flow_cnt的值最好满足如下公式：rps_flow_cnt = rps_sock_flow_entries / N</code></pre><h4 id="特点-2"><a href="#特点-2" class="headerlink" title="特点"></a>特点</h4><ol>
 <li>rps/rfs 是通过软件的方式实现包 和 CPU的绑定的。</li>
 <li>rps/rfs 并不能降低报文硬中断的次数，反而会增加软中断的次数。</li>
 <li>rps/rfs 最好用在单队列网卡，多CPU的环境，这样就能提供CPU的使用率。</li>
 </ol>
-<h2 id="自动化配置脚本"><a href="#自动化配置脚本" class="headerlink" title="自动化配置脚本"></a>自动化配置脚本</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash">**********************************************************************************<span class="comment">#</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">* 1. auto <span class="built_in">set</span> SMP Irq Affinity                                                    <span class="comment">#</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">*    1.1  配置文件                                                                 <span class="comment"># </span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">*         /proc/irq/X/smp_affinity                                                <span class="comment">#</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">*    1.2  配置参数                                                                 <span class="comment">#</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">*         CPU位图值                                                                <span class="comment">#</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">*                                                                                 <span class="comment">#</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">* 2. auto <span class="built_in">set</span> RPS/RFS                                                             <span class="comment">#</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">*    2.1 配置文件                                                                  <span class="comment">#</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">*         /sys/class/net/&lt;dev&gt;/queues/rx-&lt;n&gt;/rps_cpus                             <span class="comment">#</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">*         /sys/class/net/&lt;dev&gt;/queues/rx-&lt;n&gt;/rps_flow_cnt                         <span class="comment">#</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">*         /proc/sys/net/core/rps_sock_flow_entries                                <span class="comment">#</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">*    2.2 配置参数                                                                  <span class="comment">#</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">*         rps_cpus = CPU位图值                                                     <span class="comment">#</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">*         rps_sock_flow_entries = 32768                                           <span class="comment">#</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">*         单队列网卡：rps_flow_cnt = rps_sock_flow_entries                          <span class="comment">#</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">*         多队列网卡：rps_flow_cnt = rps_sock_flow_entries / N  (N等于网卡队列数)    <span class="comment">#</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">* 3. irqbalance                                                                    <span class="comment">#</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">*         启动：systemctl start irqbalance                                          <span class="comment">#</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">*         停止：systemctl stop irqbalance                                           <span class="comment">#</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">***********************************************************************************<span class="comment">#</span></span></span><br><span class="line">interface=""</span><br><span class="line">if [ $# -gt 1 ];then</span><br><span class="line">    for arg in $@</span><br><span class="line">    do</span><br><span class="line">        if `echo $&#123;arg&#125; | grep -qE '^eth[0-9]+-[0-9]+$'`</span><br><span class="line">        then</span><br><span class="line">            interface="$&#123;interface&#125; $&#123;arg%-*&#125;"</span><br><span class="line">        fi</span><br><span class="line">    done</span><br><span class="line">fi</span><br><span class="line">interface=`ls /sys/class/net | egrep "^eth[0-9]+$"` </span><br><span class="line">cpunum=`head -n1 /proc/interrupts|awk '&#123;print NF&#125;'`</span><br><span class="line">tmp_smpfile="/tmp/smpfile"</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 方案1： 仅设置网卡中断亲和性，NIC中断和CPU核绑定</span></span><br><span class="line">function onlysetup_smp_affinity()</span><br><span class="line">&#123;</span><br><span class="line">    clean_all</span><br><span class="line">    echo ""</span><br><span class="line">    echo "startting setup balance rule 2: use only smp affinity"</span><br><span class="line"></span><br><span class="line">    [ -f $&#123;tmp_smpfile&#125; ] &amp;&amp; rm -f $&#123;tmp_smpfile&#125;</span><br><span class="line"></span><br><span class="line">    for ifname in $&#123;interface&#125;</span><br><span class="line">    do</span><br><span class="line">        cat /proc/interrupts | grep $&#123;ifname&#125; | while read line</span><br><span class="line">        do</span><br><span class="line">            irqnum=`echo $&#123;line&#125; | awk -F ':' '&#123;print $1&#125;' | awk '&#123;print $1&#125;'`</span><br><span class="line">            ifinfo=`echo $&#123;line&#125; | awk '&#123;print $NF&#125;'`</span><br><span class="line">            echo "$&#123;ifinfo&#125;:$&#123;irqnum&#125;:/proc/irq/$&#123;irqnum&#125;/smp_affinity_list" &gt;&gt; $&#123;tmp_smpfile&#125;</span><br><span class="line">        done</span><br><span class="line">    done</span><br><span class="line"></span><br><span class="line">    declare -i cpu</span><br><span class="line">    declare -i count=0</span><br><span class="line">    cat $&#123;tmp_smpfile&#125; | while read line</span><br><span class="line">    do</span><br><span class="line">        ifinfo=`echo $&#123;line&#125; | awk -F ':' '&#123;print $1&#125;'`</span><br><span class="line">        irqnum=`echo $&#123;line&#125; | awk -F ':' '&#123;print $2&#125;'`</span><br><span class="line">        setfile=`echo $&#123;line&#125; | awk -F ':' '&#123;print $3&#125;'`</span><br><span class="line">        cpu=$[$&#123;count&#125;%$&#123;cpunum&#125;]</span><br><span class="line">        echo $&#123;cpu&#125; &gt; $&#123;setfile&#125;</span><br><span class="line">        echo "SMP Affinity: bind $&#123;ifinfo&#125; irq[$&#123;irqnum&#125;] on CPU$&#123;cpu&#125;"</span><br><span class="line">        count=$[$&#123;count&#125; + 1]</span><br><span class="line">    done</span><br><span class="line">    [ -f $&#123;tmp_smpfile&#125; ] &amp;&amp; rm -f $&#123;tmp_smpfile&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 方案2：仅设置RPS，通过软件方式实现CPU负载均衡</span></span><br><span class="line">function onlysetup_rps_rfs()</span><br><span class="line">&#123;</span><br><span class="line">    clean_all</span><br><span class="line">    echo ""</span><br><span class="line">    echo "startting setup balance rule 3: use only rps/rfs"</span><br><span class="line">	declare -i rfc_flow_cnt=0</span><br><span class="line">	declare -i rps_sock_flow_entries=32768</span><br><span class="line">    rps_cpus=`printf "%x" $((2**$cpunum-1))`</span><br><span class="line"></span><br><span class="line">	for ifname in $&#123;interface&#125;</span><br><span class="line">	do</span><br><span class="line">		queuenum=`ls /sys/class/net/"$&#123;ifname&#125;"/queues/ | grep rx | wc -l`</span><br><span class="line">		if test $&#123;queuenum&#125; -eq 1 </span><br><span class="line">		then </span><br><span class="line">			rfc_flow_cnt=$&#123;rps_sock_flow_entries&#125;</span><br><span class="line">		else</span><br><span class="line">			rfc_flow_cnt=$[$&#123;rps_sock_flow_entries&#125;/$&#123;queuenum&#125;]	</span><br><span class="line">		fi</span><br><span class="line">		for rxdir in /sys/class/net/"$&#123;ifname&#125;"/queues/rx-*</span><br><span class="line">		do</span><br><span class="line">			echo $&#123;rps_cpus&#125; &gt;$&#123;rxdir&#125;/rps_cpus</span><br><span class="line">			echo $&#123;rfc_flow_cnt&#125; &gt;$&#123;rxdir&#125;/rps_flow_cnt</span><br><span class="line">		done</span><br><span class="line">        echo "RPS/RFS: set $&#123;ifname&#125; rps_cpus = $&#123;rps_cpus&#125;, rps_flow_cnt = $&#123;rfc_flow_cnt&#125;"</span><br><span class="line">	done</span><br><span class="line">    echo $&#123;rps_sock_flow_entries&#125; &gt; /proc/sys/net/core/rps_sock_flow_entries </span><br><span class="line">    echo "RPS/RFS: set rps_sock_flow_entries = $&#123;rps_sock_flow_entries&#125;"</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash">方案3：仅启用irqbalance，系统自动调节NIC负载均衡</span></span><br><span class="line">function only_irqbalance()</span><br><span class="line">&#123;</span><br><span class="line">    clean_all</span><br><span class="line">    echo ""</span><br><span class="line">    echo "startting setup balance rule 4 : start service irqbalance"</span><br><span class="line">    systemctl start irqbalance</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash">方案3：SMP中断亲和性与RPS配合使用</span></span><br><span class="line"><span class="meta">#</span><span class="bash">方案说明：先执行方案1，使NIC硬中断大致在CPU间均衡；再针对单队列网卡，设置RPS负载均衡所有CPU。（多队列网卡，不启用RPS）</span></span><br><span class="line">function smp_affinity_work_with_rps_rfs()</span><br><span class="line">&#123;</span><br><span class="line">    echo ""</span><br><span class="line">    echo "startting setup balance rule 1 : use both smp and rps"</span><br><span class="line"></span><br><span class="line">	declare -i rfc_flow_cnt=32768</span><br><span class="line">	declare -i rps_sock_flow_entries=32768</span><br><span class="line">    declare -i cpu</span><br><span class="line">    declare -i count=0</span><br><span class="line"></span><br><span class="line">    rps_cpus=`printf "%x" $((2**$cpunum-1))`</span><br><span class="line"></span><br><span class="line">    [ -f $&#123;tmp_smpfile&#125; ] &amp;&amp; rm -f $&#123;tmp_smpfile&#125;</span><br><span class="line">    for ifname in $&#123;interface&#125;</span><br><span class="line">    do</span><br><span class="line">        cat /proc/interrupts | grep $&#123;ifname&#125; | while read line</span><br><span class="line">        do</span><br><span class="line">            irqnum=`echo $&#123;line&#125; | awk -F ':' '&#123;print $1&#125;' | awk '&#123;print $1&#125;'`</span><br><span class="line">            ifinfo=`echo $&#123;line&#125; | awk '&#123;print $NF&#125;'`</span><br><span class="line">            echo "$&#123;ifinfo&#125;:$&#123;irqnum&#125;:/proc/irq/$&#123;irqnum&#125;/smp_affinity_list" &gt;&gt; $&#123;tmp_smpfile&#125;</span><br><span class="line">        done</span><br><span class="line">    done</span><br><span class="line">    cat $&#123;tmp_smpfile&#125; | while read line</span><br><span class="line">    do</span><br><span class="line">        ifinfo=`echo $&#123;line&#125; | awk -F ':' '&#123;print $1&#125;'`</span><br><span class="line">        irqnum=`echo $&#123;line&#125; | awk -F ':' '&#123;print $2&#125;'`</span><br><span class="line">        setfile=`echo $&#123;line&#125; | awk -F ':' '&#123;print $3&#125;'`</span><br><span class="line">        cpu=$[$&#123;count&#125;%$&#123;cpunum&#125;]</span><br><span class="line">        echo $&#123;cpu&#125; &gt; $&#123;setfile&#125;</span><br><span class="line">        echo "SMP Affinity: bind $&#123;ifinfo&#125; irq[$&#123;irqnum&#125;] on CPU$&#123;cpu&#125;"</span><br><span class="line">        count=$[$&#123;count&#125; + 1]</span><br><span class="line">    done</span><br><span class="line">    [ -f $&#123;tmp_smpfile&#125; ] &amp;&amp; rm -f $&#123;tmp_smpfile&#125;</span><br><span class="line"></span><br><span class="line">	for ifname in $&#123;interface&#125;</span><br><span class="line">	do</span><br><span class="line">		queuenum=`ls /sys/class/net/"$&#123;ifname&#125;"/queues/ | grep rx | wc -l`</span><br><span class="line">		if test $&#123;queuenum&#125; -ne 1 </span><br><span class="line">		then </span><br><span class="line">            echo "RPS/RFS: $&#123;ifname&#125; is $&#123;queuenum&#125;-queue device , RPS disable"</span><br><span class="line">            continue</span><br><span class="line">		fi</span><br><span class="line">		for rxdir in /sys/class/net/"$&#123;ifname&#125;"/queues/rx-*</span><br><span class="line">		do</span><br><span class="line">			echo $&#123;rps_cpus&#125; &gt;$&#123;rxdir&#125;/rps_cpus</span><br><span class="line">			echo $&#123;rfc_flow_cnt&#125; &gt;$&#123;rxdir&#125;/rps_flow_cnt</span><br><span class="line">		done</span><br><span class="line">        echo "RPS/RFS: set $&#123;ifname&#125; rps_cpus = $&#123;rps_cpus&#125;, rps_flow_cnt = $&#123;rfc_flow_cnt&#125;"</span><br><span class="line">	done</span><br><span class="line">    echo $&#123;rps_sock_flow_entries&#125; &gt; /proc/sys/net/core/rps_sock_flow_entries </span><br><span class="line">    echo "RPS/RFS: set rps_sock_flow_entries = $&#123;rps_sock_flow_entries&#125;"</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">function clean_smp_affinity()</span><br><span class="line">&#123;</span><br><span class="line">    [ -f $&#123;tmp_smpfile&#125; ] &amp;&amp; rm -f $&#123;tmp_smpfile&#125;</span><br><span class="line"></span><br><span class="line">    for ifname in $&#123;interface&#125;</span><br><span class="line">    do</span><br><span class="line">        cat /proc/interrupts | grep $&#123;ifname&#125; | while read line</span><br><span class="line">        do</span><br><span class="line">            irqnum=`echo $&#123;line&#125; | awk -F ':' '&#123;print $1&#125;' | awk '&#123;print $1&#125;'`</span><br><span class="line">            ifinfo=`echo $&#123;line&#125; | awk '&#123;print $NF&#125;'`</span><br><span class="line">            echo "$&#123;ifinfo&#125;:/proc/irq/$&#123;irqnum&#125;/smp_affinity_list" &gt;&gt; $&#123;tmp_smpfile&#125;</span><br><span class="line">        done</span><br><span class="line">    done</span><br><span class="line">    cat $&#123;tmp_smpfile&#125; | while read line</span><br><span class="line">    do</span><br><span class="line">        setfile=`echo $&#123;line&#125; | awk -F ':' '&#123;print $2&#125;'`</span><br><span class="line">        ifinfo=`echo $&#123;line&#125; | awk -F ':' '&#123;print $1&#125;'`</span><br><span class="line">        echo 0 &gt; $&#123;setfile&#125;</span><br><span class="line">    done</span><br><span class="line">    [ -f $&#123;tmp_smpfile&#125; ] &amp;&amp; rm -f $&#123;tmp_smpfile&#125;</span><br><span class="line"></span><br><span class="line">    echo "clean rule 2 : smp affinity over"</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">function clean_rps_rfs()</span><br><span class="line">&#123;</span><br><span class="line">	for ifname in $&#123;interface&#125;</span><br><span class="line">	do</span><br><span class="line">		for rxdir in /sys/class/net/"$&#123;ifname&#125;"/queues/rx-*</span><br><span class="line">		do</span><br><span class="line">			echo 0 &gt;$&#123;rxdir&#125;/rps_cpus</span><br><span class="line">			echo 0 &gt;$&#123;rxdir&#125;/rps_flow_cnt</span><br><span class="line">		done</span><br><span class="line">	done</span><br><span class="line">    echo 0 &gt; /proc/sys/net/core/rps_sock_flow_entries </span><br><span class="line">    echo "clean rule 3 : rps/rfs over"</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">function clean_irqbalance()</span><br><span class="line">&#123;</span><br><span class="line">    systemctl stop irqbalance</span><br><span class="line">    echo "clean rule 4 : stop irqbalance over"</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">function clean_all()</span><br><span class="line">&#123;</span><br><span class="line">    echo "cleanning all rules ..."</span><br><span class="line">    clean_irqbalance</span><br><span class="line">    clean_rps_rfs</span><br><span class="line">    clean_smp_affinity</span><br><span class="line">&#125;</span><br><span class="line">function help()</span><br><span class="line">&#123;</span><br><span class="line">    echo "Usage: $0 &lt;auto|smp|rps|irqbalance|cleanall&gt;"</span><br><span class="line">    echo "Setup  balance between NIC and CPU on multi-nic multi-cpu system"</span><br><span class="line">    echo ""</span><br><span class="line">    echo "   auto           rule 1: use both rps and smp affinity"</span><br><span class="line">    echo "   smp            rule 2: only use smp affinity to bind NIC irq on CPU"</span><br><span class="line">    echo "   rps            rule 3: only use rps to bind skb to CPU by soft way"</span><br><span class="line">    echo "   irqbalance     rule 4: only use system service irqbalance by system self"</span><br><span class="line">    echo "   cleanall       clean all rules"</span><br><span class="line">&#125;</span><br><span class="line">case $1 in</span><br><span class="line">    smp)</span><br><span class="line">        onlysetup_smp_affinity;;</span><br><span class="line">    rps)</span><br><span class="line">        onlysetup_rps_rfs;;</span><br><span class="line">    irqbalance)</span><br><span class="line">        only_irqbalance;;</span><br><span class="line">    auto)</span><br><span class="line">        smp_affinity_work_with_rps_rfs;;</span><br><span class="line">    cleanall)</span><br><span class="line">        clean_all;;</span><br><span class="line">    *)</span><br><span class="line">        help;;</span><br><span class="line">esac</span><br></pre></td></tr></table></figure>
+<h2 id="自动化配置脚本"><a href="#自动化配置脚本" class="headerlink" title="自动化配置脚本"></a>自动化配置脚本</h2><pre><code class="shell">#!/bin/bash
+
+#**********************************************************************************#
+#* 1. auto set SMP Irq Affinity                                                    #
+#*    1.1  配置文件                                                                 # 
+#*         /proc/irq/X/smp_affinity                                                #
+#*    1.2  配置参数                                                                 #
+#*         CPU位图值                                                                #
+#*                                                                                 #
+#* 2. auto set RPS/RFS                                                             #
+#*    2.1 配置文件                                                                  #
+#*         /sys/class/net/&lt;dev&gt;/queues/rx-&lt;n&gt;/rps_cpus                             #
+#*         /sys/class/net/&lt;dev&gt;/queues/rx-&lt;n&gt;/rps_flow_cnt                         #
+#*         /proc/sys/net/core/rps_sock_flow_entries                                #
+#*    2.2 配置参数                                                                  #
+#*         rps_cpus = CPU位图值                                                     #
+#*         rps_sock_flow_entries = 32768                                           #
+#*         单队列网卡：rps_flow_cnt = rps_sock_flow_entries                          #
+#*         多队列网卡：rps_flow_cnt = rps_sock_flow_entries / N  (N等于网卡队列数)    #
+#* 3. irqbalance                                                                    #
+#*         启动：systemctl start irqbalance                                          #
+#*         停止：systemctl stop irqbalance                                           #
+#***********************************************************************************#
+interface=&quot;&quot;
+if [ $# -gt 1 ];then
+    for arg in $@
+    do
+        if `echo ${arg} | grep -qE &#39;^eth[0-9]+-[0-9]+$&#39;`
+        then
+            interface=&quot;${interface} ${arg%-*}&quot;
+        fi
+    done
+fi
+interface=`ls /sys/class/net | egrep &quot;^eth[0-9]+$&quot;` 
+cpunum=`head -n1 /proc/interrupts|awk &#39;{print NF}&#39;`
+tmp_smpfile=&quot;/tmp/smpfile&quot;
+
+# 方案1： 仅设置网卡中断亲和性，NIC中断和CPU核绑定
+function onlysetup_smp_affinity()
+{
+    clean_all
+    echo &quot;&quot;
+    echo &quot;startting setup balance rule 2: use only smp affinity&quot;
+
+    [ -f ${tmp_smpfile} ] &amp;&amp; rm -f ${tmp_smpfile}
+
+    for ifname in ${interface}
+    do
+        cat /proc/interrupts | grep ${ifname} | while read line
+        do
+            irqnum=`echo ${line} | awk -F &#39;:&#39; &#39;{print $1}&#39; | awk &#39;{print $1}&#39;`
+            ifinfo=`echo ${line} | awk &#39;{print $NF}&#39;`
+            echo &quot;${ifinfo}:${irqnum}:/proc/irq/${irqnum}/smp_affinity_list&quot; &gt;&gt; ${tmp_smpfile}
+        done
+    done
+
+    declare -i cpu
+    declare -i count=0
+    cat ${tmp_smpfile} | while read line
+    do
+        ifinfo=`echo ${line} | awk -F &#39;:&#39; &#39;{print $1}&#39;`
+        irqnum=`echo ${line} | awk -F &#39;:&#39; &#39;{print $2}&#39;`
+        setfile=`echo ${line} | awk -F &#39;:&#39; &#39;{print $3}&#39;`
+        cpu=$[${count}%${cpunum}]
+        echo ${cpu} &gt; ${setfile}
+        echo &quot;SMP Affinity: bind ${ifinfo} irq[${irqnum}] on CPU${cpu}&quot;
+        count=$[${count} + 1]
+    done
+    [ -f ${tmp_smpfile} ] &amp;&amp; rm -f ${tmp_smpfile}
+}
+
+# 方案2：仅设置RPS，通过软件方式实现CPU负载均衡
+function onlysetup_rps_rfs()
+{
+    clean_all
+    echo &quot;&quot;
+    echo &quot;startting setup balance rule 3: use only rps/rfs&quot;
+    declare -i rfc_flow_cnt=0
+    declare -i rps_sock_flow_entries=32768
+    rps_cpus=`printf &quot;%x&quot; $((2**$cpunum-1))`
+
+    for ifname in ${interface}
+    do
+        queuenum=`ls /sys/class/net/&quot;${ifname}&quot;/queues/ | grep rx | wc -l`
+        if test ${queuenum} -eq 1 
+        then 
+            rfc_flow_cnt=${rps_sock_flow_entries}
+        else
+            rfc_flow_cnt=$[${rps_sock_flow_entries}/${queuenum}]    
+        fi
+        for rxdir in /sys/class/net/&quot;${ifname}&quot;/queues/rx-*
+        do
+            echo ${rps_cpus} &gt;${rxdir}/rps_cpus
+            echo ${rfc_flow_cnt} &gt;${rxdir}/rps_flow_cnt
+        done
+        echo &quot;RPS/RFS: set ${ifname} rps_cpus = ${rps_cpus}, rps_flow_cnt = ${rfc_flow_cnt}&quot;
+    done
+    echo ${rps_sock_flow_entries} &gt; /proc/sys/net/core/rps_sock_flow_entries 
+    echo &quot;RPS/RFS: set rps_sock_flow_entries = ${rps_sock_flow_entries}&quot;
+}
+
+#方案3：仅启用irqbalance，系统自动调节NIC负载均衡
+function only_irqbalance()
+{
+    clean_all
+    echo &quot;&quot;
+    echo &quot;startting setup balance rule 4 : start service irqbalance&quot;
+    systemctl start irqbalance
+}
+
+#方案3：SMP中断亲和性与RPS配合使用
+#方案说明：先执行方案1，使NIC硬中断大致在CPU间均衡；再针对单队列网卡，设置RPS负载均衡所有CPU。（多队列网卡，不启用RPS）
+function smp_affinity_work_with_rps_rfs()
+{
+    echo &quot;&quot;
+    echo &quot;startting setup balance rule 1 : use both smp and rps&quot;
+
+    declare -i rfc_flow_cnt=32768
+    declare -i rps_sock_flow_entries=32768
+    declare -i cpu
+    declare -i count=0
+
+    rps_cpus=`printf &quot;%x&quot; $((2**$cpunum-1))`
+
+    [ -f ${tmp_smpfile} ] &amp;&amp; rm -f ${tmp_smpfile}
+    for ifname in ${interface}
+    do
+        cat /proc/interrupts | grep ${ifname} | while read line
+        do
+            irqnum=`echo ${line} | awk -F &#39;:&#39; &#39;{print $1}&#39; | awk &#39;{print $1}&#39;`
+            ifinfo=`echo ${line} | awk &#39;{print $NF}&#39;`
+            echo &quot;${ifinfo}:${irqnum}:/proc/irq/${irqnum}/smp_affinity_list&quot; &gt;&gt; ${tmp_smpfile}
+        done
+    done
+    cat ${tmp_smpfile} | while read line
+    do
+        ifinfo=`echo ${line} | awk -F &#39;:&#39; &#39;{print $1}&#39;`
+        irqnum=`echo ${line} | awk -F &#39;:&#39; &#39;{print $2}&#39;`
+        setfile=`echo ${line} | awk -F &#39;:&#39; &#39;{print $3}&#39;`
+        cpu=$[${count}%${cpunum}]
+        echo ${cpu} &gt; ${setfile}
+        echo &quot;SMP Affinity: bind ${ifinfo} irq[${irqnum}] on CPU${cpu}&quot;
+        count=$[${count} + 1]
+    done
+    [ -f ${tmp_smpfile} ] &amp;&amp; rm -f ${tmp_smpfile}
+
+    for ifname in ${interface}
+    do
+        queuenum=`ls /sys/class/net/&quot;${ifname}&quot;/queues/ | grep rx | wc -l`
+        if test ${queuenum} -ne 1 
+        then 
+            echo &quot;RPS/RFS: ${ifname} is ${queuenum}-queue device , RPS disable&quot;
+            continue
+        fi
+        for rxdir in /sys/class/net/&quot;${ifname}&quot;/queues/rx-*
+        do
+            echo ${rps_cpus} &gt;${rxdir}/rps_cpus
+            echo ${rfc_flow_cnt} &gt;${rxdir}/rps_flow_cnt
+        done
+        echo &quot;RPS/RFS: set ${ifname} rps_cpus = ${rps_cpus}, rps_flow_cnt = ${rfc_flow_cnt}&quot;
+    done
+    echo ${rps_sock_flow_entries} &gt; /proc/sys/net/core/rps_sock_flow_entries 
+    echo &quot;RPS/RFS: set rps_sock_flow_entries = ${rps_sock_flow_entries}&quot;
+}
+
+function clean_smp_affinity()
+{
+    [ -f ${tmp_smpfile} ] &amp;&amp; rm -f ${tmp_smpfile}
+
+    for ifname in ${interface}
+    do
+        cat /proc/interrupts | grep ${ifname} | while read line
+        do
+            irqnum=`echo ${line} | awk -F &#39;:&#39; &#39;{print $1}&#39; | awk &#39;{print $1}&#39;`
+            ifinfo=`echo ${line} | awk &#39;{print $NF}&#39;`
+            echo &quot;${ifinfo}:/proc/irq/${irqnum}/smp_affinity_list&quot; &gt;&gt; ${tmp_smpfile}
+        done
+    done
+    cat ${tmp_smpfile} | while read line
+    do
+        setfile=`echo ${line} | awk -F &#39;:&#39; &#39;{print $2}&#39;`
+        ifinfo=`echo ${line} | awk -F &#39;:&#39; &#39;{print $1}&#39;`
+        echo 0 &gt; ${setfile}
+    done
+    [ -f ${tmp_smpfile} ] &amp;&amp; rm -f ${tmp_smpfile}
+
+    echo &quot;clean rule 2 : smp affinity over&quot;
+}
 
 
+function clean_rps_rfs()
+{
+    for ifname in ${interface}
+    do
+        for rxdir in /sys/class/net/&quot;${ifname}&quot;/queues/rx-*
+        do
+            echo 0 &gt;${rxdir}/rps_cpus
+            echo 0 &gt;${rxdir}/rps_flow_cnt
+        done
+    done
+    echo 0 &gt; /proc/sys/net/core/rps_sock_flow_entries 
+    echo &quot;clean rule 3 : rps/rfs over&quot;
+}
 
+function clean_irqbalance()
+{
+    systemctl stop irqbalance
+    echo &quot;clean rule 4 : stop irqbalance over&quot;
+}
 
-
+function clean_all()
+{
+    echo &quot;cleanning all rules ...&quot;
+    clean_irqbalance
+    clean_rps_rfs
+    clean_smp_affinity
+}
+function help()
+{
+    echo &quot;Usage: $0 &lt;auto|smp|rps|irqbalance|cleanall&gt;&quot;
+    echo &quot;Setup  balance between NIC and CPU on multi-nic multi-cpu system&quot;
+    echo &quot;&quot;
+    echo &quot;   auto           rule 1: use both rps and smp affinity&quot;
+    echo &quot;   smp            rule 2: only use smp affinity to bind NIC irq on CPU&quot;
+    echo &quot;   rps            rule 3: only use rps to bind skb to CPU by soft way&quot;
+    echo &quot;   irqbalance     rule 4: only use system service irqbalance by system self&quot;
+    echo &quot;   cleanall       clean all rules&quot;
+}
+case $1 in
+    smp)
+        onlysetup_smp_affinity;;
+    rps)
+        onlysetup_rps_rfs;;
+    irqbalance)
+        only_irqbalance;;
+    auto)
+        smp_affinity_work_with_rps_rfs;;
+    cleanall)
+        clean_all;;
+    *)
+        help;;
+esac</code></pre>
 
   <script>
     var dom = document.getElementsByClassName('code');
     for(var i=0,len=dom.length; i<len; i++){
       dom[i].style.width = '750px';
+    }
+    var dom = document.getElementsByTagName('h1');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].className  += 'page_title';
+    }
+    var dom = document.getElementsByTagName('p');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#303333';
+    }
+    var dom = document.getElementsByTagName('a');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.color = '#2d96bd';
     }
   </script>
 
