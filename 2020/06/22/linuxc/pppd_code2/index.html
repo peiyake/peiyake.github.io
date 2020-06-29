@@ -54,6 +54,9 @@
   <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
 
   <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  <script src="/js/prettify.js"></script>
+  <link rel="stylesheet" href="/css/tomorrow_night.css">
+  <link rel="stylesheet" href="/css/tomorrow_night.min.css">
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -86,9 +89,9 @@
 <li>pppd-2.4.5</li>
 <li>CentOS-7.5.1804</li>
 </ul>
-<h2 id="获取rpm包中源码"><a href="#获取rpm包中源码" class="headerlink" title="获取rpm包中源码"></a>获取rpm包中源码</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">wget http:&#x2F;&#x2F;vault.centos.org&#x2F;7.5.1804&#x2F;os&#x2F;Source&#x2F;SPackages&#x2F;ppp-2.4.5-33.el7.src.rpm</span><br><span class="line">rpm -ivh ppp-2.4.5-33.el7.src.rpm</span><br><span class="line">ls .&#x2F;rpmbuild&#x2F;SOURCE&#x2F;ppp-2.4.5.tar.gz</span><br></pre></td></tr></table></figure>
-
-<h2 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h2><p>解读pppd的源码，重点想知道如下信息：</p>
+<h2 id="获取rpm包中源码"><a href="#获取rpm包中源码" class="headerlink" title="获取rpm包中源码"></a>获取rpm包中源码</h2><pre><code>wget http://vault.centos.org/7.5.1804/os/Source/SPackages/ppp-2.4.5-33.el7.src.rpm
+rpm -ivh ppp-2.4.5-33.el7.src.rpm
+ls ./rpmbuild/SOURCE/ppp-2.4.5.tar.gz</code></pre><h2 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h2><p>解读pppd的源码，重点想知道如下信息：</p>
 <ol>
 <li>pppd 如何加载插件？</li>
 <li>pppd 如何发起 ppp的 discovery连接？</li>
@@ -96,13 +99,167 @@
 <li>pppd 如何创建虚端口</li>
 </ol>
 <h2 id="pppd-如何发起-ppp的-discovery连接？"><a href="#pppd-如何发起-ppp的-discovery连接？" class="headerlink" title="pppd 如何发起 ppp的 discovery连接？"></a>pppd 如何发起 ppp的 discovery连接？</h2><p>照旧 <code>main-&gt; start_link</code></p>
-<h2 id="start-link"><a href="#start-link" class="headerlink" title="start_link"></a><code>start_link</code></h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">start_link</span><span class="params">(unit)</span></span></span><br><span class="line"><span class="function">    <span class="keyword">int</span> unit</span>;</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">char</span> *msg;</span><br><span class="line"></span><br><span class="line">    new_phase(PHASE_SERIALCONN);</span><br><span class="line"></span><br><span class="line">    hungup = <span class="number">0</span>;</span><br><span class="line">    devfd = the_channel-&gt;<span class="built_in">connect</span>();     <span class="comment">/* the_channel 的值 在 rp-pppoe插件加载的时候已经被初始化为，插件的pppoe_channel,（pppd/plugins/rp-pppoe/plugin.c）如下：</span></span><br><span class="line"><span class="comment">                                        </span></span><br><span class="line"><span class="comment">                                        struct channel pppoe_channel = &#123;</span></span><br><span class="line"><span class="comment">                                            .options = Options,</span></span><br><span class="line"><span class="comment">                                            .process_extra_options = &amp;PPPOEDeviceOptions,</span></span><br><span class="line"><span class="comment">                                            .check_options = pppoe_check_options,</span></span><br><span class="line"><span class="comment">                                            .connect = &amp;PPPOEConnectDevice,</span></span><br><span class="line"><span class="comment">                                            .disconnect = &amp;PPPOEDisconnectDevice,</span></span><br><span class="line"><span class="comment">                                            .establish_ppp = &amp;generic_establish_ppp,</span></span><br><span class="line"><span class="comment">                                            .disestablish_ppp = &amp;generic_disestablish_ppp,</span></span><br><span class="line"><span class="comment">                                            .send_config = NULL,</span></span><br><span class="line"><span class="comment">                                            .recv_config = &amp;PPPOERecvConfig,</span></span><br><span class="line"><span class="comment">                                            .close = NULL,</span></span><br><span class="line"><span class="comment">                                            .cleanup = NULL</span></span><br><span class="line"><span class="comment">                                        &#125;;                                  </span></span><br><span class="line"><span class="comment">                                        */</span></span><br><span class="line">    msg = <span class="string">"Connect script failed"</span>;</span><br><span class="line">    <span class="keyword">if</span> (devfd &lt; <span class="number">0</span>)</span><br><span class="line">	<span class="keyword">goto</span> fail;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* set up the serial device as a ppp interface */</span></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * N.B. we used to do tdb_writelock/tdb_writeunlock around this</span></span><br><span class="line"><span class="comment">     * (from establish_ppp to set_ifunit).  However, we won't be</span></span><br><span class="line"><span class="comment">     * doing the set_ifunit in multilink mode, which is the only time</span></span><br><span class="line"><span class="comment">     * we need the atomicity that the tdb_writelock/tdb_writeunlock</span></span><br><span class="line"><span class="comment">     * gives us.  Thus we don't need the tdb_writelock/tdb_writeunlock.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    fd_ppp = the_channel-&gt;establish_ppp(devfd);</span><br><span class="line">    msg = <span class="string">"ppp establishment failed"</span>;</span><br><span class="line">    <span class="keyword">if</span> (fd_ppp &lt; <span class="number">0</span>) &#123;</span><br><span class="line">	status = EXIT_FATAL_ERROR;</span><br><span class="line">	<span class="keyword">goto</span> <span class="built_in">disconnect</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!demand &amp;&amp; ifunit &gt;= <span class="number">0</span>)</span><br><span class="line">	set_ifunit(<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Start opening the connection and wait for</span></span><br><span class="line"><span class="comment">     * incoming events (reply, timeout, etc.).</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (ifunit &gt;= <span class="number">0</span>)</span><br><span class="line">	notice(<span class="string">"Connect: %s &lt;--&gt; %s"</span>, ifname, ppp_devnam);</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">	notice(<span class="string">"Starting negotiation on %s"</span>, ppp_devnam);</span><br><span class="line">    add_fd(fd_ppp);</span><br><span class="line"></span><br><span class="line">    status = EXIT_NEGOTIATION_FAILED;</span><br><span class="line">    new_phase(PHASE_ESTABLISH);</span><br><span class="line"></span><br><span class="line">    lcp_lowerup(<span class="number">0</span>);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line"> <span class="built_in">disconnect</span>:</span><br><span class="line">    new_phase(PHASE_DISCONNECT);</span><br><span class="line">    <span class="keyword">if</span> (the_channel-&gt;<span class="built_in">disconnect</span>)</span><br><span class="line">	the_channel-&gt;<span class="built_in">disconnect</span>();</span><br><span class="line"></span><br><span class="line"> fail:</span><br><span class="line">    new_phase(PHASE_DEAD);</span><br><span class="line">    <span class="keyword">if</span> (the_channel-&gt;cleanup)</span><br><span class="line">	(*the_channel-&gt;cleanup)();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="start-link"><a href="#start-link" class="headerlink" title="start_link"></a>start_link</h2><pre><code>void start_link(unit)
+    int unit;
+{
+    char *msg;
 
-<h2 id="the-channel-gt-connect"><a href="#the-channel-gt-connect" class="headerlink" title="the_channel-&gt;connect()"></a><code>the_channel-&gt;connect()</code></h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">int</span></span><br><span class="line">PPPOEConnectDevice(<span class="keyword">void</span>)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_pppox</span> <span class="title">sp</span>;</span></span><br><span class="line"></span><br><span class="line">    strlcpy(ppp_devnam, devnam, <span class="keyword">sizeof</span>(ppp_devnam));</span><br><span class="line">    <span class="keyword">if</span> (existingSession) &#123;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">int</span> mac[ETH_ALEN];</span><br><span class="line">	<span class="keyword">int</span> i, ses;</span><br><span class="line">	<span class="keyword">if</span> (<span class="built_in">sscanf</span>(existingSession, <span class="string">"%d:%x:%x:%x:%x:%x:%x"</span>,</span><br><span class="line">		   &amp;ses, &amp;mac[<span class="number">0</span>], &amp;mac[<span class="number">1</span>], &amp;mac[<span class="number">2</span>],</span><br><span class="line">		   &amp;mac[<span class="number">3</span>], &amp;mac[<span class="number">4</span>], &amp;mac[<span class="number">5</span>]) != <span class="number">7</span>) &#123;</span><br><span class="line">	    fatal(<span class="string">"Illegal value for rp_pppoe_sess option"</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	conn-&gt;session = htons(ses);</span><br><span class="line">	<span class="keyword">for</span> (i=<span class="number">0</span>; i&lt;ETH_ALEN; i++) &#123;</span><br><span class="line">	    conn-&gt;peerEth[i] = (<span class="keyword">unsigned</span> <span class="keyword">char</span>) mac[i];</span><br><span class="line">	&#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">	discovery(conn);    <span class="comment">/*重点就是这个 discovery 函数， 这个函数执行成功，那么conn-&gt;discoveryState 设置成 STATE_SESSION， discovery就结束，进入 session阶段了*/</span></span><br><span class="line">	<span class="keyword">if</span> (conn-&gt;discoveryState != STATE_SESSION) &#123;</span><br><span class="line">	    error(<span class="string">"Unable to complete PPPoE Discovery"</span>);</span><br><span class="line">	    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">	&#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Set PPPoE session-number for further consumption */</span></span><br><span class="line">    ppp_session_number = ntohs(conn-&gt;session);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Make the session socket */</span></span><br><span class="line">    conn-&gt;sessionSocket = socket(AF_PPPOX, SOCK_STREAM, PX_PROTO_OE);</span><br><span class="line">    <span class="keyword">if</span> (conn-&gt;sessionSocket &lt; <span class="number">0</span>) &#123;</span><br><span class="line">	error(<span class="string">"Failed to create PPPoE socket: %m"</span>);</span><br><span class="line">	<span class="keyword">goto</span> errout;</span><br><span class="line">    &#125;</span><br><span class="line">    sp.sa_family = AF_PPPOX;</span><br><span class="line">    sp.sa_protocol = PX_PROTO_OE;</span><br><span class="line">    sp.sa_addr.pppoe.sid = conn-&gt;session;</span><br><span class="line">    <span class="built_in">memcpy</span>(sp.sa_addr.pppoe.dev, conn-&gt;ifName, IFNAMSIZ);</span><br><span class="line">    <span class="built_in">memcpy</span>(sp.sa_addr.pppoe.remote, conn-&gt;peerEth, ETH_ALEN);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Set remote_number for ServPoET */</span></span><br><span class="line">    <span class="built_in">sprintf</span>(remote_number, <span class="string">"%02X:%02X:%02X:%02X:%02X:%02X"</span>,</span><br><span class="line">	    (<span class="keyword">unsigned</span>) conn-&gt;peerEth[<span class="number">0</span>],</span><br><span class="line">	    (<span class="keyword">unsigned</span>) conn-&gt;peerEth[<span class="number">1</span>],</span><br><span class="line">	    (<span class="keyword">unsigned</span>) conn-&gt;peerEth[<span class="number">2</span>],</span><br><span class="line">	    (<span class="keyword">unsigned</span>) conn-&gt;peerEth[<span class="number">3</span>],</span><br><span class="line">	    (<span class="keyword">unsigned</span>) conn-&gt;peerEth[<span class="number">4</span>],</span><br><span class="line">	    (<span class="keyword">unsigned</span>) conn-&gt;peerEth[<span class="number">5</span>]);</span><br><span class="line"></span><br><span class="line">    warn(<span class="string">"Connected to %02X:%02X:%02X:%02X:%02X:%02X via interface %s"</span>,</span><br><span class="line">	 (<span class="keyword">unsigned</span>) conn-&gt;peerEth[<span class="number">0</span>],</span><br><span class="line">	 (<span class="keyword">unsigned</span>) conn-&gt;peerEth[<span class="number">1</span>],</span><br><span class="line">	 (<span class="keyword">unsigned</span>) conn-&gt;peerEth[<span class="number">2</span>],</span><br><span class="line">	 (<span class="keyword">unsigned</span>) conn-&gt;peerEth[<span class="number">3</span>],</span><br><span class="line">	 (<span class="keyword">unsigned</span>) conn-&gt;peerEth[<span class="number">4</span>],</span><br><span class="line">	 (<span class="keyword">unsigned</span>) conn-&gt;peerEth[<span class="number">5</span>],</span><br><span class="line">	 conn-&gt;ifName);</span><br><span class="line"></span><br><span class="line">    script_setenv(<span class="string">"MACREMOTE"</span>, remote_number, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">connect</span>(conn-&gt;sessionSocket, (struct sockaddr *) &amp;sp,</span><br><span class="line">		<span class="keyword">sizeof</span>(struct sockaddr_pppox)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">	error(<span class="string">"Failed to connect PPPoE socket: %d %m"</span>, errno);</span><br><span class="line">	<span class="built_in">close</span>(conn-&gt;sessionSocket);</span><br><span class="line">	<span class="keyword">goto</span> errout;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    warn(<span class="string">"PPPOEConnectDevice ok, session[%d]!"</span>,conn-&gt;session);</span><br><span class="line">    <span class="keyword">return</span> conn-&gt;sessionSocket;</span><br><span class="line"></span><br><span class="line"> errout:</span><br><span class="line">    <span class="keyword">if</span> (conn-&gt;discoverySocket &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">	sendPADT(conn, <span class="literal">NULL</span>);</span><br><span class="line">	<span class="built_in">close</span>(conn-&gt;discoverySocket);</span><br><span class="line">	conn-&gt;discoverySocket = <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    new_phase(PHASE_SERIALCONN);
+
+    hungup = 0;
+    devfd = the_channel-&gt;connect();     /* the_channel 的值 在 rp-pppoe插件加载的时候已经被初始化为，插件的pppoe_channel,（pppd/plugins/rp-pppoe/plugin.c）如下：
+
+                                        struct channel pppoe_channel = {
+                                            .options = Options,
+                                            .process_extra_options = &amp;PPPOEDeviceOptions,
+                                            .check_options = pppoe_check_options,
+                                            .connect = &amp;PPPOEConnectDevice,
+                                            .disconnect = &amp;PPPOEDisconnectDevice,
+                                            .establish_ppp = &amp;generic_establish_ppp,
+                                            .disestablish_ppp = &amp;generic_disestablish_ppp,
+                                            .send_config = NULL,
+                                            .recv_config = &amp;PPPOERecvConfig,
+                                            .close = NULL,
+                                            .cleanup = NULL
+                                        };                                  
+                                        */
+    msg = &quot;Connect script failed&quot;;
+    if (devfd &lt; 0)
+    goto fail;
+
+    /* set up the serial device as a ppp interface */
+    /*
+     * N.B. we used to do tdb_writelock/tdb_writeunlock around this
+     * (from establish_ppp to set_ifunit).  However, we won&#39;t be
+     * doing the set_ifunit in multilink mode, which is the only time
+     * we need the atomicity that the tdb_writelock/tdb_writeunlock
+     * gives us.  Thus we don&#39;t need the tdb_writelock/tdb_writeunlock.
+     */
+    fd_ppp = the_channel-&gt;establish_ppp(devfd);
+    msg = &quot;ppp establishment failed&quot;;
+    if (fd_ppp &lt; 0) {
+    status = EXIT_FATAL_ERROR;
+    goto disconnect;
+    }
+
+    if (!demand &amp;&amp; ifunit &gt;= 0)
+    set_ifunit(1);
+
+    /*
+     * Start opening the connection and wait for
+     * incoming events (reply, timeout, etc.).
+     */
+    if (ifunit &gt;= 0)
+    notice(&quot;Connect: %s &lt;--&gt; %s&quot;, ifname, ppp_devnam);
+    else
+    notice(&quot;Starting negotiation on %s&quot;, ppp_devnam);
+    add_fd(fd_ppp);
+
+    status = EXIT_NEGOTIATION_FAILED;
+    new_phase(PHASE_ESTABLISH);
+
+    lcp_lowerup(0);
+    return;
+
+ disconnect:
+    new_phase(PHASE_DISCONNECT);
+    if (the_channel-&gt;disconnect)
+    the_channel-&gt;disconnect();
+
+ fail:
+    new_phase(PHASE_DEAD);
+    if (the_channel-&gt;cleanup)
+    (*the_channel-&gt;cleanup)();
+}</code></pre><h2 id="the-channel-gt-connect"><a href="#the-channel-gt-connect" class="headerlink" title="the_channel-&gt;connect()"></a>the_channel-&gt;connect()</h2><pre><code class="c">static int
+PPPOEConnectDevice(void)
+{
+    struct sockaddr_pppox sp;
+
+    strlcpy(ppp_devnam, devnam, sizeof(ppp_devnam));
+    if (existingSession) {
+    unsigned int mac[ETH_ALEN];
+    int i, ses;
+    if (sscanf(existingSession, &quot;%d:%x:%x:%x:%x:%x:%x&quot;,
+           &amp;ses, &amp;mac[0], &amp;mac[1], &amp;mac[2],
+           &amp;mac[3], &amp;mac[4], &amp;mac[5]) != 7) {
+        fatal(&quot;Illegal value for rp_pppoe_sess option&quot;);
+    }
+    conn-&gt;session = htons(ses);
+    for (i=0; i&lt;ETH_ALEN; i++) {
+        conn-&gt;peerEth[i] = (unsigned char) mac[i];
+    }
+    } else {
+    discovery(conn);    /*重点就是这个 discovery 函数， 这个函数执行成功，那么conn-&gt;discoveryState 设置成 STATE_SESSION， discovery就结束，进入 session阶段了*/
+    if (conn-&gt;discoveryState != STATE_SESSION) {
+        error(&quot;Unable to complete PPPoE Discovery&quot;);
+        return -1;
+    }
+    }
+
+    /* Set PPPoE session-number for further consumption */
+    ppp_session_number = ntohs(conn-&gt;session);
+
+    /* Make the session socket */
+    conn-&gt;sessionSocket = socket(AF_PPPOX, SOCK_STREAM, PX_PROTO_OE);
+    if (conn-&gt;sessionSocket &lt; 0) {
+    error(&quot;Failed to create PPPoE socket: %m&quot;);
+    goto errout;
+    }
+    sp.sa_family = AF_PPPOX;
+    sp.sa_protocol = PX_PROTO_OE;
+    sp.sa_addr.pppoe.sid = conn-&gt;session;
+    memcpy(sp.sa_addr.pppoe.dev, conn-&gt;ifName, IFNAMSIZ);
+    memcpy(sp.sa_addr.pppoe.remote, conn-&gt;peerEth, ETH_ALEN);
+
+    /* Set remote_number for ServPoET */
+    sprintf(remote_number, &quot;%02X:%02X:%02X:%02X:%02X:%02X&quot;,
+        (unsigned) conn-&gt;peerEth[0],
+        (unsigned) conn-&gt;peerEth[1],
+        (unsigned) conn-&gt;peerEth[2],
+        (unsigned) conn-&gt;peerEth[3],
+        (unsigned) conn-&gt;peerEth[4],
+        (unsigned) conn-&gt;peerEth[5]);
+
+    warn(&quot;Connected to %02X:%02X:%02X:%02X:%02X:%02X via interface %s&quot;,
+     (unsigned) conn-&gt;peerEth[0],
+     (unsigned) conn-&gt;peerEth[1],
+     (unsigned) conn-&gt;peerEth[2],
+     (unsigned) conn-&gt;peerEth[3],
+     (unsigned) conn-&gt;peerEth[4],
+     (unsigned) conn-&gt;peerEth[5],
+     conn-&gt;ifName);
+
+    script_setenv(&quot;MACREMOTE&quot;, remote_number, 0);
+
+    if (connect(conn-&gt;sessionSocket, (struct sockaddr *) &amp;sp,
+        sizeof(struct sockaddr_pppox)) &lt; 0) {
+    error(&quot;Failed to connect PPPoE socket: %d %m&quot;, errno);
+    close(conn-&gt;sessionSocket);
+    goto errout;
+    }
+
+    warn(&quot;PPPOEConnectDevice ok, session[%d]!&quot;,conn-&gt;session);
+    return conn-&gt;sessionSocket;
+
+ errout:
+    if (conn-&gt;discoverySocket &gt;= 0) {
+    sendPADT(conn, NULL);
+    close(conn-&gt;discoverySocket);
+    conn-&gt;discoverySocket = -1;
+    }
+    return -1;
+}</code></pre>
+
 
   <br>
   <br>
   <hr>
+  <script>
+    window.onload = (function(){
+        $('pre').addClass('prettyprint linenums').attr('style', 'overflow:auto;');
+        prettyPrint(); 
+    });
+  </script>
   <p>评论区：</p>
 
 

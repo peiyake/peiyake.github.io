@@ -54,6 +54,9 @@
   <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
 
   <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  <script src="/js/prettify.js"></script>
+  <link rel="stylesheet" href="/css/tomorrow_night.css">
+  <link rel="stylesheet" href="/css/tomorrow_night.min.css">
 <meta name="generator" content="Hexo 4.2.1"></head>
 </head>
 
@@ -92,6 +95,12 @@
   <br>
   <br>
   <hr>
+  <script>
+    window.onload = (function(){
+        $('pre').addClass('prettyprint linenums').attr('style', 'overflow:auto;');
+        prettyPrint(); 
+    });
+  </script>
   <p>评论区：</p>
 
 
