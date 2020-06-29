@@ -127,6 +127,12 @@
 </ol>
 <p>通常使用 <strong>bt</strong> 命令查看内核crash前的堆栈信息中 <strong>RIP</strong> 寄存器的值就是指向最终造成panic 的地址，然后我们通过 <strong>mod -s l2w /root/l2w.ko</strong> 把我们的内核模块加载进入当前的crash内核中（注意：你要把模块事先放在指定位置，我这里是绝对路径 <strong>/root/l2w.ko</strong>）。 只有把模块加载后，才能进行反汇编。<br>使用 <strong>dis</strong> 命令对地址进行反汇编 ， 使用 <strong>sym + 地址</strong> 命令，物理地址映射出具体的符号（也就是我们代码的具体位置）</p>
 
+  <script>
+    var dom = document.getElementsByClassName('code');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].style.width = '750px';
+    }
+  </script>
 
   <br>
   <br>
