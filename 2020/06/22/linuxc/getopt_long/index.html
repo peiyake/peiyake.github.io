@@ -90,7 +90,6 @@
       <div class="navbar-brand">
         <a href="/index.html" class="logo">
           <img src="/images/logo@2x.png" width="180px" alt="" class="hidden-xs">
-          <img src="/images/logo@2x.png" width="180px" alt="" class="visible-xs">
         </a>
       </div>
       <div class="navbar-mobile-clear"></div>
@@ -241,7 +240,7 @@ int main(int argc,const char **argv)
     }
     var dom = document.getElementsByTagName('img');
     for(var i=0,len=dom.length; i<len; i++){
-      dom[i].className += 'img-responsive';
+      dom[i].className += ' img-responsive';
     }
   </script>
 
