@@ -12,3 +12,9 @@
     color:rgba(85,85,85,.52941) !important;
     font-family: josefin sans,-apple-system,BlinkMacSystemFont,helvetica neue,pingfang sc,hiragino sans gb,STHeiti,microsoft yahei,wenquanyi micro hei,Arial,Verdana,sans-serif;
 }
+
+.img-responsive {
+  display: inline-block;
+  height: auto;
+  max-width: 100%;
+}

@@ -109,7 +109,7 @@
     <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
     <em class="page_meta">,Last update
       <span class="post-time">on 
-        <time datetime="1592824242000" itemprop="datePublished"><script>var date = new Date().Format('yy-MM-dd hh:mm');document.write(date);</script></time>
+        <time datetime="1592824242000" itemprop="datePublished"><script>var times=1592824242000;var date = new Date(times).Format('yy-MM-dd hh:mm');document.write(date);</script></time>
       </span>
     </em>
     <span id="/2020/06/22/software/dfanfa/" class="leancloud_visitors" data-flag-title="有限自动机">
@@ -162,6 +162,10 @@
     var dom = document.getElementsByTagName('a');
     for(var i=0,len=dom.length; i<len; i++){
       dom[i].style.color = '#2d96bd';
+    }
+    var dom = document.getElementsByTagName('img');
+    for(var i=0,len=dom.length; i<len; i++){
+      dom[i].className += 'img-responsive';
     }
   </script>
 
