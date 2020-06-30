@@ -18,3 +18,8 @@
   height: auto;
   max-width: 100%;
 }
+
+.blockquote_style{
+  border-left: 5px solid #ddc06b;
+  background-color: #e4ead7;
+}
