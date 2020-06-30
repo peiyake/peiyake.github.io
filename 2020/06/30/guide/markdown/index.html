@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="author" content="viggo" />
   <title> 
-          建站指南
+          Markdown语法介绍
           |
           
           Mr.Piak的博客
@@ -40,7 +40,7 @@
     <![endif]-->
   <!-- / FB Open Graph -->
   <meta property="og:type" content="article">
-  <meta property="og:url" content="http://peiyake.com/2020/06/24/guide/guide/index.html">
+  <meta property="og:url" content="http://peiyake.com/2020/06/30/guide/markdown/index.html">
   <meta property="og:title" content="Mr.Piak的博客 - ">
   <meta property="og:description" content="本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
   <meta property="og:site_name" content="Mr.Piak的博客 - ">
@@ -99,100 +99,145 @@
     </div>
   </nav>
   <div class="page-container">
-  <h1 id="建站指南" class="page_title">
-    <a href="#建站指南" class="headerlink" title="建站指南"></a>
-    建站指南
+  <h1 id="Markdown语法介绍" class="page_title">
+    <a href="#Markdown语法介绍" class="headerlink" title="Markdown语法介绍"></a>
+    Markdown语法介绍
   </h1>
   <div>
     <em class="page_meta">Written by </em>
     <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
     <em class="page_meta">,Last update
       <span class="post-time">on 
-        <time datetime="1592993205000" itemprop="datePublished"><script>var times=1592993205000;var date = new Date(times).Format('yy-MM-dd hh:mm');document.write(date);</script></time>
+        <time datetime="1593508126000" itemprop="datePublished"><script>var times=1593508126000;var date = new Date(times).Format('yy-MM-dd hh:mm');document.write(date);</script></time>
       </span>
     </em>
-    <span id="/2020/06/24/guide/guide/" class="leancloud_visitors" data-flag-title="建站指南">
+    <span id="/2020/06/30/guide/markdown/" class="leancloud_visitors" data-flag-title="Markdown语法介绍">
       <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
       <i class="leancloud-visitors-count">loading</i>
     </span>
   </div>
   <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
-  <p>本博客是基于hexo + github page来搭建的，博主对所用主题进行了一些改动后才呈现出当前样子。由于博主非前端出身，本博客的一些实现只求<br>实现功能，不求代码细节。</p>
-<h3 id="快速搭建Hexo-Demo站"><a href="#快速搭建Hexo-Demo站" class="headerlink" title="快速搭建Hexo-Demo站"></a>快速搭建Hexo-Demo站</h3><p>安装 <a href="https://nodejs.org/en/">Node.js</a></p>
-<p>安装 <a href="https://hexo.io/zh-cn/">Hexo</a></p>
-<p>安装git工具，Window用户可安装<a href="https://gitforwindows.org/">Git for windows</a></p>
-<pre><code>$ npm install hexo-cli -g</code></pre><p>快速开始 <code>hexo 静态页面</code></p>
-<pre><code>$ cd e:
-$ mkdir hexo_demo &amp;&amp; cd hexo_demo     //创建一个空白目录，并切换到空白目录hexo_demo
-$ hexo init
-$ npm install
-$ hexo server</code></pre><p>完成上述步骤，此时打开本地web页面 <a href="http://localhost:4000，此时hexo默认的静态站点就建好了。如图：">http://localhost:4000，此时hexo默认的静态站点就建好了。如图：</a></p>
-<img src="/images/hexo_demo.png">
+  <p>Hexo采用github风格的<a href="https://daringfireball.net/projects/markdown/syntax">Markdown</a>语法，本文简单介绍一下使用方法，免得自己忘记。</p>
+<h2 id="标题"><a href="#标题" class="headerlink" title="标题"></a>标题</h2><pre><code># 一级标题
+## 二级标题
+### 三级标题
+#### 四级标题，最多6级标题</code></pre><p>效果</p>
+<h4 id="二级标题"><a href="#二级标题" class="headerlink" title="二级标题"></a>二级标题</h4><h5 id="三级标题"><a href="#三级标题" class="headerlink" title="三级标题"></a>三级标题</h5><h6 id="四级标题，最多6级标题"><a href="#四级标题，最多6级标题" class="headerlink" title="四级标题，最多6级标题"></a>四级标题，最多6级标题</h6><h2 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h2><pre><code>&gt;这是第一段引用，开启另一段引用的话，中间空行
 
-<h3 id="搭建本站"><a href="#搭建本站" class="headerlink" title="搭建本站"></a>搭建本站</h3><p>本站主要是采用了Hexo官方<a href="https://hexo.io/themes/">主题</a>中的<code>webstack</code>，由于<code>webstack</code>仅仅是一个网站导航的样式，没有连接文章，但是博主比较喜欢该主题<br>的布局风格，所以自己对该主题改造成了适合作为博文站点的主题<a href="git@github.com:peiyake/hexo-theme-webstack.git">hexo-theme-webstack</a>。 下面就关于本站的<br>这个主题使用进行说明.</p>
-<p>采用 <code>hexo-theme-webstack</code>主题：</p>
-<pre><code>$ cd hexo_demo/themes
-$ git clone git@github.com:peiyake/hexo-theme-webstack.git</code></pre><p>修改 <code>hexo_demo/_config.yml</code></p>
-<pre><code># Extensions
-## Plugins: https://hexo.io/plugins/
-## Themes: https://hexo.io/themes/
-#theme: landscape               # 注释该行
-theme: hexo-theme-webstack      # 把主题修改</code></pre><p>重启Hexo Server</p>
-<pre><code>$ hexo generate
-$ hexo server</code></pre><p>再次打开本地web页面 <a href="http://localhost:4000，如图：">http://localhost:4000，如图：</a></p>
-<img src="/images/hexo_piak.png">
+&gt;这是第二段引用</code></pre><blockquote>
+<p>这是第一段引用，开启另一段引用的话，中间空行</p>
+</blockquote>
+<blockquote>
+<p>这是第二段引用</p>
+</blockquote>
+<pre><code>&gt;这是第一行，引用内部如果需要换行的话，加一个空行的 &#39;&lt;&#39;
+&gt;
+&gt;换行后,这是引用中的第二行,
+&gt;这还是第二行
+&gt;
+&gt;再次换行，这是第三行</code></pre><blockquote>
+<p>这是第一行，引用内部如果需要换行的话，加一个空行的 ‘&lt;’</p>
+<p>换行后,这是引用中的第二行<br>这还是第二行</p>
+<p>再次换行，这是第三行</p>
+</blockquote>
+<h2 id="无序列表"><a href="#无序列表" class="headerlink" title="无序列表"></a>无序列表</h2><pre><code>* 枯藤
+* 老树
+* 昏鸦</code></pre><ul>
+<li>枯藤</li>
+<li>老树</li>
+<li>昏鸦</li>
+</ul>
+<h2 id="有序列表"><a href="#有序列表" class="headerlink" title="有序列表"></a>有序列表</h2><pre><code>+ 小桥
++ 流水
++ 人家
+  - 古道
+  - 西风
+  - 瘦马</code></pre><ul>
+<li>小桥</li>
+<li>流水</li>
+<li>人家<ul>
+<li>古道</li>
+<li>西风</li>
+<li>瘦马</li>
+</ul>
+</li>
+</ul>
+<h2 id="代码块"><a href="#代码块" class="headerlink" title="代码块"></a>代码块</h2><pre><code>行内嵌入代码，`print hello`</code></pre><p>行内嵌入代码，<code>print hello</code></p>
+<pre><code>一段代码，这样写
+```
+#include &lt;stdio.h&gt;
+int main(int argc,const char **argv)
+{
+    printf(&quot;Hello world!\n&quot;);
+    return 0;
+}
+```</code></pre><p>一段代码，这样写</p>
+<pre><code>#include &lt;stdio.h&gt;
+int main(int argc,const char **argv)
+{
+    printf(&quot;Hello world!\n&quot;);
+    return 0;
+}</code></pre><h2 id="图片"><a href="#图片" class="headerlink" title="图片"></a>图片</h2><pre><code>使用相对路径
+[github的logo](/images/github_logo.png)
+使用网址
+[github的logo](https://peiyake.com/images/github_logo.png)
+使用img标签
+&lt;img src=&quot;https://peiyake.com/images/github_logo.png&quot;&gt;github的logo&lt;/img&gt;</code></pre><p>使用相对路径</p>
+<p><img src="/images/github_logo.png" alt="github的logo"></p>
+<p>使用网址</p>
+<p><img src="https://peiyake.com/images/github_logo.png" alt="github的logo"></p>
+<p>使用img标签</p>
+<p><img src="https://peiyake.com/images/github_logo.png">github的logo</img></p>
+<h2 id="链接"><a href="#链接" class="headerlink" title="链接"></a>链接</h2><pre><code>[百度一下](https://www.baidu.com/)
+[Mr.Piak的博客](https://peiyake.com/)</code></pre><p><a href="https://www.baidu.com/">百度一下</a></p>
+<p><a href="https://peiyake.com/">Mr.Piak的博客</a></p>
+<h2 id="水平线"><a href="#水平线" class="headerlink" title="水平线"></a>水平线</h2><pre><code>三个或更多*、- 就会有水平线
+***
+---</code></pre><p>三个或更多*、- 就会有水平线</p>
+<hr>
+<hr>
+<h2 id="页内跳转"><a href="#页内跳转" class="headerlink" title="页内跳转"></a>页内跳转</h2><pre><code>先设置锚点，markdown的锚点一般都是标题，这里我们跳到本文的开头处 “标题”
 
-<h3 id="hexo-theme-webstack-使用说明"><a href="#hexo-theme-webstack-使用说明" class="headerlink" title="hexo-theme-webstack 使用说明"></a>hexo-theme-webstack 使用说明</h3><ul>
-<li>新增或删除左侧导航目录</li>
-</ul>
-<p>根据你自己的需求，修改 <code>_config.yml</code>中 menu的配置</p>
-<pre><code>menu:
-  - name: 建站指南
-    englishName: guide      # 英文名，用来给文章分类（中文的分类名称在程序中存在编码问题，所以这里都设置一个英文名称）
-    icon: fas fa-book
-    config: devTools
-  - name: 一级目录
-    icon: fas fa-th-list
-    submenu:
-      - name: 二级目录
-        icon: fas fa-folder
-        englishName: linuxc
-        config: devTools
-      - name: 二级目录
-        icon: fas fa-folder
-        englishName: linuxc
-        config: devTools
-      - name: 二级目录
-        icon: fas fa-folder
-        englishName: linuxc
-        config: devTools
-  - name: 有趣的灵魂
-    englishName: life
-    icon: fas fa-book
-    config: devTools</code></pre><ul>
-<li>新增文章 </li>
-</ul>
-<p>修改文章模板格式 <code>hexo_demo/scaffolds/post.md</code></p>
-<pre><code>---
-title: {{ title }}
-date: {{ date }}
-type: &lt;请选择分类：guide、linuxc、net、vpp、sql、shell、kernel、system、software、manage、life ...&gt;
-description: &lt;请输入文章概述...&gt;
----</code></pre><p>然后，执行下面命令新建一片文章</p>
-<pre><code>$ hexo new hello</code></pre><p>执行后，会生成 <code>hexo_demo/source/_posts/hello.md</code> ，示例如下：</p>
-<pre><code>$ cat source/_posts/hello.md
----
-title: hello
-type: &lt;请选择分类：guide、linuxc、net、vpp、sql、shell、kernel、system、software、manage、life ...&gt;
-description: &lt;请输入文章概述...&gt;
-date: 2020-06-28 17:58:11
----</code></pre><ul>
-<li><code>title</code> : 就是将来文章列表中显示的文章标题</li>
-<li><code>type</code> ： 是文章的分类</li>
-<li><code>description</code> ： 文章的简介描述，将来会显示在文章列表中每篇文章的一个简单介绍</li>
-</ul>
-<p><em>当然，你也可以直接在 <code>hexo_demo/source/</code> 目录下直接新建 <code>xxx.md</code>的方式新增文章，而且可以设置目录，把统一类别的文章放在同一个文件夹下，<code>hexo new</code> 的方法不能指定文章类别.通常建议自己手动新建文章</em></p>
-<h3 id="搭建你自己的博客"><a href="#搭建你自己的博客" class="headerlink" title="搭建你自己的博客"></a>搭建你自己的博客</h3><p>根据以上方法，你已经可以搭建自己的博客了。但是这个博客只能在你本地浏览，下面介绍如何部署到github上，然后通过互联网可以访问自己的站点</p>
+[跳到标题](#标题)</code></pre><p><a href="#标题">跳到标题</a></p>
+<h2 id="表格"><a href="#表格" class="headerlink" title="表格"></a>表格</h2><pre><code>|说明|程序名称|功能|rpm包|
+|-------------------|-------------------|---------------------------|-------|
+| 主服务器进程| abrtd| ABRT工具集主进程，守护进程，用来收集crash信息 |abrt-2.1.11-50.el7.centos.x86_64 |
+| core-dump插件|abrt-hook-ccpp | abrt core-dump 信息收集插件，收集完成会发送给abrtd| abrt-addon-ccpp-2.1.11-50.el7.centos.x86_64|
+| oops插件|abrt-dump-oops|abrt内核oops监控插件|abrt-addon-kerneloops-2.1.11-50.el7.centos.x86_64|
+| kernel-panic插件|abrt-harvest-vmcore|abrt内核panic监控插件 |abrt-addon-vmcore-2.1.11-50.el7.centos.x86_64|</code></pre><table>
+<thead>
+<tr>
+<th>说明</th>
+<th>程序名称</th>
+<th>功能</th>
+<th>rpm包</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>主服务器进程</td>
+<td>abrtd</td>
+<td>ABRT工具集主进程，守护进程，用来收集crash信息</td>
+<td>abrt-2.1.11-50.el7.centos.x86_64</td>
+</tr>
+<tr>
+<td>core-dump插件</td>
+<td>abrt-hook-ccpp</td>
+<td>abrt core-dump 信息收集插件，收集完成会发送给abrtd</td>
+<td>abrt-addon-ccpp-2.1.11-50.el7.centos.x86_64</td>
+</tr>
+<tr>
+<td>oops插件</td>
+<td>abrt-dump-oops</td>
+<td>abrt内核oops监控插件</td>
+<td>abrt-addon-kerneloops-2.1.11-50.el7.centos.x86_64</td>
+</tr>
+<tr>
+<td>kernel-panic插件</td>
+<td>abrt-harvest-vmcore</td>
+<td>abrt内核panic监控插件</td>
+<td>abrt-addon-vmcore-2.1.11-50.el7.centos.x86_64</td>
+</tr>
+</tbody></table>
 
   <script>
     var dom = document.getElementsByClassName('code');
