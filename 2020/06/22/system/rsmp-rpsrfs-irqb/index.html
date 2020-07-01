@@ -98,26 +98,55 @@
       
     </div>
   </nav>
-  <div class="page-container">
-  <h1 id="Linux性能调节之IRQ/RPS" class="page_title">
-    <a href="#Linux性能调节之IRQ/RPS" class="headerlink" title="Linux性能调节之IRQ/RPS"></a>
-    Linux性能调节之IRQ/RPS
-  </h1>
-  <div>
-    <em class="page_meta">Written by </em>
-    <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
-    <em class="page_meta">,Last update
-      <span class="post-time">on 
-        <time datetime="1592824242000" itemprop="datePublished"><script>var times=1592824242000;var date = new Date(times).Format('yy-MM-dd hh:mm');document.write(date);</script></time>
-      </span>
-    </em>
-    <span id="/2020/06/22/system/rsmp-rpsrfs-irqb/" class="leancloud_visitors" data-flag-title="Linux性能调节之IRQ/RPS">
-      <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
-      <i class="leancloud-visitors-count">loading</i>
-    </span>
-  </div>
-  <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
-  <p>irqbalance 是Linux内核自带的一个中断调节服务，它根据网络负载情况自动将网卡中断和CPU进行亲和请设置。事实上它就是 <strong>自动的 smp irq affinity</strong> 它有很好的动态调节效果，但是对于大量小包的网络环境，irqbalance几乎是无效的。</p>
+  <!--
+  <aside class="post-widget">
+    <nav>
+      <h4>TOC</h4>
+      <ol>
+        <li>
+          <a>
+            <span>1.</span> 
+            <span>发布订阅模式</span>
+          </a>
+        </li>
+        <li>
+          <a>
+            <span>2.</span> 
+            <span>数据流</span>
+          </a>
+        </li>
+        <li>
+            <a href="#Vue中的解决方案">
+              <span>3.</span> 
+              <span>Vue中的解决方案</span>
+            </a>
+        </li>
+      </ol>
+    </nav>
+  </aside>
+  -->   
+  <div class="page-container" style="background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+
+    <div style="margin:35px">
+        <h1 id="Linux性能调节之IRQ/RPS" class="page_title">
+          <a href="#Linux性能调节之IRQ/RPS" class="headerlink" title="Linux性能调节之IRQ/RPS"></a>
+          Linux性能调节之IRQ/RPS
+        </h1>
+        <div>
+          <em class="page_meta">Written by </em>
+          <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+          <em class="page_meta">,Last update
+            <span class="post-time">on 
+              <time datetime="1592824242000" itemprop="datePublished"><script>var times=1592824242000;var date = new Date(times).Format('yy-MM-dd hh:mm');document.write(date);</script></time>
+            </span>
+          </em>
+          <span id="/2020/06/22/system/rsmp-rpsrfs-irqb/" class="leancloud_visitors" data-flag-title="Linux性能调节之IRQ/RPS">
+            <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+            <i class="leancloud-visitors-count">loading</i>
+          </span>
+        </div>
+        <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+        <p>irqbalance 是Linux内核自带的一个中断调节服务，它根据网络负载情况自动将网卡中断和CPU进行亲和请设置。事实上它就是 <strong>自动的 smp irq affinity</strong> 它有很好的动态调节效果，但是对于大量小包的网络环境，irqbalance几乎是无效的。</p>
 <h2 id="功能说明"><a href="#功能说明" class="headerlink" title="功能说明"></a>功能说明</h2><h3 id="irqbalance"><a href="#irqbalance" class="headerlink" title="irqbalance"></a>irqbalance</h3><h4 id="功能"><a href="#功能" class="headerlink" title="功能"></a>功能</h4><p> 引用 <a href="https://linux.die.net/man/1/irqbalance">Linux Man Page</a>上的解释：</p>
 <blockquote>
 <p>irqbalance - distribute（把…分散开） hardware interrupts across processors on a multiprocessor system.<br>The purpose of irqbalance is distribute hardware interrupts across processors on a multiprocessor system in order to increase performance.</p>
@@ -469,55 +498,55 @@ case $1 in
         help;;
 esac</code></pre>
 
-  <script>
-    var dom = document.getElementsByClassName('code');
-    for(var i=0,len=dom.length; i<len; i++){
-      dom[i].style.width = '750px';
-    }
-    var dom = document.getElementsByTagName('h1');
-    for(var i=0,len=dom.length; i<len; i++){
-      dom[i].className  += 'page_title';
-    }
-    var dom = document.getElementsByTagName('p');
-    for(var i=0,len=dom.length; i<len; i++){
-      dom[i].style.color = '#303333';
-    }
-    var dom = document.getElementsByTagName('a');
-    for(var i=0,len=dom.length; i<len; i++){
-      dom[i].style.color = '#2d96bd';
-    }
-    var dom = document.getElementsByTagName('img');
-    for(var i=0,len=dom.length; i<len; i++){
-      dom[i].className += ' img-responsive';
-    }
-    var dom = document.getElementsByTagName('blockquote');
-    for(var i=0,len=dom.length; i<len; i++){
-      dom[i].style.borderLeft = '5px solid #ddc06b';
-      dom[i].style.backgroundColor = 'rgba(216, 221, 206, 0.49';
-      dom[i].style.fontFamily = '微软雅黑,华文细黑,STHeiti,MingLiu';
-      dom[i].style.fontSize = '13px';
-    }
-  </script>
+        <script>
+          var dom = document.getElementsByClassName('code');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.width = '750px';
+          }
+          var dom = document.getElementsByTagName('h1');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].className  += 'page_title';
+          }
+          var dom = document.getElementsByTagName('p');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.color = '#303333';
+          }
+          var dom = document.getElementsByTagName('a');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.color = '#2d96bd';
+          }
+          var dom = document.getElementsByTagName('img');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].className += ' img-responsive';
+          }
+          var dom = document.getElementsByTagName('blockquote');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.borderLeft = '5px solid #ddc06b';
+            dom[i].style.backgroundColor = 'rgba(216, 221, 206, 0.49';
+            dom[i].style.fontFamily = '微软雅黑,华文细黑,STHeiti,MingLiu';
+            dom[i].style.fontSize = '13px';
+          }
+        </script>
 
-  <br>
-  <br>
-  <hr>
-  <script>
-    window.onload = (function(){
-        $('pre').addClass('prettyprint linenums').attr('style', 'overflow:auto;');
-        prettyPrint(); 
-    });
-  </script>
-  <p>评论区：</p>
+        <br>
+        <br>
+        <hr>
+        <script>
+          window.onload = (function(){
+              $('pre').addClass('prettyprint linenums').attr('style', 'overflow:auto;');
+              prettyPrint(); 
+          });
+        </script>
+        <p>评论区：</p>
 
 
-  
-  <section id="comments" class="comments" style="margin-left:0px !important">
-    <style>
-      .comments{margin:30px;padding:10px;background:#fff}
-      @media screen and (max-width:800px){.comments{margin:auto;padding:10px;background:#fff}}
-    </style>
-    <div class="valine_comment"></div>
+        
+        <section id="comments" class="comments" style="margin-left:0px !important">
+          <style>
+            .comments{margin:30px;padding:10px;background:#fff}
+            @media screen and (max-width:800px){.comments{margin:auto;padding:10px;background:#fff}}
+          </style>
+          <div class="valine_comment"></div>
 <!--载入js，在</body>之前插入即可-->
 <!--Leancloud 操作库:-->
 <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
@@ -534,55 +563,11 @@ esac</code></pre>
       visitor: 'true',
     });
 </script>
-  </section>
-  
-    <!--
-    <div class="main-content">
-      <div class="row">
-        <div class="col-md-12">
-          <div class="panel panel-default">
-            
-            <h4 class="text-gray">关于本站</h4>
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-sm-12">
-                  <blockquote><p>本站是hexo主题<a href="https://github.com/HCLonely/hexo-theme-webstack">hexo-theme-webstack</a>的demo站。</p></blockquote>
-                </div>
-              </div>
-            
-            
-            <h4 class="text-gray">关于站长</h4>
-            <div class="row">
-              <div class="col-sm-4">
-                <div class="xe-widget xe-conversations box2 label-info" onclick="window.open('https://blog.hclonely.com/', '_blank')" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="https://www.hclonely.com/">
-                  <div class="xe-comment-entry">
-                    <a class="xe-user-img">
-                      <img src="/images/logos/myblog.png" class="img-circle" width="40">
-                    </a>
-                    <div class="xe-comment">
-                      <a href="#" class="xe-user-name overflowClip_1">
-                        <strong>HCLonely</strong>
-                      </a>
-                      <p class="overflowClip_2">懒人一个</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-8">
-                <div class="row">
-                  <div class="col-sm-12">
-                    <br /><blockquote><p>本站是<a href="https://github.com/HCLonely">HCLonely</a>基于<a href="https://github.com/WebStackPage/WebStackPage.github.io">WebStackPage</a>项目做的一款<a href="https://hexo.io/">Hexo</a>主题。</p></blockquote>
-                  </div>
-                </div>
-                <br>
-              </div>
-            </div>
-            
-            </div>
-          </div>
-        </div>
-      </div>
-    -->
+        </section>
+        
+    </div>
+  </div>
+    
   <footer class="main-footer sticky footer-type-1">
   <div class="footer-inner">
     <!-- Add your copyright text here -->

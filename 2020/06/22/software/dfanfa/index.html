@@ -98,26 +98,55 @@
       
     </div>
   </nav>
-  <div class="page-container">
-  <h1 id="有限自动机" class="page_title">
-    <a href="#有限自动机" class="headerlink" title="有限自动机"></a>
-    有限自动机
-  </h1>
-  <div>
-    <em class="page_meta">Written by </em>
-    <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
-    <em class="page_meta">,Last update
-      <span class="post-time">on 
-        <time datetime="1592824242000" itemprop="datePublished"><script>var times=1592824242000;var date = new Date(times).Format('yy-MM-dd hh:mm');document.write(date);</script></time>
-      </span>
-    </em>
-    <span id="/2020/06/22/software/dfanfa/" class="leancloud_visitors" data-flag-title="有限自动机">
-      <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
-      <i class="leancloud-visitors-count">loading</i>
-    </span>
-  </div>
-  <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
-  <p>引用百度百科上的一段解释 <a href="https://baike.baidu.com/item/%E6%9C%89%E9%99%90%E8%87%AA%E5%8A%A8%E6%9C%BA/8700995?fr=aladdin">有限自动机</a></p>
+  <!--
+  <aside class="post-widget">
+    <nav>
+      <h4>TOC</h4>
+      <ol>
+        <li>
+          <a>
+            <span>1.</span> 
+            <span>发布订阅模式</span>
+          </a>
+        </li>
+        <li>
+          <a>
+            <span>2.</span> 
+            <span>数据流</span>
+          </a>
+        </li>
+        <li>
+            <a href="#Vue中的解决方案">
+              <span>3.</span> 
+              <span>Vue中的解决方案</span>
+            </a>
+        </li>
+      </ol>
+    </nav>
+  </aside>
+  -->   
+  <div class="page-container" style="background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+
+    <div style="margin:35px">
+        <h1 id="有限自动机" class="page_title">
+          <a href="#有限自动机" class="headerlink" title="有限自动机"></a>
+          有限自动机
+        </h1>
+        <div>
+          <em class="page_meta">Written by </em>
+          <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+          <em class="page_meta">,Last update
+            <span class="post-time">on 
+              <time datetime="1592824242000" itemprop="datePublished"><script>var times=1592824242000;var date = new Date(times).Format('yy-MM-dd hh:mm');document.write(date);</script></time>
+            </span>
+          </em>
+          <span id="/2020/06/22/software/dfanfa/" class="leancloud_visitors" data-flag-title="有限自动机">
+            <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+            <i class="leancloud-visitors-count">loading</i>
+          </span>
+        </div>
+        <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+        <p>引用百度百科上的一段解释 <a href="https://baike.baidu.com/item/%E6%9C%89%E9%99%90%E8%87%AA%E5%8A%A8%E6%9C%BA/8700995?fr=aladdin">有限自动机</a></p>
 <blockquote>
 <p>有限自动机(finite automata)亦称时序机，有限离散数字系统的抽象数学模型。一个有限自动机M由五元组(X,Y,S,δ,λ)给定，其中X,Y和S都是非空有限集，分别称为M的输入集、输出集和状态集；δ是笛卡儿积集合S×X到S的映射，称为M的下一状态函数；λ是S×X到Y的单值映射，称为M的输出函数。当δ是单值映射时，称M为确定型有限自动机；当δ是多值映射时，称M为非确定型有限自动机。有限自动机有三种功能：作为序列转换器，将输入序列变换为输出序列；作为序列识别器，识别输入的序列是否具有某种性质；作为序列产生器，产生具有所要求性质的序列。</p>
 </blockquote>
@@ -145,55 +174,55 @@
 <li>对于集合Y中的任何字符串w，如果存在一条从初态节点到终止状态节点的路径，而且这条路径上所有弧的标记符连接成的字符串等于w，那么就称w可由该DFA识别。</li>
 </ol>
 
-  <script>
-    var dom = document.getElementsByClassName('code');
-    for(var i=0,len=dom.length; i<len; i++){
-      dom[i].style.width = '750px';
-    }
-    var dom = document.getElementsByTagName('h1');
-    for(var i=0,len=dom.length; i<len; i++){
-      dom[i].className  += 'page_title';
-    }
-    var dom = document.getElementsByTagName('p');
-    for(var i=0,len=dom.length; i<len; i++){
-      dom[i].style.color = '#303333';
-    }
-    var dom = document.getElementsByTagName('a');
-    for(var i=0,len=dom.length; i<len; i++){
-      dom[i].style.color = '#2d96bd';
-    }
-    var dom = document.getElementsByTagName('img');
-    for(var i=0,len=dom.length; i<len; i++){
-      dom[i].className += ' img-responsive';
-    }
-    var dom = document.getElementsByTagName('blockquote');
-    for(var i=0,len=dom.length; i<len; i++){
-      dom[i].style.borderLeft = '5px solid #ddc06b';
-      dom[i].style.backgroundColor = 'rgba(216, 221, 206, 0.49';
-      dom[i].style.fontFamily = '微软雅黑,华文细黑,STHeiti,MingLiu';
-      dom[i].style.fontSize = '13px';
-    }
-  </script>
+        <script>
+          var dom = document.getElementsByClassName('code');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.width = '750px';
+          }
+          var dom = document.getElementsByTagName('h1');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].className  += 'page_title';
+          }
+          var dom = document.getElementsByTagName('p');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.color = '#303333';
+          }
+          var dom = document.getElementsByTagName('a');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.color = '#2d96bd';
+          }
+          var dom = document.getElementsByTagName('img');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].className += ' img-responsive';
+          }
+          var dom = document.getElementsByTagName('blockquote');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.borderLeft = '5px solid #ddc06b';
+            dom[i].style.backgroundColor = 'rgba(216, 221, 206, 0.49';
+            dom[i].style.fontFamily = '微软雅黑,华文细黑,STHeiti,MingLiu';
+            dom[i].style.fontSize = '13px';
+          }
+        </script>
 
-  <br>
-  <br>
-  <hr>
-  <script>
-    window.onload = (function(){
-        $('pre').addClass('prettyprint linenums').attr('style', 'overflow:auto;');
-        prettyPrint(); 
-    });
-  </script>
-  <p>评论区：</p>
+        <br>
+        <br>
+        <hr>
+        <script>
+          window.onload = (function(){
+              $('pre').addClass('prettyprint linenums').attr('style', 'overflow:auto;');
+              prettyPrint(); 
+          });
+        </script>
+        <p>评论区：</p>
 
 
-  
-  <section id="comments" class="comments" style="margin-left:0px !important">
-    <style>
-      .comments{margin:30px;padding:10px;background:#fff}
-      @media screen and (max-width:800px){.comments{margin:auto;padding:10px;background:#fff}}
-    </style>
-    <div class="valine_comment"></div>
+        
+        <section id="comments" class="comments" style="margin-left:0px !important">
+          <style>
+            .comments{margin:30px;padding:10px;background:#fff}
+            @media screen and (max-width:800px){.comments{margin:auto;padding:10px;background:#fff}}
+          </style>
+          <div class="valine_comment"></div>
 <!--载入js，在</body>之前插入即可-->
 <!--Leancloud 操作库:-->
 <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
@@ -210,55 +239,11 @@
       visitor: 'true',
     });
 </script>
-  </section>
-  
-    <!--
-    <div class="main-content">
-      <div class="row">
-        <div class="col-md-12">
-          <div class="panel panel-default">
-            
-            <h4 class="text-gray">关于本站</h4>
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-sm-12">
-                  <blockquote><p>本站是hexo主题<a href="https://github.com/HCLonely/hexo-theme-webstack">hexo-theme-webstack</a>的demo站。</p></blockquote>
-                </div>
-              </div>
-            
-            
-            <h4 class="text-gray">关于站长</h4>
-            <div class="row">
-              <div class="col-sm-4">
-                <div class="xe-widget xe-conversations box2 label-info" onclick="window.open('https://blog.hclonely.com/', '_blank')" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="https://www.hclonely.com/">
-                  <div class="xe-comment-entry">
-                    <a class="xe-user-img">
-                      <img src="/images/logos/myblog.png" class="img-circle" width="40">
-                    </a>
-                    <div class="xe-comment">
-                      <a href="#" class="xe-user-name overflowClip_1">
-                        <strong>HCLonely</strong>
-                      </a>
-                      <p class="overflowClip_2">懒人一个</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-8">
-                <div class="row">
-                  <div class="col-sm-12">
-                    <br /><blockquote><p>本站是<a href="https://github.com/HCLonely">HCLonely</a>基于<a href="https://github.com/WebStackPage/WebStackPage.github.io">WebStackPage</a>项目做的一款<a href="https://hexo.io/">Hexo</a>主题。</p></blockquote>
-                  </div>
-                </div>
-                <br>
-              </div>
-            </div>
-            
-            </div>
-          </div>
-        </div>
-      </div>
-    -->
+        </section>
+        
+    </div>
+  </div>
+    
   <footer class="main-footer sticky footer-type-1">
   <div class="footer-inner">
     <!-- Add your copyright text here -->

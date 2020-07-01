@@ -98,26 +98,55 @@
       
     </div>
   </nav>
-  <div class="page-container">
-  <h1 id="ARP协议" class="page_title">
-    <a href="#ARP协议" class="headerlink" title="ARP协议"></a>
-    ARP协议
-  </h1>
-  <div>
-    <em class="page_meta">Written by </em>
-    <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
-    <em class="page_meta">,Last update
-      <span class="post-time">on 
-        <time datetime="1592824242000" itemprop="datePublished"><script>var times=1592824242000;var date = new Date(times).Format('yy-MM-dd hh:mm');document.write(date);</script></time>
-      </span>
-    </em>
-    <span id="/2020/06/22/net/arp/" class="leancloud_visitors" data-flag-title="ARP协议">
-      <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
-      <i class="leancloud-visitors-count">loading</i>
-    </span>
-  </div>
-  <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
-  <p>地址解析协议（英语：Address Resolution Protocol，缩写：ARP）是一个通过解析网络层地址来找寻数据链路层地址的网络传输协议，它在IPv4中极其重要。</p>
+  <!--
+  <aside class="post-widget">
+    <nav>
+      <h4>TOC</h4>
+      <ol>
+        <li>
+          <a>
+            <span>1.</span> 
+            <span>发布订阅模式</span>
+          </a>
+        </li>
+        <li>
+          <a>
+            <span>2.</span> 
+            <span>数据流</span>
+          </a>
+        </li>
+        <li>
+            <a href="#Vue中的解决方案">
+              <span>3.</span> 
+              <span>Vue中的解决方案</span>
+            </a>
+        </li>
+      </ol>
+    </nav>
+  </aside>
+  -->   
+  <div class="page-container" style="background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+
+    <div style="margin:35px">
+        <h1 id="ARP协议" class="page_title">
+          <a href="#ARP协议" class="headerlink" title="ARP协议"></a>
+          ARP协议
+        </h1>
+        <div>
+          <em class="page_meta">Written by </em>
+          <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+          <em class="page_meta">,Last update
+            <span class="post-time">on 
+              <time datetime="1592824242000" itemprop="datePublished"><script>var times=1592824242000;var date = new Date(times).Format('yy-MM-dd hh:mm');document.write(date);</script></time>
+            </span>
+          </em>
+          <span id="/2020/06/22/net/arp/" class="leancloud_visitors" data-flag-title="ARP协议">
+            <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+            <i class="leancloud-visitors-count">loading</i>
+          </span>
+        </div>
+        <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+        <p>地址解析协议（英语：Address Resolution Protocol，缩写：ARP）是一个通过解析网络层地址来找寻数据链路层地址的网络传输协议，它在IPv4中极其重要。</p>
 <p><em>注意:本文概念性总结，均来自维基百科<a href="https://zh.wikipedia.org/wiki/%E5%9C%B0%E5%9D%80%E8%A7%A3%E6%9E%90%E5%8D%8F%E8%AE%AE">ARP协议</a>上的文字介绍</em></p>
 <h2 id="基本功能"><a href="#基本功能" class="headerlink" title="基本功能"></a>基本功能</h2><blockquote>
 <p>在以太网协议中规定，同一局域网中的一台主机要和另一台主机进行直接通信，必须要知道目标主机的MAC地址。而在TCP/IP协议中，网络层和传输层只关心目标主机的IP地址。这就导致在以太网中使用IP协议时，数据链路层的以太网协议接到上层IP协议提供的数据中，只包含目的主机的IP地址。于是需要一种方法，根据目的主机的IP地址，获得其MAC地址。这就是ARP协议要做的事情。所谓地址解析（address resolution）就是主机在发送帧前将目标IP地址转换成目标MAC地址的过程</p>
@@ -190,55 +219,55 @@
  #注意：每个网络接口也会有单独的arp老化时间配置 执行 ls /proc/sys/net/ipv4/neigh/ 查看有哪些接口</code></pre></li>
 </ol>
 <h2 id="arp命令"><a href="#arp命令" class="headerlink" title="arp命令"></a>arp命令</h2>
-  <script>
-    var dom = document.getElementsByClassName('code');
-    for(var i=0,len=dom.length; i<len; i++){
-      dom[i].style.width = '750px';
-    }
-    var dom = document.getElementsByTagName('h1');
-    for(var i=0,len=dom.length; i<len; i++){
-      dom[i].className  += 'page_title';
-    }
-    var dom = document.getElementsByTagName('p');
-    for(var i=0,len=dom.length; i<len; i++){
-      dom[i].style.color = '#303333';
-    }
-    var dom = document.getElementsByTagName('a');
-    for(var i=0,len=dom.length; i<len; i++){
-      dom[i].style.color = '#2d96bd';
-    }
-    var dom = document.getElementsByTagName('img');
-    for(var i=0,len=dom.length; i<len; i++){
-      dom[i].className += ' img-responsive';
-    }
-    var dom = document.getElementsByTagName('blockquote');
-    for(var i=0,len=dom.length; i<len; i++){
-      dom[i].style.borderLeft = '5px solid #ddc06b';
-      dom[i].style.backgroundColor = 'rgba(216, 221, 206, 0.49';
-      dom[i].style.fontFamily = '微软雅黑,华文细黑,STHeiti,MingLiu';
-      dom[i].style.fontSize = '13px';
-    }
-  </script>
+        <script>
+          var dom = document.getElementsByClassName('code');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.width = '750px';
+          }
+          var dom = document.getElementsByTagName('h1');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].className  += 'page_title';
+          }
+          var dom = document.getElementsByTagName('p');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.color = '#303333';
+          }
+          var dom = document.getElementsByTagName('a');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.color = '#2d96bd';
+          }
+          var dom = document.getElementsByTagName('img');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].className += ' img-responsive';
+          }
+          var dom = document.getElementsByTagName('blockquote');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.borderLeft = '5px solid #ddc06b';
+            dom[i].style.backgroundColor = 'rgba(216, 221, 206, 0.49';
+            dom[i].style.fontFamily = '微软雅黑,华文细黑,STHeiti,MingLiu';
+            dom[i].style.fontSize = '13px';
+          }
+        </script>
 
-  <br>
-  <br>
-  <hr>
-  <script>
-    window.onload = (function(){
-        $('pre').addClass('prettyprint linenums').attr('style', 'overflow:auto;');
-        prettyPrint(); 
-    });
-  </script>
-  <p>评论区：</p>
+        <br>
+        <br>
+        <hr>
+        <script>
+          window.onload = (function(){
+              $('pre').addClass('prettyprint linenums').attr('style', 'overflow:auto;');
+              prettyPrint(); 
+          });
+        </script>
+        <p>评论区：</p>
 
 
-  
-  <section id="comments" class="comments" style="margin-left:0px !important">
-    <style>
-      .comments{margin:30px;padding:10px;background:#fff}
-      @media screen and (max-width:800px){.comments{margin:auto;padding:10px;background:#fff}}
-    </style>
-    <div class="valine_comment"></div>
+        
+        <section id="comments" class="comments" style="margin-left:0px !important">
+          <style>
+            .comments{margin:30px;padding:10px;background:#fff}
+            @media screen and (max-width:800px){.comments{margin:auto;padding:10px;background:#fff}}
+          </style>
+          <div class="valine_comment"></div>
 <!--载入js，在</body>之前插入即可-->
 <!--Leancloud 操作库:-->
 <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
@@ -255,55 +284,11 @@
       visitor: 'true',
     });
 </script>
-  </section>
-  
-    <!--
-    <div class="main-content">
-      <div class="row">
-        <div class="col-md-12">
-          <div class="panel panel-default">
-            
-            <h4 class="text-gray">关于本站</h4>
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-sm-12">
-                  <blockquote><p>本站是hexo主题<a href="https://github.com/HCLonely/hexo-theme-webstack">hexo-theme-webstack</a>的demo站。</p></blockquote>
-                </div>
-              </div>
-            
-            
-            <h4 class="text-gray">关于站长</h4>
-            <div class="row">
-              <div class="col-sm-4">
-                <div class="xe-widget xe-conversations box2 label-info" onclick="window.open('https://blog.hclonely.com/', '_blank')" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="https://www.hclonely.com/">
-                  <div class="xe-comment-entry">
-                    <a class="xe-user-img">
-                      <img src="/images/logos/myblog.png" class="img-circle" width="40">
-                    </a>
-                    <div class="xe-comment">
-                      <a href="#" class="xe-user-name overflowClip_1">
-                        <strong>HCLonely</strong>
-                      </a>
-                      <p class="overflowClip_2">懒人一个</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-8">
-                <div class="row">
-                  <div class="col-sm-12">
-                    <br /><blockquote><p>本站是<a href="https://github.com/HCLonely">HCLonely</a>基于<a href="https://github.com/WebStackPage/WebStackPage.github.io">WebStackPage</a>项目做的一款<a href="https://hexo.io/">Hexo</a>主题。</p></blockquote>
-                  </div>
-                </div>
-                <br>
-              </div>
-            </div>
-            
-            </div>
-          </div>
-        </div>
-      </div>
-    -->
+        </section>
+        
+    </div>
+  </div>
+    
   <footer class="main-footer sticky footer-type-1">
   <div class="footer-inner">
     <!-- Add your copyright text here -->

@@ -98,26 +98,55 @@
       
     </div>
   </nav>
-  <div class="page-container">
-  <h1 id="使用abrt监控程序coredump" class="page_title">
-    <a href="#使用abrt监控程序coredump" class="headerlink" title="使用abrt监控程序coredump"></a>
-    使用abrt监控程序coredump
-  </h1>
-  <div>
-    <em class="page_meta">Written by </em>
-    <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
-    <em class="page_meta">,Last update
-      <span class="post-time">on 
-        <time datetime="1592824242000" itemprop="datePublished"><script>var times=1592824242000;var date = new Date(times).Format('yy-MM-dd hh:mm');document.write(date);</script></time>
-      </span>
-    </em>
-    <span id="/2020/06/22/system/abrt-coredump/" class="leancloud_visitors" data-flag-title="使用abrt监控程序coredump">
-      <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
-      <i class="leancloud-visitors-count">loading</i>
-    </span>
-  </div>
-  <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
-  <blockquote>
+  <!--
+  <aside class="post-widget">
+    <nav>
+      <h4>TOC</h4>
+      <ol>
+        <li>
+          <a>
+            <span>1.</span> 
+            <span>发布订阅模式</span>
+          </a>
+        </li>
+        <li>
+          <a>
+            <span>2.</span> 
+            <span>数据流</span>
+          </a>
+        </li>
+        <li>
+            <a href="#Vue中的解决方案">
+              <span>3.</span> 
+              <span>Vue中的解决方案</span>
+            </a>
+        </li>
+      </ol>
+    </nav>
+  </aside>
+  -->   
+  <div class="page-container" style="background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+
+    <div style="margin:35px">
+        <h1 id="使用abrt监控程序coredump" class="page_title">
+          <a href="#使用abrt监控程序coredump" class="headerlink" title="使用abrt监控程序coredump"></a>
+          使用abrt监控程序coredump
+        </h1>
+        <div>
+          <em class="page_meta">Written by </em>
+          <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+          <em class="page_meta">,Last update
+            <span class="post-time">on 
+              <time datetime="1592824242000" itemprop="datePublished"><script>var times=1592824242000;var date = new Date(times).Format('yy-MM-dd hh:mm');document.write(date);</script></time>
+            </span>
+          </em>
+          <span id="/2020/06/22/system/abrt-coredump/" class="leancloud_visitors" data-flag-title="使用abrt监控程序coredump">
+            <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+            <i class="leancloud-visitors-count">loading</i>
+          </span>
+        </div>
+        <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+        <blockquote>
 <p>在UNIX系统中，常将“主内存”(main memory) 称为核心(core)，因为在使用半导体作为内存材料之前，便是使用核心(core)。而核心映像(core image) 就是 “进程”(process)执行当时的内存内容。当进程发生错误或收到“信号”(signal) 而终止执行时，系统会将核心映像写入一个文件，以作为调试之用，这就是所谓的核心转储(core dump)。—-来自 <a href="https://baike.baidu.com/item/%E6%A0%B8%E5%BF%83%E8%BD%AC%E5%82%A8/16772089?fromtitle=core%20dump&fromid=2971395&fr=aladdin">百度百科-核心转储</a></p>
 </blockquote>
 <h2 id="程序产生coredump的原因"><a href="#程序产生coredump的原因" class="headerlink" title="程序产生coredump的原因"></a>程序产生coredump的原因</h2><ol>
@@ -244,55 +273,55 @@ Missing separate debuginfos, use: debuginfo-install glibc-2.17-222.el7.x86_64
 #1  0x00000000004005aa in main (argc=1, argv=0x7fff014aa9f8) at dump.c:6    # 精准定位代码错误
 (gdb) quit</code></pre>
 
-  <script>
-    var dom = document.getElementsByClassName('code');
-    for(var i=0,len=dom.length; i<len; i++){
-      dom[i].style.width = '750px';
-    }
-    var dom = document.getElementsByTagName('h1');
-    for(var i=0,len=dom.length; i<len; i++){
-      dom[i].className  += 'page_title';
-    }
-    var dom = document.getElementsByTagName('p');
-    for(var i=0,len=dom.length; i<len; i++){
-      dom[i].style.color = '#303333';
-    }
-    var dom = document.getElementsByTagName('a');
-    for(var i=0,len=dom.length; i<len; i++){
-      dom[i].style.color = '#2d96bd';
-    }
-    var dom = document.getElementsByTagName('img');
-    for(var i=0,len=dom.length; i<len; i++){
-      dom[i].className += ' img-responsive';
-    }
-    var dom = document.getElementsByTagName('blockquote');
-    for(var i=0,len=dom.length; i<len; i++){
-      dom[i].style.borderLeft = '5px solid #ddc06b';
-      dom[i].style.backgroundColor = 'rgba(216, 221, 206, 0.49';
-      dom[i].style.fontFamily = '微软雅黑,华文细黑,STHeiti,MingLiu';
-      dom[i].style.fontSize = '13px';
-    }
-  </script>
+        <script>
+          var dom = document.getElementsByClassName('code');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.width = '750px';
+          }
+          var dom = document.getElementsByTagName('h1');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].className  += 'page_title';
+          }
+          var dom = document.getElementsByTagName('p');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.color = '#303333';
+          }
+          var dom = document.getElementsByTagName('a');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.color = '#2d96bd';
+          }
+          var dom = document.getElementsByTagName('img');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].className += ' img-responsive';
+          }
+          var dom = document.getElementsByTagName('blockquote');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.borderLeft = '5px solid #ddc06b';
+            dom[i].style.backgroundColor = 'rgba(216, 221, 206, 0.49';
+            dom[i].style.fontFamily = '微软雅黑,华文细黑,STHeiti,MingLiu';
+            dom[i].style.fontSize = '13px';
+          }
+        </script>
 
-  <br>
-  <br>
-  <hr>
-  <script>
-    window.onload = (function(){
-        $('pre').addClass('prettyprint linenums').attr('style', 'overflow:auto;');
-        prettyPrint(); 
-    });
-  </script>
-  <p>评论区：</p>
+        <br>
+        <br>
+        <hr>
+        <script>
+          window.onload = (function(){
+              $('pre').addClass('prettyprint linenums').attr('style', 'overflow:auto;');
+              prettyPrint(); 
+          });
+        </script>
+        <p>评论区：</p>
 
 
-  
-  <section id="comments" class="comments" style="margin-left:0px !important">
-    <style>
-      .comments{margin:30px;padding:10px;background:#fff}
-      @media screen and (max-width:800px){.comments{margin:auto;padding:10px;background:#fff}}
-    </style>
-    <div class="valine_comment"></div>
+        
+        <section id="comments" class="comments" style="margin-left:0px !important">
+          <style>
+            .comments{margin:30px;padding:10px;background:#fff}
+            @media screen and (max-width:800px){.comments{margin:auto;padding:10px;background:#fff}}
+          </style>
+          <div class="valine_comment"></div>
 <!--载入js，在</body>之前插入即可-->
 <!--Leancloud 操作库:-->
 <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
@@ -309,55 +338,11 @@ Missing separate debuginfos, use: debuginfo-install glibc-2.17-222.el7.x86_64
       visitor: 'true',
     });
 </script>
-  </section>
-  
-    <!--
-    <div class="main-content">
-      <div class="row">
-        <div class="col-md-12">
-          <div class="panel panel-default">
-            
-            <h4 class="text-gray">关于本站</h4>
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-sm-12">
-                  <blockquote><p>本站是hexo主题<a href="https://github.com/HCLonely/hexo-theme-webstack">hexo-theme-webstack</a>的demo站。</p></blockquote>
-                </div>
-              </div>
-            
-            
-            <h4 class="text-gray">关于站长</h4>
-            <div class="row">
-              <div class="col-sm-4">
-                <div class="xe-widget xe-conversations box2 label-info" onclick="window.open('https://blog.hclonely.com/', '_blank')" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="https://www.hclonely.com/">
-                  <div class="xe-comment-entry">
-                    <a class="xe-user-img">
-                      <img src="/images/logos/myblog.png" class="img-circle" width="40">
-                    </a>
-                    <div class="xe-comment">
-                      <a href="#" class="xe-user-name overflowClip_1">
-                        <strong>HCLonely</strong>
-                      </a>
-                      <p class="overflowClip_2">懒人一个</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-8">
-                <div class="row">
-                  <div class="col-sm-12">
-                    <br /><blockquote><p>本站是<a href="https://github.com/HCLonely">HCLonely</a>基于<a href="https://github.com/WebStackPage/WebStackPage.github.io">WebStackPage</a>项目做的一款<a href="https://hexo.io/">Hexo</a>主题。</p></blockquote>
-                  </div>
-                </div>
-                <br>
-              </div>
-            </div>
-            
-            </div>
-          </div>
-        </div>
-      </div>
-    -->
+        </section>
+        
+    </div>
+  </div>
+    
   <footer class="main-footer sticky footer-type-1">
   <div class="footer-inner">
     <!-- Add your copyright text here -->
