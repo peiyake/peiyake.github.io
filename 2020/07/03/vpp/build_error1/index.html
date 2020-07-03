@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="author" content="viggo" />
   <title> 
-          VPP 编译、安装、运行
+          VPP编译错误&#39;package python36-devel is not installedpackage&#39;
           |
           
           Mr.Piak的博客
@@ -40,7 +40,7 @@
     <![endif]-->
   <!-- / FB Open Graph -->
   <meta property="og:type" content="article">
-  <meta property="og:url" content="http://peiyake.com/2020/06/22/vpp/build_install/index.html">
+  <meta property="og:url" content="http://peiyake.com/2020/07/03/vpp/build_error1/index.html">
   <meta property="og:title" content="Mr.Piak的博客 - ">
   <meta property="og:description" content="本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
   <meta property="og:site_name" content="Mr.Piak的博客 - ">
@@ -128,127 +128,30 @@
   <div class="page-container" style="background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
 
     <div style="margin:35px">
-        <h1 id="VPP 编译、安装、运行" class="page_title">
-          <a href="#VPP 编译、安装、运行" class="headerlink" title="VPP 编译、安装、运行"></a>
-          VPP 编译、安装、运行
+        <h1 id="VPP编译错误'package python36-devel is not installedpackage'" class="page_title">
+          <a href="#VPP编译错误'package python36-devel is not installedpackage'" class="headerlink" title="VPP编译错误'package python36-devel is not installedpackage'"></a>
+          VPP编译错误'package python36-devel is not installedpackage'
         </h1>
         <div>
           <em class="page_meta">Written by </em>
           <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
           <em class="page_meta">,Last update
             <span class="post-time">on 
-              <time datetime="1592824242000" itemprop="datePublished"><script>var times=1592824242000;var date = new Date(times).Format('yy-MM-dd hh:mm');document.write(date);</script></time>
+              <time datetime="1593774602000" itemprop="datePublished"><script>var times=1593774602000;var date = new Date(times).Format('yy-MM-dd hh:mm');document.write(date);</script></time>
             </span>
           </em>
-          <span id="/2020/06/22/vpp/build_install/" class="leancloud_visitors" data-flag-title="VPP 编译、安装、运行">
+          <span id="/2020/07/03/vpp/build_error1/" class="leancloud_visitors" data-flag-title="VPP编译错误'package python36-devel is not installedpackage'">
             <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
             <i class="leancloud-visitors-count">loading</i>
           </span>
         </div>
         <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
-        <h2 id="下载源码"><a href="#下载源码" class="headerlink" title="下载源码"></a>下载源码</h2><p><a href="https://wiki.fd.io/view/VPP/Pulling,_Building,_Running,_Hacking_and_Pushing_VPP_Code">参考官方文档</a></p>
-<pre><code>[root@localhost ~]git clone https://gerrit.fd.io/r/vpp
-[root@localhost ~]cd vpp
-[root@localhost ~]git branch -a                   #查看分支
-[root@localhost ~]git tag                         #查看标签
-[root@localhost ~]# git checkout -b v19.08 v19.08 #从tag  v19.08 检出分支 v19.08</code></pre><h2 id="开启DPDK的igb-uio-ko编译"><a href="#开启DPDK的igb-uio-ko编译" class="headerlink" title="开启DPDK的igb_uio.ko编译"></a>开启DPDK的<code>igb_uio.ko</code>编译</h2><pre><code>sed -i &#39;s/RTE_EAL_IGB_UIO,n/RTE_EAL_IGB_UIO,y/&#39; build/external/packages/dpdk.mk   </code></pre><h2 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h2><pre><code># if vpp&lt;08.10
+        <p>在CentOS-7.5.1804环境编译VPP（version=tag19.08）时，系统已经安装了<code>python3-devel</code>，但是编译却依赖<code>python36-devel</code>，尝试安装<code>python36-devel</code>rpm包，但是通过<br><code>yum</code>安装时却一直提示 “Package python36-devel is obsoleted by python3-devel, trying to install python3-devel-3.6.8-13.el7.x86_64 instead”。也就是说<br>只能安装 <code>python3-devel</code>。经过尝试终于找到解决办法，这里记录一下。</p>
+<h2 id="通过指定仓库来安装"><a href="#通过指定仓库来安装" class="headerlink" title="通过指定仓库来安装"></a>通过指定仓库来安装</h2><p>第一步，要先安装python的官方yum仓库：</p>
+<pre><code>rpm -Uvh http://mirrors.gbcom.com.cn/packages/ius-release-el7.rpm</code></pre><p>第二步，卸载<code>python3-devel python3-pip</code></p>
+<pre><code>yum remove -y python3-devel python3-pip</code></pre><p>第三步，指定仓库安装<code>python36-devel python36-pip</code></p>
+<pre><code>yum install python36-devel python36-pip  --disablerepo=* --enablerepo=ius</code></pre><p>至此问题解决，编译VPP通过。</p>
 
-make install-dep
-make bootstrap
-make build        # or `make build-release`
-
-# vpp 08.10+ (cmake)
-make install-dep
-make install-ext-deps
-make build        # or `make build-release`</code></pre><p>其中<code>make install-ext-deps</code>,编译完成会生成一个rpm包<code>build/external/vpp-ext-deps-19.08-13.x86_64.rpm</code>，这个rpm包会被自动安装，安装后的文件位于 <code>/opt/vpp/</code> 目录下<br>里面包括 <code>dpdk</code>相关的库、模块和一些可执行文件。</p>
-<p><em>注意：make build编译debug版本，只能用于调试，性能很差的</em></p>
-<h2 id="配置大页内存"><a href="#配置大页内存" class="headerlink" title="配置大页内存"></a>配置大页内存</h2><pre><code>~# [ -d /mnt/huge ] || mkdir /mnt/huge
-~# mount -t hugetlbfs nodev /mnt/huge
-~# echo 1024 &gt; /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages</code></pre><p>挂载hugetlbfs还可以这样 </p>
-<pre><code>echo &quot;nodev                   /mnt/huge               hugetlbfs rw,relatime&quot; &gt;&gt; /etc/fstab</code></pre><p>如果设备支持1G大页内存，通过 <code>bootcmd</code> 来启用，修改启动 <code>grub.cfg</code> 找到启动命令行，添加如下内容：</p>
-<pre><code>default_hugepagesz=1G hugepagesz=1G hugepages=4</code></pre><h2 id="屏蔽CPU"><a href="#屏蔽CPU" class="headerlink" title="屏蔽CPU"></a>屏蔽CPU</h2><p>修改 <code>grub.cfg</code> 在启动命令行添加</p>
-<pre><code>isolcpus=1,2,3,4</code></pre><p>如上，系统启动后，CPU核心1/2/3/4，将不会被系统使用，后面可以配置成VPP运行专用CPU核心。</p>
-<h2 id="加载UIO驱动"><a href="#加载UIO驱动" class="headerlink" title="加载UIO驱动"></a>加载UIO驱动</h2><pre><code>~# modprobe uio
-~# insmod /opt/vpp/external/`uname -m`/lib/modules/`uname -r`/extra/dpdk/igb_uio.ko</code></pre><h3 id="构造配置文件-startup-conf"><a href="#构造配置文件-startup-conf" class="headerlink" title="构造配置文件 startup.conf"></a>构造配置文件 startup.conf</h3><p>查看设备网口信息，如下，我的测试设备有6个千兆口，还有4个扩展千兆口，我已经配置DPDK接管了其中PCI编号 <code>0000:07:00.0</code>、<code>0000:08:00.1</code>、<code>0000:09:00.0</code>、<code>0000:0a:00.1</code>四个网口。</p>
-<pre><code>[root@localhost vpp]# /opt/vpp/external/x86_64/sbin/dpdk-devbind --status
-
-Network devices using DPDK-compatible driver
-============================================
-0000:03:00.0 &#39;82580 Gigabit Fiber Network Connection&#39; drv=uio_pci_generic unused=igb
-0000:03:00.1 &#39;82580 Gigabit Fiber Network Connection&#39; drv=uio_pci_generic unused=igb
-
-Network devices using kernel driver
-===================================
-0000:03:00.2 &#39;82580 Gigabit Fiber Network Connection&#39; if=eth8 drv=igb unused=uio_pci_generic 
-0000:03:00.3 &#39;82580 Gigabit Fiber Network Connection&#39; if=eth9 drv=igb unused=uio_pci_generic 
-0000:05:00.0 &#39;82583V Gigabit Network Connection&#39; if=eth0 drv=e1000e unused=uio_pci_generic 
-0000:06:00.0 &#39;82583V Gigabit Network Connection&#39; if=eth1 drv=e1000e unused=uio_pci_generic 
-0000:07:00.0 &#39;82583V Gigabit Network Connection&#39; if=eth2 drv=e1000e unused=uio_pci_generic 
-0000:08:00.0 &#39;82583V Gigabit Network Connection&#39; if=eth3 drv=e1000e unused=uio_pci_generic 
-0000:09:00.0 &#39;82583V Gigabit Network Connection&#39; if=eth4 drv=e1000e unused=uio_pci_generic 
-0000:0a:00.0 &#39;82583V Gigabit Network Connection&#39; if=eth5 drv=e1000e unused=uio_pci_generic 
-...
-...</code></pre><p>构造配置文件</p>
-<pre><code>~# mkdir -p /etc/vpp
-~# cp build-root/install-vpp_debug-native/vpp/etc/vpp/startup.conf /etc/vpp/</code></pre><p>最终的配置文件</p>
-<pre><code>unix {
-  log /var/log/vpp.log
-  full-coredump
-  cli-listen /run/vpp/cli.sock
-}
-api-trace {
-  on
-}
-socksvr {
-  default
-}
-cpu {
-        main-core 1
-        corelist-workers 4-7
-}
-dpdk {
-        dev 0000:07:00.0 {
-                name vpp0
-        }
-        dev 0000:08:00.0 {
-                name vpp1
-        }
-        dev 0000:09:00.0 {
-                name vpp2
-        }
-        dev 0000:0a:00.0 {
-                name vpp3
-        }
-}</code></pre><h3 id="运行VPP"><a href="#运行VPP" class="headerlink" title="运行VPP"></a>运行VPP</h3><pre><code>[root@localhost vpp]# ./build-root/install-vpp_debug-native/vpp/bin/vpp -c /etc/vpp/startup.conf
-vlib_plugin_early_init:361: plugin path /root/vpp/build-root/build-vpp_debug-native/vpp/lib/x86_64-linux-gnu/vpp_plugins:/root/vpp/build-root/build-vpp_debug-native/vpp/lib/vpp_plugins
-load_one_plugin:189: Loaded plugin: abf_plugin.so (Access Control List (ACL) Based Forwarding)
-load_one_plugin:189: Loaded plugin: acl_plugin.so (Access Control Lists (ACL))
-load_one_plugin:189: Loaded plugin: avf_plugin.so (Intel Adaptive Virtual Function (AVF) Device Driver)
-load_one_plugin:189: Loaded plugin: cdp_plugin.so (Cisco Discovery Protocol (CDP))
-load_one_plugin:189: Loaded plugin: crypto_ia32_plugin.so (Intel IA32 Software Crypto Engine)
-...
-</code></pre><h2 id="查看"><a href="#查看" class="headerlink" title="查看"></a>查看</h2><pre><code>[root@localhost vpp]# ./build-root/install-vpp_debug-native/vpp/bin/vppctl 
-    _______    _        _   _____  ___ 
- __/ __/ _ \  (_)__    | | / / _ \/ _ \
- _/ _// // / / / _ \   | |/ / ___/ ___/
- /_/ /____(_)_/\___/   |___/_/  /_/    
-
-DBGvpp# 
-DBGvpp# 
-DBGvpp# show interface 
-              Name               Idx    State  MTU (L3/IP4/IP6/MPLS)     Counter          Count     
-local0                            0     down          0/0/0/0       
-vpp0                              1     down         9000/0/0/0     
-vpp1                              2     down         9000/0/0/0     
-vpp2                              3     down         9000/0/0/0     
-vpp3                              4     down         9000/0/0/0     
-DBGvpp# 
-DBGvpp# </code></pre><h3 id="错误处理"><a href="#错误处理" class="headerlink" title="错误处理"></a>错误处理</h3><p>安装上面运行，可能会出现如下错误</p>
-<ol>
-<li><strong>api_segment_config: group vpp does not exist Aborted (core dumped)</strong></li>
-</ol>
-<p>这种错误是由于配置文件 <code>startup.conf</code> 中 配置了 <code>gid vpp</code>导致的。 错误提示 <strong>组vpp不存子</strong>，那么我们只需要创建一下就可以了</p>
-<pre><code>[root@localhost vpp]# groupadd -r vpp</code></pre>
         <script>
           var dom = document.getElementsByClassName('code');
           for(var i=0,len=dom.length; i<len; i++){
