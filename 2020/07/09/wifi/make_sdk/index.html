@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="author" content="viggo" />
   <title> 
-          高通SDK编译整理
+          SDK编译整理
           |
           
           Mr.Piak的博客
@@ -128,9 +128,9 @@
   <div class="page-container" style="background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
 
     <div style="margin:35px">
-        <h1 id="高通SDK编译整理" class="page_title">
-          <a href="#高通SDK编译整理" class="headerlink" title="高通SDK编译整理"></a>
-          高通SDK编译整理
+        <h1 id="SDK编译整理" class="page_title">
+          <a href="#SDK编译整理" class="headerlink" title="SDK编译整理"></a>
+          SDK编译整理
         </h1>
         <div>
           <em class="page_meta">Written by </em>
@@ -140,59 +140,31 @@
               <time datetime="1594283022000" itemprop="datePublished"><script>var times=1594283022000;var date = new Date(times).Format('yy-MM-dd hh:mm');document.write(date);</script></time>
             </span>
           </em>
-          <span id="/2020/07/09/wifi/make_sdk/" class="leancloud_visitors" data-flag-title="高通SDK编译整理">
+          <span id="/2020/07/09/wifi/make_sdk/" class="leancloud_visitors" data-flag-title="SDK编译整理">
             <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
             <i class="leancloud-visitors-count">loading</i>
           </span>
         </div>
         <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
-        <p>根据SDK <code>QCA_Networking_2020.SPF.11.1_csu1</code>的release_notes.pdf 进行环境编译时，发现存在诸多问题，这里把自己整个<code>跳坑、填坑</code>过程整理一下，方便自己查阅。</p>
+        <p>根据SDK <code>csu2</code>的release_notes.pdf 进行环境编译时，发现存在诸多问题，这里把自己整个<code>跳坑、填坑</code>过程整理一下，方便自己查阅。</p>
 <h2 id="SDK编译过程"><a href="#SDK编译过程" class="headerlink" title="SDK编译过程"></a>SDK编译过程</h2><p>本文编译环境</p>
 <ul>
-<li>Distributor ID: Debian</li>
-<li>Description:    Debian GNU/Linux 10 (buster)</li>
-<li>Release:        10</li>
-<li>Codename:       buster</li>
+<li>DISTRIB_ID=Ubuntu</li>
+<li>DISTRIB_RELEASE=16.04</li>
+<li>DISTRIB_CODENAME=xenial</li>
+<li>DISTRIB_DESCRIPTION=”Ubuntu 16.04.6 LTS”</li>
 </ul>
 <h3 id="获取SDK压缩包并解压"><a href="#获取SDK压缩包并解压" class="headerlink" title="获取SDK压缩包并解压"></a>获取SDK压缩包并解压</h3><pre><code>cd ~
-xz -d r11.1_00004.0.tar.xz
-mkdir QSDK
-tar -xf r11.1_00004.0.tar.xz -C QSDK/
-cd QSDK
-git checkout .</code></pre><p><em>注意：在后面部分<strong>&lt;Chipcode directory&gt;</strong>就代表<code>~/QSDK/</code>。因为你自己可能不想使用QSDK这个名字</em></p>
+xz -d r11.1_xxxxxx.tar.xz
+mkdir abc
+tar -xf r11.1_xxxxxx.tar.xz -C abc/
+cd abc
+git checkout .</code></pre><p><em>注意：在后面部分<strong>&lt;Chipcode directory&gt;</strong>就代表<code>~/abc/</code></em></p>
 <h3 id="copying-the-files-to-the-appropriate-directories"><a href="#copying-the-files-to-the-appropriate-directories" class="headerlink" title="copying the files to the appropriate directories"></a>copying the files to the appropriate directories</h3><p>方法1 : 获取脚本执行 <a href="/src/make_sdk1.sh">make_skd1.sh</a></p>
 <pre><code>cd &lt;Chipcode directory&gt;
 wget https://peiyake.com/src/make_sdk1.sh
 chmod a+x make_sdk1.sh
-sh make_sdk1.sh</code></pre><p>方法2 ：自己手动一步一步执行</p>
-<pre><code>cd &lt;Chipcode directory&gt;
-cp -rf ./NHSS.QSDK.11.1/apss_proc/out/proprietary/Wifi/qsdk-qca-wifi ./
-cp -rf ./NHSS.QSDK.11.1/apss_proc/out/proprietary/Wifi/qsdk-qca-wlan ./
-cp -rf ./NHSS.QSDK.11.1/apss_proc/out/proprietary/Wifi/qsdk-qca-art ./
-cp -rf ./NHSS.QSDK.11.1/apss_proc/out/proprietary/Wifi/qsdk-ieee1905-security ./
-cp -rf ./NHSS.QSDK.11.1/apss_proc/out/proprietary/Wifi/qsdk-whc ./
-cp -rf ./NHSS.QSDK.11.1/apss_proc/out/proprietary/Wifi/qsdk-whcpy ./
-
-cp -rf ./NHSS.QSDK.11.1/apss_proc/out/proprietary/QSDK-Base/qca-lib ./
-cp -rf ./NHSS.QSDK.11.1/apss_proc/out/proprietary/QSDK-Base/qca-mcs-apps ./   
-cp -rf ./NHSS.QSDK.11.1/apss_proc/out/proprietary/QSDK-Base/qsdk-qca-nss ./             
-cp -rf ./NHSS.QSDK.11.1/apss_proc/out/proprietary/QSDK-Base/qca-nss-userspace ./       
-cp -rf ./NHSS.QSDK.11.1/apss_proc/out/proprietary/QSDK-Base/athtestcmd ./                  
-
-cp -rf ./NHSS.QSDK.11.1/apss_proc/out/proprietary/BLUETOPIA/qca-bluetopia ./
-
-cp -rf ./WLAN.HK.2.2/wlan_proc/src/components/qca-wifi-fw-src-component-cmn-WLAN.HK.*.tgz ./ 
-cp -rf ./WLAN.HK.2.2/wlan_proc/pkg/wlan_proc/bin/QCA6018/qca-wifi-fw-QCA6018_v1.0-WLAN.HK.*.tar.bz2 ./
-
-cp -rf ./WLAN.BL.3.12/cnss_proc/src/components/qca-wifi-fw-src-component-cmn-WLAN.BL.*.tgz ./
-cp -rf ./WLAN.BL.3.12/cnss_proc/src/components/qca-wifi-fw-src-component-halphy_tools-WLAN.BL.*.tgz ./
-cp -rf ./WLAN.BL.3.12/cnss_proc/bin/QCA9888/hw.2/qca-wifi-fw-QCA9888_hw_2-WLAN.BL.3.12-00028-S-1.tar.bz2 ./
-cp -rf ./WLAN.BL.3.12/cnss_proc/bin/AR900B/hw.2/qca-wifi-fw-AR900B_hw_2-WLAN.BL.3.12-00028-S-1.tar.bz2 ./
-cp -rf ./WLAN.BL.3.12/cnss_proc/bin/QCA9984/hw.1/qca-wifi-fw-QCA9984_hw_1-WLAN.BL.3.12-00028-S-1.tar.bz2 ./
-cp -rf ./WLAN.BL.3.12/cnss_proc/bin/IPQ4019/hw.1/qca-wifi-fw-IPQ4019_hw_1-WLAN.BL.3.12-00028-S-1.tar.bz2 ./
-
-cp -rf ./CNSS.PS.3.12/qca-wifi-fw-AR9887_hw_1-CNSS.PS.*.tar.bz2 ./
-cp -rf ./CNSS.PS.3.12/qca-wifi-fw-AR9888_hw_2-CNSS.PS.*.tar.bz2 ./</code></pre><hr>
+sh make_sdk1.sh</code></pre><hr>
 <h3 id="安装repo"><a href="#安装repo" class="headerlink" title="安装repo"></a>安装<code>repo</code></h3><p>这里使用的清华大学的镜像站，repo的官方镜像站需要翻墙</p>
 <pre><code>apt-get install git #如果git没有安装需要先安装
 curl https://mirrors.tuna.tsinghua.edu.cn/git/git-repo -o repo
@@ -211,41 +183,7 @@ repo sync -j8 --no-tags -qc    #这里大概要耗1小时</code></pre><p>文件�
 <pre><code>cd &lt;Chipcode directory&gt;
 wget https://peiyake.com/src/make_sdk2.sh
 chmod a+x make_sdk2.sh
-sh make_sdk2.sh</code></pre><p>方法2 ： 手动如下一步一步执行</p>
-<pre><code>cd &lt;Chipcode directory&gt;
-mkdir -p qsdk/dl
-cp -rf apss_proc/out/proprietary/Wifi/qsdk-ieee1905-security/* qsdk
-cp -rf apss_proc/out/proprietary/Wifi/qsdk-qca-art/* qsdk
-cp -rf apss_proc/out/proprietary/Wifi/qsdk-qca-wifi/* qsdk
-cp -rf apss_proc/out/proprietary/Wifi/qsdk-qca-wlan/* qsdk
-cp -rf wlan_proc/src/components/qca-wifi-fw-src-component-cmn-WLAN.HK.* qsdk/dl/
-cp -rf wlan_proc/pkg/wlan_proc/bin/QCA6018/qca-wifi-fw-QCA6018_v1.0-WLAN.HK.* qsdk/dl/
-tar xf cnss_proc/src/components/qca-wifi-fw-src-component-cmn-WLAN.BL.*.tgz -C qsdk/dl
-tar xf cnss_proc/src/components/qca-wifi-fw-src-component-halphy_tools-WLAN.BL.*.tgz -C qsdk/dl
-cp -rf cnss_proc/src/components/* qsdk/dl
-cp -rf cnss_proc/bin/QCA9888/hw.2/* qsdk/dl
-cp -rf cnss_proc/bin/AR900B/hw.2/* qsdk/dl
-cp -rf cnss_proc/bin/QCA9984/hw.1/* qsdk/dl
-cp -rf cnss_proc/bin/IPQ4019/hw.1/* qsdk/dl
-cp -rf qca-wifi-fw-AR988* qsdk/dl
-cp -rf qca-wifi-fw-AR9887* qsdk/dl
-cp -rf apss_proc/out/proprietary/QSDK-Base/meta-tools/ qsdk
-cp -rf apss_proc/out/proprietary/QSDK-Base/common-tools/* qsdk/
-cp -rf apss_proc/out/proprietary/QSDK-Base/qsdk-qca-nss/* qsdk/
-cp -rf apss_proc/out/proprietary/QSDK-Base/qca-lib/* qsdk/
-cp -rf apss_proc/out/proprietary/RSRC-NSS-MDUMP/* qsdk
-cp -rf apss_proc/out/proprietary/QSDK-Base/qca-mcs-apps/* qsdk
-cp -rf apss_proc/out/proprietary/QSDK-Base/qca-nss-userspace/* qsdk
-cp -rf apss_proc/out/proprietary/QSDK-Base/qca-time-services/* qsdk
-cp -rf apss_proc/out/proprietary/QSDK-Base/qca-qmi-framework/* qsdk
-cp -rf apss_proc/out/proprietary/QSDK-Base/gpio-debug/* qsdk
-cp -rf apss_proc/out/proprietary/QSDK-Base/qca-diag/* qsdk
-cp -rf apss_proc/out/proprietary/QSDK-Base/athtestcmd/* qsdk
-tar xjf apss_proc/out/proprietary/QSDK-Base/qca-IOT/qca-IOT.tar.bz2 -C qsdk
-cp -rf apss_proc/out/proprietary/QSDK-Base/qca-cnss-daemon/* qsdk
-cp apss_proc/out/proprietary/QSDK-Base/qca-nss-fw-eip-cp/BIN-EIP197.CP.* qsdk/dl/
-sed -i &#39;/QCAHKSWPL_SILICONZ/c\PKG_VERSION:=WLAN.HK.2.2-02207-QCAHKSWPL_SILICONZ-1&#39; qsdk/qca/feeds/qca-cp/net/qca-cyp/Makefile
-cp -rf apss_proc/out/proprietary/BLUETOPIA/qca-bluetopia/* qsdk</code></pre><h3 id="Enterprise-customers"><a href="#Enterprise-customers" class="headerlink" title="Enterprise customers:"></a>Enterprise customers:</h3><pre><code>cp apss_proc/out/proprietary/RBIN-NSS-ENTERPRISE/BIN-NSS.CP* qsdk/dl/</code></pre><h3 id="Customers-with-Qualcomm-HY-FI-WHC-WAPid-WiGig-or-Sigma-DUT-packages"><a href="#Customers-with-Qualcomm-HY-FI-WHC-WAPid-WiGig-or-Sigma-DUT-packages" class="headerlink" title="Customers with Qualcomm HY-FI, WHC, WAPid, WiGig, or Sigma DUT packages"></a>Customers with Qualcomm HY-FI, WHC, WAPid, WiGig, or Sigma DUT packages</h3><p>这一步，可忽略</p>
+sh make_sdk2.sh</code></pre><h3 id="Enterprise-customers"><a href="#Enterprise-customers" class="headerlink" title="Enterprise customers:"></a>Enterprise customers:</h3><pre><code>cp apss_proc/out/proprietary/RBIN-NSS-ENTERPRISE/BIN-NSS.CP* qsdk/dl/</code></pre><h3 id="Customers-with-Qualcomm-HY-FI-WHC-WAPid-WiGig-or-Sigma-DUT-packages"><a href="#Customers-with-Qualcomm-HY-FI-WHC-WAPid-WiGig-or-Sigma-DUT-packages" class="headerlink" title="Customers with Qualcomm HY-FI, WHC, WAPid, WiGig, or Sigma DUT packages"></a>Customers with Qualcomm HY-FI, WHC, WAPid, WiGig, or Sigma DUT packages</h3><p>这一步，可忽略</p>
 <h3 id="Create-the-32-bit-QSDK-build"><a href="#Create-the-32-bit-QSDK-build" class="headerlink" title="Create the 32-bit QSDK build"></a>Create the 32-bit QSDK build</h3><h4 id="install-depens-packages"><a href="#install-depens-packages" class="headerlink" title="install depens packages"></a>install depens packages</h4><pre><code>apt-get install gcc g++ binutils patch bzip2 flex make gettext pkg-config unzip zlib1g-dev libc6-dev subversion libncurses5-dev gawk sharutils curl libxml-parser-perl python-yaml ocaml-nox ocaml ocaml-findlib libssl-dev libfdt-dev
 
 apt-get install device-tree-compiler u-boot-tools</code></pre><h4 id="Install-the-different-feeds-in-the-build-framework"><a href="#Install-the-different-feeds-in-the-build-framework" class="headerlink" title="Install the different feeds in the build framework:"></a>Install the different feeds in the build framework:</h4><pre><code>cd &lt;Chipcode directory&gt;
@@ -263,24 +201,7 @@ apt-get install libfdt-dev</code></pre><h4 id="Copy-the-flash-config-files-to-co
 <pre><code>cd &lt;Chipcode directory&gt;
 wget https://peiyake.com/src/make_sdk3.sh
 chmod a+x make_sdk3.sh
-sh make_sdk3.sh</code></pre><p>方法2 ： 手动如下一步一步执行</p>
-<pre><code>cd &lt;Chipcode directory&gt;
-mkdir -p common/build/ipq
-mkdir -p apss_proc/out/meta-scripts
-cp qsdk/qca/src/u-boot-2016/tools/pack.py apss_proc/out/meta-scripts/pack_hk.py
-sed -i &#39;s#&lt;/linux_root_path&gt;#/&lt;/linux_root_path&gt;#&#39; contents.xml
-sed -i &#39;s#&lt;/windows_root_path&gt;#\\&lt;/windows_root_path&gt;#&#39; contents.xml
-cp qsdk/bin/ipq/openwrt* common/build/ipq
-cp -r apss_proc/out/proprietary/QSDK-Base/meta-tools apss_proc/out/
-cp -rf qsdk/bin/ipq/dtbs/* common/build/ipq/
-cp -rf skales/* common/build/ipq/
-cp -rf wlan_proc/build/ms/bin/FW_IMAGES/* common/build/ipq/
-cp qsdk/staging_dir/host/bin/ubinize common/build/ipq/
-cd common/build
-sed &quot;s/&#39;&#39;&#39;$/\n&#39;&#39;&#39;/g&quot; -i update_common_info.py
-sed -i &quot;s/os.chdir(ipq_dir)//&quot; update_common_info.py
-sed &#39;/debug/d;/packages/d;/&quot;ipq6018_64&quot;/d;/t32/d;/ret_prep_64image/d;/Required/d;/skales/d;/nosmmu/d;/os.system(cmd)/d;/os.chdir(ipq_dir)/d;/atfdir/d;/noac/d;/single-atf/d;/bl31.mbn/d&#39; -i update_common_info.py
-sed -i -e &#39;/Generating 32 bit atf images/,+17d&#39; update_common_info.py</code></pre><blockquote>
+sh make_sdk3.sh</code></pre><blockquote>
 <p>注意： &lt;profile-name&gt; 是根据前面 <a href="#Enterprise32-bit">Enterprise32-bit</a>的选择决定的。上面我们选择了 Enterprise 版本，那么 <code>profile-name 就应该等于E</code></p>
 <p>E –&gt; Enterprise</p>
 <p>P –&gt; Premium </p>
