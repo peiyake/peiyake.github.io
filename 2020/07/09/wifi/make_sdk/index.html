@@ -155,11 +155,17 @@
 <li>Codename:       buster</li>
 </ul>
 <h3 id="获取SDK压缩包并解压"><a href="#获取SDK压缩包并解压" class="headerlink" title="获取SDK压缩包并解压"></a>获取SDK压缩包并解压</h3><pre><code>cd ~
-tar -xf qca-networking-2020-spf-11-1_qca_oem-a68946e36ed3986d6e25a6568bec19398433e30e.tar.gz
-cd qca-networking-2020-spf-11-1_qca_oem.git</code></pre><h3 id="copying-the-files-to-the-appropriate-directories"><a href="#copying-the-files-to-the-appropriate-directories" class="headerlink" title="copying the files to the appropriate directories"></a>copying the files to the appropriate directories</h3><p>方法1 : 获取脚本执行 <a href="/src/make_sdk1.sh">make_skd1.sh</a></p>
-<pre><code>cd qca-networking-2020-spf-11-1_qca_oem.git
+xz -d r11.1_00004.0.tar.xz
+mkdir QSDK
+tar -xf r11.1_00004.0.tar.xz -C QSDK/
+cd QSDK
+git checkout .</code></pre><p><em>注意：在后面部分<strong>&lt;Chipcode directory&gt;</strong>就代表<code>~/QSDK/</code>。因为你自己可能不想使用QSDK这个名字</em></p>
+<h3 id="copying-the-files-to-the-appropriate-directories"><a href="#copying-the-files-to-the-appropriate-directories" class="headerlink" title="copying the files to the appropriate directories"></a>copying the files to the appropriate directories</h3><p>方法1 : 获取脚本执行 <a href="/src/make_sdk1.sh">make_skd1.sh</a></p>
+<pre><code>cd &lt;Chipcode directory&gt;
+wget https://peiyake.com/src/make_sdk1.sh
+chmod a+x make_sdk1.sh
 sh make_sdk1.sh</code></pre><p>方法2 ：自己手动一步一步执行</p>
-<pre><code>cd qca-networking-2020-spf-11-1_qca_oem.git
+<pre><code>cd &lt;Chipcode directory&gt;
 cp -rf ./NHSS.QSDK.11.1/apss_proc/out/proprietary/Wifi/qsdk-qca-wifi ./
 cp -rf ./NHSS.QSDK.11.1/apss_proc/out/proprietary/Wifi/qsdk-qca-wlan ./
 cp -rf ./NHSS.QSDK.11.1/apss_proc/out/proprietary/Wifi/qsdk-qca-art ./
@@ -196,85 +202,93 @@ mv repo /usr/bin/</code></pre><p>设置<code>git-repo</code>仓库的URL为清�
 <p>因为repo的运行过程中会尝试访问官方的git源更新自己，如果不能翻墙，那么接下来使用repo命令就会卡住</p>
 </blockquote>
 <hr>
-<h3 id="generating-the-QSDK-framework"><a href="#generating-the-QSDK-framework" class="headerlink" title="generating the QSDK framework"></a>generating the QSDK framework</h3><pre><code>cd ~/qca-networking-2020-spf-11-1_qca_oem.git/
+<h3 id="generating-the-QSDK-framework"><a href="#generating-the-QSDK-framework" class="headerlink" title="generating the QSDK framework"></a>generating the QSDK framework</h3><pre><code>cd &lt;Chipcode directory&gt;
 rm -rf BOOT.AK.1.0 BOOT.BF.3.* IPQ8064.ILQ.11.1 IPQ4019.ILQ.11.1 IPQ8074.ILQ.11.1 RPM.AK.1.0 TZ.AK.1.0 TZ.BF.2.7 TZ.BF.4.0.8 WIGIG.TLN*
 cp -rf */* .</code></pre><p>以下两步耗时比较久</p>
 <pre><code>repo init -u git://codeaurora.org/quic/qsdk/releases/manifest/qstak -b release -m caf_AU_LINUX_QSDK_NHSS.QSDK.11.1_TARGET_ALL.12.0.4170.001.4548.xml
 repo sync -j8 --no-tags -qc    #这里大概要耗1小时</code></pre><p>文件拷贝</p>
 <p>方法1 : 获取脚本执行 <a href="/src/make_sdk2.sh">make_skd2.sh</a></p>
-<pre><code>cd ~/qca-networking-2020-spf-11-1_qca_oem.git
+<pre><code>cd &lt;Chipcode directory&gt;
+wget https://peiyake.com/src/make_sdk2.sh
+chmod a+x make_sdk2.sh
 sh make_sdk2.sh</code></pre><p>方法2 ： 手动如下一步一步执行</p>
-<pre><code>root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# mkdir -p qsdk/dl
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf apss_proc/out/proprietary/Wifi/qsdk-ieee1905-security/* qsdk
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf apss_proc/out/proprietary/Wifi/qsdk-qca-art/* qsdk
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf apss_proc/out/proprietary/Wifi/qsdk-qca-wifi/* qsdk
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf apss_proc/out/proprietary/Wifi/qsdk-qca-wlan/* qsdk
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf wlan_proc/src/components/qca-wifi-fw-src-component-cmn-WLAN.HK.* qsdk/dl/
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf wlan_proc/pkg/wlan_proc/bin/QCA6018/qca-wifi-fw-QCA6018_v1.0-WLAN.HK.* qsdk/dl/
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# tar xf cnss_proc/src/components/qca-wifi-fw-src-component-cmn-WLAN.BL.*.tgz -C qsdk/dl
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# tar xf cnss_proc/src/components/qca-wifi-fw-src-component-halphy_tools-WLAN.BL.*.tgz -C qsdk/dl
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf cnss_proc/src/components/* qsdk/dl
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf cnss_proc/bin/QCA9888/hw.2/* qsdk/dl
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf cnss_proc/bin/AR900B/hw.2/* qsdk/dl
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf cnss_proc/bin/QCA9984/hw.1/* qsdk/dl
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf cnss_proc/bin/IPQ4019/hw.1/* qsdk/dl
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf qca-wifi-fw-AR988* qsdk/dl
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf qca-wifi-fw-AR9887* qsdk/dl
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf apss_proc/out/proprietary/QSDK-Base/meta-tools/ qsdk
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf apss_proc/out/proprietary/QSDK-Base/common-tools/* qsdk/
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf apss_proc/out/proprietary/QSDK-Base/qsdk-qca-nss/* qsdk/
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf apss_proc/out/proprietary/QSDK-Base/qca-lib/* qsdk/
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf apss_proc/out/proprietary/RSRC-NSS-MDUMP/* qsdk
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf apss_proc/out/proprietary/QSDK-Base/qca-mcs-apps/* qsdk
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf apss_proc/out/proprietary/QSDK-Base/qca-nss-userspace/* qsdk
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf apss_proc/out/proprietary/QSDK-Base/qca-time-services/* qsdk
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf apss_proc/out/proprietary/QSDK-Base/qca-qmi-framework/* qsdk
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf apss_proc/out/proprietary/QSDK-Base/gpio-debug/* qsdk
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf apss_proc/out/proprietary/QSDK-Base/qca-diag/* qsdk
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf apss_proc/out/proprietary/QSDK-Base/athtestcmd/* qsdk
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# tar xjf apss_proc/out/proprietary/QSDK-Base/qca-IOT/qca-IOT.tar.bz2 -C qsdk
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf apss_proc/out/proprietary/QSDK-Base/qca-cnss-daemon/* qsdk
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp apss_proc/out/proprietary/QSDK-Base/qca-nss-fw-eip-cp/BIN-EIP197.CP.* qsdk/dl/
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# sed -i &#39;/QCAHKSWPL_SILICONZ/c\PKG_VERSION:=WLAN.HK.2.2-02207-QCAHKSWPL_SILICONZ-1&#39; qsdk/qca/feeds/qca-cp/net/qca-cyp/Makefile
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf apss_proc/out/proprietary/BLUETOPIA/qca-bluetopia/* qsdk</code></pre><h3 id="Enterprise-customers"><a href="#Enterprise-customers" class="headerlink" title="Enterprise customers:"></a>Enterprise customers:</h3><pre><code>root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp apss_proc/out/proprietary/RBIN-NSS-ENTERPRISE/BIN-NSS.CP* qsdk/dl/</code></pre><h3 id="Customers-with-Qualcomm-HY-FI-WHC-WAPid-WiGig-or-Sigma-DUT-packages"><a href="#Customers-with-Qualcomm-HY-FI-WHC-WAPid-WiGig-or-Sigma-DUT-packages" class="headerlink" title="Customers with Qualcomm HY-FI, WHC, WAPid, WiGig, or Sigma DUT packages"></a>Customers with Qualcomm HY-FI, WHC, WAPid, WiGig, or Sigma DUT packages</h3><p>这一步，可忽略</p>
-<h3 id="Create-the-32-bit-QSDK-build"><a href="#Create-the-32-bit-QSDK-build" class="headerlink" title="Create the 32-bit QSDK build"></a>Create the 32-bit QSDK build</h3><h4 id="install-depens-packages"><a href="#install-depens-packages" class="headerlink" title="install depens packages"></a>install depens packages</h4><pre><code>root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# sudo apt-get install gcc g++ binutils patch bzip2 flex make gettext pkg-config unzip zlib1g-dev libc6-dev subversion libncurses5-dev gawk sharutils curl libxml-parser-perl python-yaml ocaml-nox ocaml ocaml-findlib libssl-dev libfdt-dev
+<pre><code>cd &lt;Chipcode directory&gt;
+mkdir -p qsdk/dl
+cp -rf apss_proc/out/proprietary/Wifi/qsdk-ieee1905-security/* qsdk
+cp -rf apss_proc/out/proprietary/Wifi/qsdk-qca-art/* qsdk
+cp -rf apss_proc/out/proprietary/Wifi/qsdk-qca-wifi/* qsdk
+cp -rf apss_proc/out/proprietary/Wifi/qsdk-qca-wlan/* qsdk
+cp -rf wlan_proc/src/components/qca-wifi-fw-src-component-cmn-WLAN.HK.* qsdk/dl/
+cp -rf wlan_proc/pkg/wlan_proc/bin/QCA6018/qca-wifi-fw-QCA6018_v1.0-WLAN.HK.* qsdk/dl/
+tar xf cnss_proc/src/components/qca-wifi-fw-src-component-cmn-WLAN.BL.*.tgz -C qsdk/dl
+tar xf cnss_proc/src/components/qca-wifi-fw-src-component-halphy_tools-WLAN.BL.*.tgz -C qsdk/dl
+cp -rf cnss_proc/src/components/* qsdk/dl
+cp -rf cnss_proc/bin/QCA9888/hw.2/* qsdk/dl
+cp -rf cnss_proc/bin/AR900B/hw.2/* qsdk/dl
+cp -rf cnss_proc/bin/QCA9984/hw.1/* qsdk/dl
+cp -rf cnss_proc/bin/IPQ4019/hw.1/* qsdk/dl
+cp -rf qca-wifi-fw-AR988* qsdk/dl
+cp -rf qca-wifi-fw-AR9887* qsdk/dl
+cp -rf apss_proc/out/proprietary/QSDK-Base/meta-tools/ qsdk
+cp -rf apss_proc/out/proprietary/QSDK-Base/common-tools/* qsdk/
+cp -rf apss_proc/out/proprietary/QSDK-Base/qsdk-qca-nss/* qsdk/
+cp -rf apss_proc/out/proprietary/QSDK-Base/qca-lib/* qsdk/
+cp -rf apss_proc/out/proprietary/RSRC-NSS-MDUMP/* qsdk
+cp -rf apss_proc/out/proprietary/QSDK-Base/qca-mcs-apps/* qsdk
+cp -rf apss_proc/out/proprietary/QSDK-Base/qca-nss-userspace/* qsdk
+cp -rf apss_proc/out/proprietary/QSDK-Base/qca-time-services/* qsdk
+cp -rf apss_proc/out/proprietary/QSDK-Base/qca-qmi-framework/* qsdk
+cp -rf apss_proc/out/proprietary/QSDK-Base/gpio-debug/* qsdk
+cp -rf apss_proc/out/proprietary/QSDK-Base/qca-diag/* qsdk
+cp -rf apss_proc/out/proprietary/QSDK-Base/athtestcmd/* qsdk
+tar xjf apss_proc/out/proprietary/QSDK-Base/qca-IOT/qca-IOT.tar.bz2 -C qsdk
+cp -rf apss_proc/out/proprietary/QSDK-Base/qca-cnss-daemon/* qsdk
+cp apss_proc/out/proprietary/QSDK-Base/qca-nss-fw-eip-cp/BIN-EIP197.CP.* qsdk/dl/
+sed -i &#39;/QCAHKSWPL_SILICONZ/c\PKG_VERSION:=WLAN.HK.2.2-02207-QCAHKSWPL_SILICONZ-1&#39; qsdk/qca/feeds/qca-cp/net/qca-cyp/Makefile
+cp -rf apss_proc/out/proprietary/BLUETOPIA/qca-bluetopia/* qsdk</code></pre><h3 id="Enterprise-customers"><a href="#Enterprise-customers" class="headerlink" title="Enterprise customers:"></a>Enterprise customers:</h3><pre><code>cp apss_proc/out/proprietary/RBIN-NSS-ENTERPRISE/BIN-NSS.CP* qsdk/dl/</code></pre><h3 id="Customers-with-Qualcomm-HY-FI-WHC-WAPid-WiGig-or-Sigma-DUT-packages"><a href="#Customers-with-Qualcomm-HY-FI-WHC-WAPid-WiGig-or-Sigma-DUT-packages" class="headerlink" title="Customers with Qualcomm HY-FI, WHC, WAPid, WiGig, or Sigma DUT packages"></a>Customers with Qualcomm HY-FI, WHC, WAPid, WiGig, or Sigma DUT packages</h3><p>这一步，可忽略</p>
+<h3 id="Create-the-32-bit-QSDK-build"><a href="#Create-the-32-bit-QSDK-build" class="headerlink" title="Create the 32-bit QSDK build"></a>Create the 32-bit QSDK build</h3><h4 id="install-depens-packages"><a href="#install-depens-packages" class="headerlink" title="install depens packages"></a>install depens packages</h4><pre><code>apt-get install gcc g++ binutils patch bzip2 flex make gettext pkg-config unzip zlib1g-dev libc6-dev subversion libncurses5-dev gawk sharutils curl libxml-parser-perl python-yaml ocaml-nox ocaml ocaml-findlib libssl-dev libfdt-dev
 
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# sudo apt-get install device-tree-compiler u-boot-tools</code></pre><h4 id="Install-the-different-feeds-in-the-build-framework"><a href="#Install-the-different-feeds-in-the-build-framework" class="headerlink" title="Install the different feeds in the build framework:"></a>Install the different feeds in the build framework:</h4><pre><code>root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cd qsdk
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git/qsdk# ./scripts/feeds update -a
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git/qsdk# ./scripts/feeds install -a -f</code></pre><h3 id="Copy-the-base-configuration-to-use-for-the-build"><a href="#Copy-the-base-configuration-to-use-for-the-build" class="headerlink" title="Copy the base configuration to use for the build"></a>Copy the base configuration to use for the build</h3><h3 id="Enterprise32-bit"><a href="#Enterprise32-bit" class="headerlink" title="Enterprise32-bit"></a>Enterprise32-bit</h3><pre><code>root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git/qsdk# cp qca/configs/qsdk/ipq_enterprise.config .config
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git/qsdk# sed -i &quot;s/TARGET_ipq_ipq806x/TARGET_ipq_ipq60xx/g&quot; .config</code></pre><h3 id="Regenerate-a-complete-configuration-file-and-start-the-build"><a href="#Regenerate-a-complete-configuration-file-and-start-the-build" class="headerlink" title="Regenerate a complete configuration file and start the build:"></a>Regenerate a complete configuration file and start the build:</h3><pre><code>root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git/qsdk# make defconfig
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git/qsdk# sed -i -e &quot;/CONFIG_PACKAGE_qca-wifi-fw-hw5-10.4-asic/d&quot; .config
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git/qsdk# make V=s    </code></pre><blockquote>
+apt-get install device-tree-compiler u-boot-tools</code></pre><h4 id="Install-the-different-feeds-in-the-build-framework"><a href="#Install-the-different-feeds-in-the-build-framework" class="headerlink" title="Install the different feeds in the build framework:"></a>Install the different feeds in the build framework:</h4><pre><code>cd &lt;Chipcode directory&gt;
+cd qsdk
+./scripts/feeds update -a
+./scripts/feeds install -a -f</code></pre><h3 id="Copy-the-base-configuration-to-use-for-the-build"><a href="#Copy-the-base-configuration-to-use-for-the-build" class="headerlink" title="Copy the base configuration to use for the build"></a>Copy the base configuration to use for the build</h3><h3 id="Enterprise32-bit"><a href="#Enterprise32-bit" class="headerlink" title="Enterprise32-bit"></a>Enterprise32-bit</h3><pre><code>cp qca/configs/qsdk/ipq_enterprise.config .config
+sed -i &quot;s/TARGET_ipq_ipq806x/TARGET_ipq_ipq60xx/g&quot; .config</code></pre><h3 id="Regenerate-a-complete-configuration-file-and-start-the-build"><a href="#Regenerate-a-complete-configuration-file-and-start-the-build" class="headerlink" title="Regenerate a complete configuration file and start the build:"></a>Regenerate a complete configuration file and start the build:</h3><pre><code>make defconfig
+sed -i -e &quot;/CONFIG_PACKAGE_qca-wifi-fw-hw5-10.4-asic/d&quot; .config
+make V=s    </code></pre><blockquote>
 <p>根据PC的配置，<code>make V=s</code> 编译过程持续1 ~ 4 小时，耐心等待 <del>~</del> 可以先干点别的事情了</p>
 </blockquote>
-<h3 id="Generate-a-complete-firmware-image"><a href="#Generate-a-complete-firmware-image" class="headerlink" title="Generate a complete firmware image"></a>Generate a complete firmware image</h3><h4 id="install-tools-required"><a href="#install-tools-required" class="headerlink" title="install tools required"></a>install tools required</h4><pre><code>root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git/qsdk# sudo apt-get install uboot-mkimage
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git/qsdk# sudo apt-get install device-tree-compiler
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git/qsdk# apt-get install libfdt-dev</code></pre><h4 id="Copy-the-flash-config-files-to-common-build-ipq"><a href="#Copy-the-flash-config-files-to-common-build-ipq" class="headerlink" title="Copy the flash config files to common/build/ipq"></a>Copy the flash config files to common/build/ipq</h4><pre><code>root@debian:~# cd ~/wifi/qca-networking-2020-spf-11-1_qca_oem.git
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# mkdir -p common/build/ipq
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# mkdir -p apss_proc/out/meta-scripts
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp qsdk/qca/src/u-boot-2016/tools/pack.py apss_proc/out/meta-scripts/pack_hk.py
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# sed -i &#39;s#&lt;/linux_root_path&gt;#/&lt;/linux_root_path&gt;#&#39; contents.xml
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# sed -i &#39;s#&lt;/windows_root_path&gt;#\\&lt;/windows_root_path&gt;#&#39; contents.xml
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp qsdk/bin/ipq/openwrt* common/build/ipq
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -r apss_proc/out/proprietary/QSDK-Base/meta-tools apss_proc/out/
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf qsdk/bin/ipq/dtbs/* common/build/ipq/
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf skales/* common/build/ipq/
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp -rf wlan_proc/build/ms/bin/FW_IMAGES/* common/build/ipq/
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cp qsdk/staging_dir/host/bin/ubinize common/build/ipq/
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git# cd common/build
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git/common/build# sed &quot;s/&#39;&#39;&#39;$/\n&#39;&#39;&#39;/g&quot; -i update_common_info.py
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git/common/build# sed -i &quot;s/os.chdir(ipq_dir)//&quot; update_common_info.py
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git/common/build# sed &#39;/debug/d;/packages/d;/&quot;ipq6018_64&quot;/d;/t32/d;/ret_prep_64image/d;/Required/d;/skales/d;/nosmmu/d;/os.system(cmd)/d;/os.chdir(ipq_dir)/d;/atfdir/d;/noac/d;/single-atf/d;/bl31.mbn/d&#39; -i update_common_info.py
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git/common/build# sed -i -e &#39;/Generating 32 bit atf images/,+17d&#39; update_common_info.py
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git/common/build# export BLD_ENV_BUILD_ID=&lt;profile-name&gt;
-root@debian:~/wifi/qca-networking-2020-spf-11-1_qca_oem.git/common/build# python update_common_info.py</code></pre><blockquote>
+<h3 id="Generate-a-complete-firmware-image"><a href="#Generate-a-complete-firmware-image" class="headerlink" title="Generate a complete firmware image"></a>Generate a complete firmware image</h3><h4 id="install-tools-required"><a href="#install-tools-required" class="headerlink" title="install tools required"></a>install tools required</h4><pre><code>apt-get install uboot-mkimage
+apt-get install device-tree-compiler
+apt-get install libfdt-dev</code></pre><h4 id="Copy-the-flash-config-files-to-common-build-ipq"><a href="#Copy-the-flash-config-files-to-common-build-ipq" class="headerlink" title="Copy the flash config files to common/build/ipq"></a>Copy the flash config files to common/build/ipq</h4><p>方法1 : 获取脚本执行 <a href="/src/make_sdk3.sh">make_skd3.sh</a></p>
+<pre><code>cd &lt;Chipcode directory&gt;
+wget https://peiyake.com/src/make_sdk3.sh
+chmod a+x make_sdk3.sh
+sh make_sdk3.sh</code></pre><p>方法2 ： 手动如下一步一步执行</p>
+<pre><code>cd &lt;Chipcode directory&gt;
+mkdir -p common/build/ipq
+mkdir -p apss_proc/out/meta-scripts
+cp qsdk/qca/src/u-boot-2016/tools/pack.py apss_proc/out/meta-scripts/pack_hk.py
+sed -i &#39;s#&lt;/linux_root_path&gt;#/&lt;/linux_root_path&gt;#&#39; contents.xml
+sed -i &#39;s#&lt;/windows_root_path&gt;#\\&lt;/windows_root_path&gt;#&#39; contents.xml
+cp qsdk/bin/ipq/openwrt* common/build/ipq
+cp -r apss_proc/out/proprietary/QSDK-Base/meta-tools apss_proc/out/
+cp -rf qsdk/bin/ipq/dtbs/* common/build/ipq/
+cp -rf skales/* common/build/ipq/
+cp -rf wlan_proc/build/ms/bin/FW_IMAGES/* common/build/ipq/
+cp qsdk/staging_dir/host/bin/ubinize common/build/ipq/
+cd common/build
+sed &quot;s/&#39;&#39;&#39;$/\n&#39;&#39;&#39;/g&quot; -i update_common_info.py
+sed -i &quot;s/os.chdir(ipq_dir)//&quot; update_common_info.py
+sed &#39;/debug/d;/packages/d;/&quot;ipq6018_64&quot;/d;/t32/d;/ret_prep_64image/d;/Required/d;/skales/d;/nosmmu/d;/os.system(cmd)/d;/os.chdir(ipq_dir)/d;/atfdir/d;/noac/d;/single-atf/d;/bl31.mbn/d&#39; -i update_common_info.py
+sed -i -e &#39;/Generating 32 bit atf images/,+17d&#39; update_common_info.py</code></pre><blockquote>
 <p>注意： &lt;profile-name&gt; 是根据前面 <a href="#Enterprise32-bit">Enterprise32-bit</a>的选择决定的。上面我们选择了 Enterprise 版本，那么 <code>profile-name 就应该等于E</code></p>
 <p>E –&gt; Enterprise</p>
 <p>P –&gt; Premium </p>
 <p>LM256 –&gt; LM256 </p>
 <p>LM512 –&gt; LM512</p>
 </blockquote>
-
+<pre><code>export BLD_ENV_BUILD_ID=&lt;profile-name&gt;
+python update_common_info.py</code></pre>
         <script>
           var dom = document.getElementsByClassName('code');
           for(var i=0,len=dom.length; i<len; i++){
