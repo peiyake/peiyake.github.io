@@ -68,9 +68,7 @@ cp -rf apss_proc/out/proprietary/QSDK-Base/qca-cnss-daemon/* qsdk
 echo "cp -rf apss_proc/out/proprietary/QSDK-Base/qca-cnss-daemon/* qsdk"
 cp apss_proc/out/proprietary/QSDK-Base/qca-nss-fw-eip-cp/BIN-EIP197.CP.* qsdk/dl/
 echo "cp apss_proc/out/proprietary/QSDK-Base/qca-nss-fw-eip-cp/BIN-EIP197.CP.* qsdk/dl/"
-sed -i '/QCAHKSWPL_SILICONZ/c\PKG_VERSION:=WLAN.HK.2.2-02207-QCAHKSWPL_SILICONZ-1' qsdk/qca/feeds/qca-cp/net/qca-cyp/Makefile
-echo "sed -i '/QCAHKSWPL_SILICONZ/c\PKG_VERSION:=WLAN.HK.2.2-02207-QCAHKSWPL_SILICONZ-1' qsdk/qca/feeds/qca-cp/net/qca-cyp/Makefile"
+sed -i '/QCAHKSWPL_SILICONZ/c\PKG_VERSION:=WLAN.HK.2.2-02237-QCAHKSWPL_SILICONZ-1' qsdk/qca/feeds/qca-cp/net/qca-cyp/Makefile
+echo "sed -i '/QCAHKSWPL_SILICONZ/c\PKG_VERSION:=WLAN.HK.2.2-02237-QCAHKSWPL_SILICONZ-1' qsdk/qca/feeds/qca-cp/net/qca-cyp/Makefile"
 cp -rf apss_proc/out/proprietary/BLUETOPIA/qca-bluetopia/* qsdk
 echo "cp -rf apss_proc/out/proprietary/BLUETOPIA/qca-bluetopia/* qsdk"
-cp apss_proc/out/proprietary/RBIN-NSS-ENTERPRISE/BIN-NSS.CP* qsdk/dl/
-echo "cp apss_proc/out/proprietary/RBIN-NSS-ENTERPRISE/BIN-NSS.CP* qsdk/dl/"
