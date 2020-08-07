@@ -8,13 +8,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="author" content="viggo" />
   <title> 
-          使用abrt监控程序coredump
+          git 制作patch，打patch
           |
           
           Mr.Piak的博客
   </title>
   <meta name="keywords" content="通信,tcp,udp,icmp,arp,ftp,dns,dhcp,snmp,ip,shell,python,kernel,vpp,dpdk,多进程,多线程,进程间通信,net-filter,skb,数据库,postgresql">
-  <meta name="description" content="在UNIX系统中，常将“主内存”(main memory) 称为核心(core)，因为在使用半导体作为内存材料之前，便是使用核心(core)。而核心映像(core image),本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  <meta name="description" content="使用git可以制作标准的patch，对于项目中代码管理非常方便。主要用到format-patch/apply,本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
   <link rel="shortcut icon" href="/images/favicon.png">
   
 <link rel="stylesheet" href="//fonts.loli.net/css?family=Arimo:400,700,400italic.css">
@@ -40,7 +40,7 @@
     <![endif]-->
   <!-- / FB Open Graph -->
   <meta property="og:type" content="article">
-  <meta property="og:url" content="http://peiyake.com/2020/06/22/system/abrt-coredump/index.html">
+  <meta property="og:url" content="http://peiyake.com/2020/08/07/shell/git_patch/index.html">
   <meta property="og:title" content="Mr.Piak的博客 - ">
   <meta property="og:description" content="本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
   <meta property="og:site_name" content="Mr.Piak的博客 - ">
@@ -128,150 +128,41 @@
   <div class="page-container" style="background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
 
     <div style="margin:35px">
-        <h1 id="使用abrt监控程序coredump" class="page_title">
-          <a href="#使用abrt监控程序coredump" class="headerlink" title="使用abrt监控程序coredump"></a>
-          使用abrt监控程序coredump
+        <h1 id="git 制作patch，打patch" class="page_title">
+          <a href="#git 制作patch，打patch" class="headerlink" title="git 制作patch，打patch"></a>
+          git 制作patch，打patch
         </h1>
         <div>
           <em class="page_meta">Written by </em>
           <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
           <em class="page_meta">,Last update
             <span class="post-time">on 
-              <time datetime="1592824242000" itemprop="datePublished"><script>var times=1592824242000;var date = new Date(times).Format('yy-MM-dd hh:mm');document.write(date);</script></time>
+              <time datetime="1596798642000" itemprop="datePublished"><script>var times=1596798642000;var date = new Date(times).Format('yy-MM-dd hh:mm');document.write(date);</script></time>
             </span>
           </em>
-          <span id="/2020/06/22/system/abrt-coredump/" class="leancloud_visitors" data-flag-title="使用abrt监控程序coredump">
+          <span id="/2020/08/07/shell/git_patch/" class="leancloud_visitors" data-flag-title="git 制作patch，打patch">
             <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
             <i class="leancloud-visitors-count">loading</i>
           </span>
         </div>
         <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
-        <blockquote>
-<p>在UNIX系统中，常将“主内存”(main memory) 称为核心(core)，因为在使用半导体作为内存材料之前，便是使用核心(core)。而核心映像(core image) 就是 “进程”(process)执行当时的内存内容。当进程发生错误或收到“信号”(signal) 而终止执行时，系统会将核心映像写入一个文件，以作为调试之用，这就是所谓的核心转储(core dump)。—-来自 <a href="https://baike.baidu.com/item/%E6%A0%B8%E5%BF%83%E8%BD%AC%E5%82%A8/16772089?fromtitle=core%20dump&fromid=2971395&fr=aladdin">百度百科-核心转储</a></p>
-</blockquote>
-<h2 id="程序产生coredump的原因"><a href="#程序产生coredump的原因" class="headerlink" title="程序产生coredump的原因"></a>程序产生coredump的原因</h2><ol>
-<li><p>访问无效指针</p>
+        <p>使用git可以制作标准的patch，对于项目中代码管理非常方便。</p>
+<h3 id="制作patch"><a href="#制作patch" class="headerlink" title="制作patch"></a>制作patch</h3><p><code>git format-patch</code> 会把每次提交都单独生成一个patch文件。</p>
 <ul>
-<li>访问NULL指针</li>
-<li>直接使用没有初始化的指针</li>
-<li>对一个已经free的指针重复free（double free）</li>
+<li><code>git format-patch</code> 默认是从<strong>最新</strong>提交ID为起点</li>
+<li><code>git format-patch --root</code> 默认是从*<em>首次</em>8提交ID为起点</li>
 </ul>
-</li>
-<li><p>指针越界</p>
-<ul>
-<li>申请内存长度为32，却memcpy了长度大于32的内容</li>
-</ul>
-</li>
-<li><p>其它原因</p>
-</li>
-</ol>
-<h2 id="使用abrt监控coredump"><a href="#使用abrt监控coredump" class="headerlink" title="使用abrt监控coredump"></a>使用abrt监控coredump</h2><ol>
-<li><p>安装abrt服务</p>
-<p>yum install abrt.x86_64</p>
-</li>
-<li><p>安装abrt core-dump监控插件</p>
-<p>yum install abrt-addon-ccpp.x86_64</p>
-</li>
-<li><p>启动abrt服务</p>
-<p> systemctl start abrtd</p>
-</li>
-</ol>
-<h2 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h2><ol>
-<li><p>默认情况下，abrt-addon-ccpp只监控来自rpm包的应用程序产生的core-dump，如果你要使他能监控自己编写的应用程序，那么需要修改配置文件。修改方法：编辑<code>/etc/abrt/abrt-action-save-package-data.conf</code>，把<code>ProcessUnpackaged = no</code> 改成 <code>ProcessUnpackaged = yes</code>.</p>
-</li>
-<li><p>另外，编辑 <code>/etc/abrt/abrt-action-save-package-data.conf</code> 把 <code>OpenGPGCheck = yes</code> to <code>OpenGPGCheck = no</code>，使能 non-GPG 签名的程序</p>
-</li>
-</ol>
-<h2 id="core-dump举例"><a href="#core-dump举例" class="headerlink" title="core-dump举例"></a>core-dump举例</h2><ol>
-<li>编写如下应用程序</li>
-</ol>
-<pre><code class="c">#include &lt;stdio.h&gt;
-#include &lt;string.h&gt;
-int main(int argc,const char **argv)
-{
-        char *p = NULL;
-        memcpy(p,&quot;Hello,world&quot;,sizeof(&quot;Hello world&quot;));
-        printf(&quot;p = %s\n&quot;,p);
-        return 0;
-}</code></pre>
-<ol start="2">
-<li>编译、执行、查看coredump</li>
-</ol>
-<pre><code class="shell">[root@a ~]# gcc dump.c -o dump      # 编译生成 可执行文件 dump
-[root@a ~]# ./dump                  # 运行dump
-Segmentation fault (core dumped)
-[root@a ~]# abrt-cli list           # 使用abrt-cli 查看abrt捕捉到的core-dump信息
-id 3da5246b89c3112fa7eccd21d1ae363a8be44a09
-reason:         dump killed by SIGSEGV
-time:           Mon May 25 10:15:48 2020
-cmdline:        ./dump
-uid:            0 (root)
-Directory:      /var/spool/abrt/ccpp-2020-05-25-10:15:48-28684
-
-[root@a ~]# gdb ./dump /var/spool/abrt/ccpp-2020-05-25-10:15:48-28684/coredump  # 使用gdb查看core文件
-GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-110.el7
-Copyright (C) 2013 Free Software Foundation, Inc.
-License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
-This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.  Type &quot;show copying&quot;
-and &quot;show warranty&quot; for details.
-This GDB was configured as &quot;x86_64-redhat-linux-gnu&quot;.
-For bug reporting instructions, please see:
-&lt;http://www.gnu.org/software/gdb/bugs/&gt;...
-Reading symbols from /root/dump...done.
-
-warning: exec file is newer than core file.
-[New LWP 28684]
-Core was generated by `./dump&#39;.
-Program terminated with signal 11, Segmentation fault.
-#0  0x00007f7748635667 in __memcpy_ssse3 () from /lib64/libc.so.6
-Missing separate debuginfos, use: debuginfo-install glibc-2.17-222.el7.x86_64
-(gdb) bt
-#0  0x00007f7748635667 in __memcpy_ssse3 () from /lib64/libc.so.6
-#1  0x00000000004005aa in main (argc=1, argv=0x7fff014aa9f8) at dump.c:6
-(gdb) quitT ~]# gdb ./dump /var/spool/abrt/ccpp-2020-05-25-10:15:48-28684/coredump
-GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-110.el7
-Copyright (C) 2013 Free Software Foundation, Inc.
-License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
-This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.  Type &quot;show copying&quot;
-and &quot;show warranty&quot; for details.
-This GDB was configured as &quot;x86_64-redhat-linux-gnu&quot;.
-For bug reporting instructions, please see:
-&lt;http://www.gnu.org/software/gdb/bugs/&gt;...
-Reading symbols from /root/dump...done.
-
-warning: exec file is newer than core file.
-[New LWP 28684]
-Core was generated by `./dump&#39;.
-Program terminated with signal 11, Segmentation fault.
-#0  0x00007f7748635667 in __memcpy_ssse3 () from /lib64/libc.so.6
-Missing separate debuginfos, use: debuginfo-install glibc-2.17-222.el7.x86_64
-(gdb) bt
-#0  0x00007f7748635667 in __memcpy_ssse3 () from /lib64/libc.so.6
-#1  0x00000000004005aa in main (argc=1, argv=0x7fff014aa9f8) at dump.c:6
-(gdb) quit ~]# gdb ./dump /var/spool/abrt/ccpp-2020-05-25-10:15:48-28684/coredump
-GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-110.el7
-Copyright (C) 2013 Free Software Foundation, Inc.
-License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
-This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.  Type &quot;show copying&quot;
-and &quot;show warranty&quot; for details.
-This GDB was configured as &quot;x86_64-redhat-linux-gnu&quot;.
-For bug reporting instructions, please see:
-&lt;http://www.gnu.org/software/gdb/bugs/&gt;...
-Reading symbols from /root/dump...done.
-
-warning: exec file is newer than core file.
-[New LWP 28684]
-Core was generated by `./dump&#39;.
-Program terminated with signal 11, Segmentation fault.
-#0  0x00007f7748635667 in __memcpy_ssse3 () from /lib64/libc.so.6
-Missing separate debuginfos, use: debuginfo-install glibc-2.17-222.el7.x86_64
-(gdb) bt
-#0  0x00007f7748635667 in __memcpy_ssse3 () from /lib64/libc.so.6
-#1  0x00000000004005aa in main (argc=1, argv=0x7fff014aa9f8) at dump.c:6    # 精准定位代码错误
-(gdb) quit</code></pre>
+<h4 id="举例"><a href="#举例" class="headerlink" title="举例"></a>举例</h4><p>最近一次提交，制作patch</p>
+<pre><code>git format-patch HEAD^</code></pre><p>某两次提交之间，制作patch</p>
+<pre><code>git format-patch &lt;commit id 1&gt; &lt;commit id 2&gt;</code></pre><p>单独某次提交，制作patch</p>
+<pre><code>git format-patch -1 &lt;commit id&gt;</code></pre><p>指定某次提交为参照点，制作该参照点之前的N次提交的patch</p>
+<pre><code>git format-patch -N &lt;commit id&gt;</code></pre><p>制作从首次提交到 某个指定提交点之间的所有patch</p>
+<pre><code>git format-patch --root &lt;commit id&gt;</code></pre><p>制作所有提交的patch</p>
+<pre><code>git format-patch --root HEAD</code></pre><h3 id="打patch"><a href="#打patch" class="headerlink" title="打patch"></a>打patch</h3><p>检查patch是否可用</p>
+<pre><code>git apply --check &lt;patch file&gt;</code></pre><p>打单个patch</p>
+<pre><code>git apply  &lt;patch file&gt;</code></pre><p>打多个patch</p>
+<pre><code>git apply  &lt;patch dir&gt;/*.patch </code></pre><p>打入patch后，自动根据patch的commit信息自动提交</p>
+<pre><code>git am  *.patch</code></pre><h4 id="打patch有冲突怎么解决？"><a href="#打patch有冲突怎么解决？" class="headerlink" title="打patch有冲突怎么解决？"></a>打patch有冲突怎么解决？</h4><p>网上有的同志说，用 <code>git am --continue、git am --skip、git am --abort</code>。但是我觉得，如果存在冲突 最好就不要再继续打patch了，而是仔细看看哪里存在冲突，然后使用可视化的对比编辑器，来解决冲突问题。因为使用以上命令，一边打patch一边解决冲突，如果存在大量冲突，一个一个看的话很容易出错的。</p>
 
         <script>
           var dom = document.getElementsByClassName('code');
