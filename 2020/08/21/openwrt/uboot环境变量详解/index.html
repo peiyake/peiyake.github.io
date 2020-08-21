@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="viggo" />
+  <title> 
+          u-boot环境变量详解
+          |
+          
+          Mr.Piak的博客
+  </title>
+  <meta name="keywords" content="通信,tcp,udp,icmp,arp,ftp,dns,dhcp,snmp,ip,shell,python,kernel,vpp,dpdk,多进程,多线程,进程间通信,net-filter,skb,数据库,postgresql">
+  <meta name="description" content="本文讲解了解uboot中环境变量的值首先采用flash ENV分区中的存储的值，如果分区不存在或者读取失败，那么会采用全局数组default_environment中的值作为默认环境变量,本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  <link rel="shortcut icon" href="/images/favicon.png">
+  
+<link rel="stylesheet" href="//fonts.loli.net/css?family=Arimo:400,700,400italic.css">
+<link rel="stylesheet" href="/css/fonts/linecons/css/linecons.min.css">
+<link rel="stylesheet" href="/css/fonts/fontawesome/css/all.min.css">
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+<link rel="stylesheet" href="/css/xenon-core.min.css">
+<link rel="stylesheet" href="/css/xenon-components.min.css">
+<link rel="stylesheet" href="/css/xenon-skins.min.css">
+<link rel="stylesheet" href="/css/nav.min.css">
+
+  
+<script src="/js/jquery-1.11.1.min.js"></script>
+
+  <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!--[if lt IE 9]>
+        
+<script src="/js/html5shiv.min.js"></script>
+
+        
+<script src="/js/respond.min.js"></script>
+
+    <![endif]-->
+  <!-- / FB Open Graph -->
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="http://peiyake.com/2020/08/21/openwrt/uboot%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E8%AF%A6%E8%A7%A3/index.html">
+  <meta property="og:title" content="Mr.Piak的博客 - ">
+  <meta property="og:description" content="本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  <meta property="og:site_name" content="Mr.Piak的博客 - ">
+  
+  <meta property="og:image" content="/images/webstack_banner_cn.png">
+  
+  <!-- / Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Mr.Piak的博客 - ">
+  <meta name="twitter:description" content="本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  
+  <meta name="twitter:image" content="/images/webstack_banner_cn.png">
+  
+  <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  <script src="/js/prettify.js"></script>
+  <link rel="stylesheet" href="/css/tomorrow_night.css">
+  <link rel="stylesheet" href="/css/tomorrow_night.min.css">
+  <link rel="stylesheet" href="/css/my.css">
+  <script>
+    Date.prototype.Format = function (fmt) {
+      var o = {
+              "M+": this.getMonth() + 1, // 月份
+              "d+": this.getDate(), // 日
+              "h+": this.getHours(), // 小时
+              "m+": this.getMinutes(), // 分
+              "s+": this.getSeconds(), // 秒
+              "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+              "S": this.getMilliseconds() // 毫秒
+      };
+      if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+      for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+      return fmt;
+    }
+  </script>
+<meta name="generator" content="Hexo 4.2.1"></head>
+</head>
+
+<body class="page-body boxed-container">
+  <nav class="navbar horizontal-menu navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="navbar-brand">
+        <a href="/index.html" class="logo">
+          <img src="/images/logo@2x.png" width="180px" alt="" class="hidden-xs">
+        </a>
+      </div>
+      <div class="navbar-mobile-clear"></div>
+      
+      <a href="https://github.com/peiyake/peiyake.github.io.git" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+      
+    </div>
+  </nav>
+  <!--
+  <aside class="post-widget">
+    <nav>
+      <h4>TOC</h4>
+      <ol>
+        <li>
+          <a>
+            <span>1.</span> 
+            <span>发布订阅模式</span>
+          </a>
+        </li>
+        <li>
+          <a>
+            <span>2.</span> 
+            <span>数据流</span>
+          </a>
+        </li>
+        <li>
+            <a href="#Vue中的解决方案">
+              <span>3.</span> 
+              <span>Vue中的解决方案</span>
+            </a>
+        </li>
+      </ol>
+    </nav>
+  </aside>
+  -->   
+  <div class="page-container" style="background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+
+    <div style="margin:35px">
+        <h1 id="u-boot环境变量详解" class="page_title">
+          <a href="#u-boot环境变量详解" class="headerlink" title="u-boot环境变量详解"></a>
+          u-boot环境变量详解
+        </h1>
+        <div>
+          <em class="page_meta">Written by </em>
+          <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+          <em class="page_meta">,Last update
+            <span class="post-time">on 
+              <time datetime="1597992240000" itemprop="datePublished"><script>var times=1597992240000;var date = new Date(times).Format('yy-MM-dd hh:mm');document.write(date);</script></time>
+            </span>
+          </em>
+          <span id="/2020/08/21/openwrt/uboot%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E8%AF%A6%E8%A7%A3/" class="leancloud_visitors" data-flag-title="u-boot环境变量详解">
+            <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+            <i class="leancloud-visitors-count">loading</i>
+          </span>
+        </div>
+        <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+        <p>uboot中使用<code>printenv</code>命令查看环境变量（env），实际上是查看的内存中的值，这个内存使用 数据结构<code>env_t</code>来描述。只有当你执行<code>saveenv</code><br>时，才会把内存中的env写入到flash的env分区中（如果你划分了ENV分区的话）。<code>saveenv</code>这个动作需要你代码（或手动）显示执行，才能把内存中的环境变量保存到flash分区中。</p>
+<p>本文讲解了解uboot中环境变量的值首先采用flash ENV分区中的存储的值，如果分区不存在或者读取失败，那么会采用全局数组default_environment中的值作为默认环境变量。</p>
+<h2 id="平台信息"><a href="#平台信息" class="headerlink" title="平台信息"></a>平台信息</h2><ul>
+<li>u-boot-2016</li>
+<li>QCA-openwrt SDK</li>
+<li>ARMv7</li>
+<li>ipq6018</li>
+<li>16MBnor + 128MBnand</li>
+</ul>
+<h2 id="分区信息"><a href="#分区信息" class="headerlink" title="分区信息"></a>分区信息</h2><pre><code>[    1.031260] 0x000000000000-0x0000000c0000 : &quot;0:SBL1&quot;
+[    1.037285] 0x0000000c0000-0x0000000d0000 : &quot;0:MIBIB&quot;
+[    1.042423] 0x0000000d0000-0x0000000f0000 : &quot;0:BOOTCONFIG&quot;
+[    1.047402] 0x0000000f0000-0x000000110000 : &quot;0:BOOTCONFIG1&quot;
+[    1.052780] 0x000000110000-0x0000002b0000 : &quot;0:QSEE&quot;
+[    1.058250] 0x0000002b0000-0x000000450000 : &quot;0:QSEE_1&quot;
+[    1.063360] 0x000000450000-0x000000460000 : &quot;0:DEVCFG&quot;
+[    1.068339] 0x000000460000-0x000000470000 : &quot;0:DEVCFG_1&quot;
+[    1.073463] 0x000000470000-0x0000004b0000 : &quot;0:RPM&quot;
+[    1.078972] 0x0000004b0000-0x0000004f0000 : &quot;0:RPM_1&quot;
+[    1.083561] 0x0000004f0000-0x000000500000 : &quot;0:CDT&quot;
+[    1.088800] 0x000000500000-0x000000510000 : &quot;0:CDT_1&quot;
+[    1.093474] 0x000000510000-0x000000520000 : &quot;0:APPSBLENV&quot;
+[    1.098743] 0x000000520000-0x0000005c0000 : &quot;0:APPSBL&quot;
+[    1.104027] 0x0000005c0000-0x000000660000 : &quot;0:APPSBL_1&quot;
+[    1.109080] 0x000000660000-0x0000006a0000 : &quot;0:ART&quot;
+</code></pre><p>本文环境平台flash分区中<code>0:APPSBLENV</code>分区用来存储环境变量。<code>APPSBL</code>为uboot分区。该分区是划分在nor flash上的。</p>
+<h2 id="代码解读"><a href="#代码解读" class="headerlink" title="代码解读"></a>代码解读</h2><h3 id="common-board-f-c"><a href="#common-board-f-c" class="headerlink" title="common/board_f.c"></a>common/board_f.c</h3><pre><code>static init_fnc_t init_sequence_f[] = {
+    ...
+    env_init,        /* initialize environment */
+    ...
+}</code></pre><p>board/qca/arm/common/env.c</p>
+<pre><code>/*
+ * Function description: Board specific initialization.
+ * I/P : None
+ * O/P : integer, 0 - no error.
+ */
+int env_init(void)
+{
+    int ret = 0;
+    qca_smem_flash_info_t sfi;
+    /*获取启动flash的类型*/
+    smem_get_boot_flash(&amp;sfi.flash_type,
+                &amp;sfi.flash_index,
+                &amp;sfi.flash_chip_select,
+                &amp;sfi.flash_block_size,
+                &amp;sfi.flash_density);
+
+    if (sfi.flash_type == SMEM_BOOT_SPI_FLASH) {
+#ifdef CONFIG_ENV_IS_IN_SPI_FLASH
+    /*我们这里是SPI FLASH启动，所以走这个流程*/
+        ret = sf_env_init();
+#endif
+#ifdef CONFIG_QCA_MMC
+    } else if (sfi.flash_type == SMEM_BOOT_MMC_FLASH) {
+        ret = mmc_env_init();
+#endif
+    } else {
+        ret = nand_env_init();
+    }
+
+    return ret;
+}</code></pre><p>common/env_sf.c</p>
+<pre><code>int sf_env_init(void)
+{
+    /* SPI flash isn&#39;t usable before relocation */
+    gd-&gt;env_addr = (ulong)&amp;default_environment[0];  /*env_addr 指向默认环境变量数组，但是在本文环境中，这个值并没有用到*/
+    gd-&gt;env_valid = 1;          /*这里赋值1， 会影响后面的流程*/
+
+    return 0;
+}</code></pre><h3 id="common-board-r-c"><a href="#common-board-r-c" class="headerlink" title="common/board_r.c"></a>common/board_r.c</h3><pre><code>init_fnc_t init_sequence_r[] = {
+    ...
+    initr_env,
+    ...
+}</code></pre><p>common/board_r.c</p>
+<pre><code>static int initr_env(void)
+{
+    /* initialize environment */
+    if (should_load_env())  /*这里会返回1*/
+        env_relocate(); /*该分支会被执行*/
+    else
+        set_default_env(NULL);
+#ifdef CONFIG_OF_CONTROL
+    setenv_addr(&quot;fdtcontroladdr&quot;, gd-&gt;fdt_blob);
+#endif
+
+    /* Initialize from environment */
+    load_addr = getenv_ulong(&quot;loadaddr&quot;, 16, load_addr);
+#if defined(CONFIG_SYS_EXTBDINFO)
+#if defined(CONFIG_405GP) || defined(CONFIG_405EP)
+#if defined(CONFIG_I2CFAST)
+    /*
+     * set bi_iic_fast for linux taking environment variable
+     * &quot;i2cfast&quot; into account
+     */
+    {
+        char *s = getenv(&quot;i2cfast&quot;);
+
+        if (s &amp;&amp; ((*s == &#39;y&#39;) || (*s == &#39;Y&#39;))) {
+            gd-&gt;bd-&gt;bi_iic_fast[0] = 1;
+            gd-&gt;bd-&gt;bi_iic_fast[1] = 1;
+        }
+    }
+#endif /* CONFIG_I2CFAST */
+#endif /* CONFIG_405GP, CONFIG_405EP */
+#endif /* CONFIG_SYS_EXTBDINFO */
+    return 0;
+}</code></pre><pre><code>/*
+ * Tell if it&#39;s OK to load the environment early in boot.
+ *
+ * If CONFIG_OF_CONFIG is defined, we&#39;ll check with the FDT to see
+ * if this is OK (defaulting to saying it&#39;s OK).
+ *
+ * NOTE: Loading the environment early can be a bad idea if security is
+ *       important, since no verification is done on the environment.
+ *
+ * @return 0 if environment should not be loaded, !=0 if it is ok to load
+ */
+static int should_load_env(void)
+{
+#ifdef CONFIG_OF_CONTROL
+#pragma message(&quot;CONFIG_OF_CONTROL marco is define&quot;)
+    /*这里是在设备树中查找是否定义了 &#39;load-environment&#39; 这个节点，如果没有定义，该函数还是会返回第二个参数 1
+    因为本文环境设备树中没有定义该节点，所以该函数会返回1 
+        另外，根据上面对本函数的说明：‘过早的加载环境变量不是一个好的主意’
+
+        所以在initr_env中，if分支的 env_relocate();会被执行
+    */
+    return fdtdec_get_config_int(gd-&gt;fdt_blob, &quot;load-environment&quot;, 1);
+#elif defined CONFIG_DELAY_ENVIRONMENT
+#pragma message(&quot;CONFIG_DELAY_ENVIRONMENT marco is define&quot;)
+    return 0;
+#else
+    return 1;
+#endif
+}</code></pre><p>common/env_common.c</p>
+<pre><code>void env_relocate(void)
+{
+#if defined(CONFIG_NEEDS_MANUAL_RELOC)
+    env_reloc();    /*这里描述了另一个给uboo添加cmd的方法，这里添加的是 env命令的选项部分。前提是上面那个宏开关要打开*/
+    env_htab.change_ok += gd-&gt;reloc_off;
+#endif
+    if (gd-&gt;env_valid == 0) {   /*因为之前 已经赋值为1 */
+#if defined(CONFIG_ENV_IS_NOWHERE) || defined(CONFIG_SPL_BUILD)
+        /* Environment not changable */
+        set_default_env(NULL);
+#else
+        bootstage_error(BOOTSTAGE_ID_NET_CHECKSUM);
+        set_default_env(&quot;!bad CRC&quot;);
+#endif
+    } else {    /*走这个流程*/
+        env_relocate_spec();    /*该函数是硬件相关函数，所以不同的平台的实现可能不一样*/
+    }
+}</code></pre><p>board/qca/arm/common/env.c</p>
+<pre><code>void env_relocate_spec(void)
+{
+  printf(&quot;qca/arm/common/env(env_relocate_spec) is called\n&quot;);
+    qca_smem_flash_info_t sfi;
+
+    /*还是先判断 启动flash的类型*/
+    smem_get_boot_flash(&amp;sfi.flash_type,
+                &amp;sfi.flash_index,
+                &amp;sfi.flash_chip_select,
+                &amp;sfi.flash_block_size,
+                &amp;sfi.flash_density);
+
+    if (sfi.flash_type == SMEM_BOOT_NO_FLASH) {
+        set_default_env(&quot;!flashless boot&quot;);
+#ifdef CONFIG_ENV_IS_IN_SPI_FLASH
+    } else if (sfi.flash_type == SMEM_BOOT_SPI_FLASH) {
+        /*这里会走这个spi 接口nor flash的分支*/
+        sf_env_relocate_spec();
+#endif
+#ifdef CONFIG_QCA_MMC
+    } else if (sfi.flash_type == SMEM_BOOT_MMC_FLASH) {
+                mmc_env_relocate_spec();
+#endif
+    } else {
+        nand_env_relocate_spec();
+    }
+
+};</code></pre><p>common/env_sf.c</p>
+<pre><code>/*这两个是我添加的，用来在编译时查看宏值的*/
+#define __PRINT_MACRO(x)  #x
+#define PRINT_MACRO(x)  #x&quot;=&quot;__PRINT_MACRO(x)
+void sf_env_relocate_spec(void)
+{
+    int ret;
+    char *buf = NULL;
+
+    /*申请一段内存，内存大小根据这个宏来确定，其实就是0:APPSBLENV分区的大小*/
+    buf = (char *)memalign(ARCH_DMA_MINALIGN, CONFIG_ENV_SIZE);
+
+    /*spi flash读写固定格式，先probe一下，才能read、erase、write*/
+    env_flash = spi_flash_probe(CONFIG_SF_DEFAULT_BUS, CONFIG_SF_DEFAULT_CS,
+            CONFIG_SF_DEFAULT_SPEED, CONFIG_SF_DEFAULT_MODE);
+    if (!env_flash) {
+        /*如果probe失败，就采用默认的env*/
+        set_default_env(&quot;!spi_flash_probe() failed&quot;);
+        if (buf)
+            free(buf);
+        return;
+    }
+#pragma message(PRINT_MACRO(CONFIG_ENV_OFFSET))
+#pragma message(PRINT_MACRO(CONFIG_ENV_RANGE))
+  printf(&quot;CONFIG_ENV_OFFSET=%lld\n&quot;,CONFIG_ENV_OFFSET);
+  printf(&quot;CONFIG_ENV_RANGE=%lld\n&quot;,CONFIG_ENV_RANGE);
+
+    /*读取0:APPSBLENV 分区的内容*/
+    ret = spi_flash_read(env_flash,
+        CONFIG_ENV_OFFSET, CONFIG_ENV_RANGE, buf);
+    if (ret) {
+        set_default_env(&quot;!spi_flash_read() failed&quot;);
+        goto out;
+    }
+  printf(&quot;sf_env_relocate_spec start import env.\n&quot;);
+  print_buffer((ulong)buf, buf, 1, 1024, 16);
+    /*将分区的内容，导入到我们使用 printenv 查看的内存中，其实是一个hash表*/
+    ret = env_import(buf, 1);
+    if (ret)
+        gd-&gt;env_valid = 1;
+out:
+    if (buf)
+        free(buf);
+    env_flash = NULL;
+}</code></pre><p>common/env_common.c</p>
+<pre><code>/*
+ * Check if CRC is valid and (if yes) import the environment.
+ * Note that &quot;buf&quot; may or may not be aligned.
+ */
+int env_import(const char *buf, int check)
+{
+    env_t *ep = (env_t *)buf;
+    int ret;
+
+    /*crc校验*/
+    if (check) {
+        uint32_t crc;
+
+        memcpy(&amp;crc, &amp;ep-&gt;crc, sizeof(crc));
+
+        /*校验失败，使用默认数组中的环境变量*/
+        if (crc32(0, ep-&gt;data, ENV_SIZE) != crc) {
+            set_default_env(&quot;!bad CRC&quot;);
+            return 0;
+        }
+    }
+
+    /* Decrypt the env if desired. */
+    ret = env_aes_cbc_crypt(ep, 0);
+    if (ret) {
+        error(&quot;Failed to decrypt env!\n&quot;);
+        set_default_env(&quot;!import failed&quot;);
+        return ret;
+    }
+
+    /*把从0:APPSBLENV分区读取的内容，导入到hash数组中，这些数据一直是在内存中的*/
+    if (himport_r(&amp;env_htab, (char *)ep-&gt;data, ENV_SIZE, &#39;\0&#39;, 0, 0,
+            0, NULL)) {
+        gd-&gt;flags |= GD_FLG_ENV_READY;
+        return 1;
+    }
+
+    error(&quot;Cannot import environment: errno = %d\n&quot;, errno);
+
+    set_default_env(&quot;!import failed&quot;);
+
+    return 0;
+}</code></pre><h3 id="0-APPSBLENV-分区信息获取过程"><a href="#0-APPSBLENV-分区信息获取过程" class="headerlink" title="0:APPSBLENV 分区信息获取过程"></a>0:APPSBLENV 分区信息获取过程</h3><p>board/qca/arm/common/board_init.c</p>
+<pre><code>int board_init(void)
+{
+    int ret;
+    uint32_t start_blocks;
+    uint32_t size_blocks;
+
+    ....
+
+    qgic_init();
+
+    qca_smem_flash_info_t *sfi = &amp;qca_smem_flash_info;
+
+    gd-&gt;bd-&gt;bi_boot_params = QCA_BOOT_PARAMS_ADDR;
+    gd-&gt;bd-&gt;bi_arch_number = smem_get_board_platform_type();
+
+    ret = smem_get_boot_flash(&amp;sfi-&gt;flash_type,
+                  &amp;sfi-&gt;flash_index,
+                  &amp;sfi-&gt;flash_chip_select,
+                  &amp;sfi-&gt;flash_block_size,
+                  &amp;sfi-&gt;flash_density);
+
+    ....
+
+    /*这里根据函数 smem_getpart 来在nor flash中查找 0:APPSBLENV 分区的起始地址 和 分区大小*/
+    if ((sfi-&gt;flash_type != SMEM_BOOT_MMC_FLASH) &amp;&amp; (sfi-&gt;flash_type != SMEM_BOOT_NO_FLASH))  {
+        ret = smem_getpart(&quot;0:APPSBLENV&quot;, &amp;start_blocks, &amp;size_blocks);
+        if (ret &lt; 0) {
+            printf(&quot;cdp: get environment part failed\n&quot;);
+            return ret;
+        }
+
+        board_env_offset = ((loff_t) sfi-&gt;flash_block_size) * start_blocks;
+        board_env_size = ((loff_t) sfi-&gt;flash_block_size) * size_blocks;
+
+    printf(&quot;board_env_offset=%lld\n&quot;,board_env_offset);
+    printf(&quot;board_env_size=%lld\n&quot;,board_env_size);
+    }
+
+    /*根据flash类型不同，初始化全局变量 board_env_range*/
+    switch (sfi-&gt;flash_type) {
+    case SMEM_BOOT_NAND_FLASH:
+    case SMEM_BOOT_QSPI_NAND_FLASH:
+        board_env_range = CONFIG_ENV_SIZE_MAX;
+        BUG_ON(board_env_size &lt; CONFIG_ENV_SIZE_MAX);
+        break;
+    case SMEM_BOOT_SPI_FLASH:
+        board_env_range = board_env_size;
+        BUG_ON(board_env_size &gt; CONFIG_ENV_SIZE_MAX);
+        break;
+#ifdef CONFIG_QCA_MMC
+    case SMEM_BOOT_MMC_FLASH:
+    case SMEM_BOOT_NO_FLASH:
+        board_env_range = CONFIG_ENV_SIZE_MAX;
+        break;
+#endif
+    default:
+        printf(&quot;BUG: unsupported flash type : %d\n&quot;, sfi-&gt;flash_type);
+        BUG();
+    }
+
+    /*根据不同flash类型，初始化saveenv 这个函数指针*/
+    if (sfi-&gt;flash_type == SMEM_BOOT_SPI_FLASH) {
+#ifdef CONFIG_ENV_IS_IN_SPI_FLASH
+        saveenv = sf_saveenv;
+        env_name_spec = sf_env_name_spec;
+#endif
+#ifdef CONFIG_QCA_MMC
+    } else if (sfi-&gt;flash_type == SMEM_BOOT_MMC_FLASH) {
+        saveenv = mmc_saveenv;
+        env_ptr = mmc_env_ptr;
+        env_name_spec = mmc_env_name_spec;
+#endif
+    } else {
+        saveenv = nand_saveenv;
+        env_ptr = nand_env_ptr;
+        env_name_spec = nand_env_name_spec;
+    }
+#endif
+    ret = ipq_board_usb_init();
+    if (ret &lt; 0) {
+        printf(&quot;WARN: ipq_board_usb_init failed\n&quot;);
+    }
+
+    aquantia_phy_reset_init();
+    disable_audio_clks();
+    ipq_uboot_fdt_fixup();
+    /*
+     * Needed by ipq806x to avoid TX FIFO curruption during
+     * serial init after relocation
+     */
+    uart_wait_tx_empty();
+    return 0;
+}</code></pre>
+        <script>
+          var dom = document.getElementsByClassName('code');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.width = '750px';
+          }
+          var dom = document.getElementsByTagName('h1');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].className  += 'page_title';
+          }
+          var dom = document.getElementsByTagName('p');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.color = '#303333';
+          }
+          var dom = document.getElementsByTagName('a');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.color = '#2d96bd';
+          }
+          var dom = document.getElementsByTagName('img');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].className += ' img-responsive';
+          }
+          var dom = document.getElementsByTagName('blockquote');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.borderLeft = '5px solid #ddc06b';
+            dom[i].style.backgroundColor = 'rgba(216, 221, 206, 0.49';
+            dom[i].style.fontFamily = '微软雅黑,华文细黑,STHeiti,MingLiu';
+            dom[i].style.fontSize = '13px';
+          }
+        </script>
+
+        <br>
+        <br>
+        <hr>
+        <script>
+          window.onload = (function(){
+              $('pre').addClass('prettyprint linenums').attr('style', 'overflow:auto;');
+              prettyPrint(); 
+          });
+        </script>
+        <p>评论区：</p>
+
+
+        
+        <section id="comments" class="comments" style="margin-left:0px !important">
+          <style>
+            .comments{margin:30px;padding:10px;background:#fff}
+            @media screen and (max-width:800px){.comments{margin:auto;padding:10px;background:#fff}}
+          </style>
+          <div class="valine_comment"></div>
+<!--载入js，在</body>之前插入即可-->
+<!--Leancloud 操作库:-->
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<!--Valine 的核心代码库-->
+<script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+<script>
+  new Valine({
+      el: '.valine_comment',
+      app_id: 'KmguPzUzYoAUXeMp0zqvxPPj-gzGzoHsz',
+      app_key: 'bq515N7CFPO5fHr3XlEXp5EJ',
+      placeholder: '请在这里留言。。。',
+      notify: 'true',
+      verify: 'true',
+      visitor: 'true',
+    });
+</script>
+        </section>
+        
+    </div>
+  </div>
+    
+  <footer class="main-footer sticky footer-type-1">
+  <div class="footer-inner">
+    <!-- Add your copyright text here -->
+    <p class="footer-text">
+      
+      &copy; 2019 - 2020
+      <a href="/about/"><strong>Mr.Piak的博客</strong></a> design by <a href="http://peiyake.com" target="_blank"><strong>Yake Pei</strong></a> | Power by <a href="https://hexo.io/" target="_blank"><strong>Hexo</strong></a> & <a href="https://github.com/peiyake/hexo-theme-webstack.git" target="_blank"><strong>hexo-theme-webstack</strong></a>
+    </p>
+    <div class="go-up">
+      <a href="#" rel="go-top">
+        <i class="fas fa-angle-up"></i>
+      </a>
+    </div>
+  </div>
+</footer>
+</div>
+</div>
+
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/TweenMax.min.js"></script>
+<script src="/js/resizeable.min.js"></script>
+<script src="/js/joinable.js"></script>
+<script src="/js/xenon-api.min.js"></script>
+<script src="/js/xenon-toggles.min.js"></script>
+<script src="/js/xenon-custom.min.js"></script>
+
+
+<textarea tabindex="-1" style="position: absolute; top: -999px; left: 0px; right: auto; bottom: auto; border: 0px; padding: 0px; box-sizing: content-box; word-wrap: break-word; overflow: hidden; transition: none; height: 0px !important; min-height: 0px !important; font-family: Arimo, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 400; font-style: normal; letter-spacing: 0px; text-transform: none; word-spacing: 0px; text-indent: 0px; line-height: 18.5714px; width: 53px;" class="autosizejs" id="autosizejs"></textarea>
+
+</body>
+
+</html>
