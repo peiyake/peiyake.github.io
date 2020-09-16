@@ -318,11 +318,11 @@
 <li>pinctrl-0 = &lt;&amp;led_pins&gt;; // 选择GPIO口的复用功能（哪种电气特性）</li>
 <li>pinctrl-names = “default”; // 起个名字，用于 pinctrl_select_state 传参</li>
 <li>gpios = &lt;&amp;tlmm 16 GPIO_ACTIVE_HIGH&gt;; // 指定使用的GPIO口</li>
-<li>eth_gpios = &lt;&amp;tlmm 18 GPIO_ACTIVE_HIGH&gt;;</li>
-<li>two_gpios = &lt;&amp;tlmm 24 GPIO_ACTIVE_HIGH&gt;,&lt;&amp;tlmm 24 GPIO_ACTIVE_HIGH&gt;;</li>
+<li>eth-gpios = &lt;&amp;tlmm 18 GPIO_ACTIVE_HIGH&gt;;</li>
+<li>two-gpios = &lt;&amp;tlmm 24 GPIO_ACTIVE_HIGH&gt;,&lt;&amp;tlmm 24 GPIO_ACTIVE_HIGH&gt;;</li>
 </ul>
 <blockquote>
-<p>这里需要注意，指定GPIO口的属性名称必须是 gpio 或者gpios 或者 xxx_gpio 或者 xxx_gpios，如果没有前缀，那么在使用<strong>新API</strong>申请GPIO资源时 <strong>gpiod_get(struct device *dev,const char *con_id,enum gpiod_flags flags)</strong> 其中参数 <strong>con_id</strong> 应为 <strong>NULL</strong>，如果有前缀，那么 <strong>con_id</strong> 应为 <strong>前缀xxx</strong></p>
+<p>这里需要注意，指定GPIO口的属性名称必须是 gpio 或者gpios 或者 xxx-gpio 或者 xxx-gpios，如果没有前缀，那么在使用<strong>新API</strong>申请GPIO资源时 <strong>gpiod_get(struct device *dev,const char *con_id,enum gpiod_flags flags)</strong> 其中参数 <strong>con_id</strong> 应为 <strong>NULL</strong>，如果有前缀，那么 <strong>con_id</strong> 应为 <strong>前缀xxx</strong></p>
 </blockquote>
 <hr>
 <h3 id="3-写驱动"><a href="#3-写驱动" class="headerlink" title="3. 写驱动"></a>3. 写驱动</h3><h4 id="第一步：platfrom驱动固定套路"><a href="#第一步：platfrom驱动固定套路" class="headerlink" title="第一步：platfrom驱动固定套路"></a>第一步：platfrom驱动固定套路</h4><pre><code>static struct of_device_id leds_match_table[] = {
