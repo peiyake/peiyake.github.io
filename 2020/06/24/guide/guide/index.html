@@ -66,13 +66,13 @@
   <script>
     Date.prototype.Format = function (fmt) {
       var o = {
-              "M+": this.getMonth() + 1, // 月份
-              "d+": this.getDate(), // 日
-              "h+": this.getHours(), // 小时
-              "m+": this.getMinutes(), // 分
-              "s+": this.getSeconds(), // 秒
-              "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
-              "S": this.getMilliseconds() // 毫秒
+              "M+": this.getMonth() + 1,
+              "d+": this.getDate(),
+              "h+": this.getHours(),
+              "m+": this.getMinutes(),
+              "s+": this.getSeconds(),
+              "q+": Math.floor((this.getMonth() + 3) / 3),
+              "S": this.getMilliseconds()
       };
       if (/(y+)/.test(fmt))
           fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
@@ -221,7 +221,6 @@ date: 2020-06-28 17:58:11
 <li><code>description</code> ： 文章的简介描述，将来会显示在文章列表中每篇文章的一个简单介绍</li>
 </ul>
 <p><em>当然，你也可以直接在 <code>hexo_demo/source/</code> 目录下直接新建 <code>xxx.md</code>的方式新增文章，而且可以设置目录，把统一类别的文章放在同一个文件夹下，<code>hexo new</code> 的方法不能指定文章类别.通常建议自己手动新建文章</em></p>
-<h3 id="搭建你自己的博客"><a href="#搭建你自己的博客" class="headerlink" title="搭建你自己的博客"></a>搭建你自己的博客</h3><p>根据以上方法，你已经可以搭建自己的博客了。但是这个博客只能在你本地浏览，下面介绍如何部署到github上，然后通过互联网可以访问自己的站点</p>
 
         <script>
           var dom = document.getElementsByClassName('code');

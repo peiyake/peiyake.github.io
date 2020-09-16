@@ -64,13 +64,13 @@
   <script>
     Date.prototype.Format = function (fmt) {
       var o = {
-              "M+": this.getMonth() + 1, // 月份
-              "d+": this.getDate(), // 日
-              "h+": this.getHours(), // 小时
-              "m+": this.getMinutes(), // 分
-              "s+": this.getSeconds(), // 秒
-              "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
-              "S": this.getMilliseconds() // 毫秒
+              "M+": this.getMonth() + 1,
+              "d+": this.getDate(),
+              "h+": this.getHours(),
+              "m+": this.getMinutes(),
+              "s+": this.getSeconds(),
+              "q+": Math.floor((this.getMonth() + 3) / 3),
+              "S": this.getMilliseconds()
       };
       if (/(y+)/.test(fmt))
           fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
@@ -416,6 +416,10 @@
     
       
     
+      
+    
+      
+    
 </div>
 <br /> -->
     <h4 class="text-gray"><i class="linecons-tag" style="margin-right: 7px;" id="建站指南"></i>建站指南</h4>
@@ -542,6 +546,10 @@
             </div>
           </div>
         </div>
+      
+    
+      
+    
       
     
       
@@ -814,6 +822,10 @@
     
       
     
+      
+    
+      
+    
 </div>
 <br />
     
@@ -967,6 +979,10 @@
             </div>
           </div>
         </div>
+      
+    
+      
+    
       
     
       
@@ -1313,6 +1329,10 @@
     
       
     
+      
+    
+      
+    
 </div>
 <br />
     
@@ -1320,6 +1340,10 @@
     <h4 class="text-gray"><i class="linecons-tag" style="margin-right: 7px;" id="数据库"></i>数据库</h4>
 <div class="row">
     
+    
+      
+    
+      
     
       
     
@@ -1676,6 +1700,10 @@
     
       
     
+      
+    
+      
+    
 </div>
 <br />
     
@@ -1796,6 +1824,44 @@
     
       
     
+      
+    
+      
+        
+        <div class="col-sm-3">
+          <div class="xe-widget xe-conversations box2 label-info" onclick="window.open('/2020/09/15/kernel/%E5%86%85%E6%A0%B8GPIO%E7%B3%BB%E7%BB%9F%E7%90%86%E8%A7%A3/', '_blank')" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="">
+            <div class="xe-comment-entry">
+              <a class="xe-user-img">
+                  <img data-src="/images/logos/wenzhang.png" class="lozad img-circle" width="40">
+              </a>
+              <div class="xe-comment">
+                <a href="#" class="xe-user-name overflowClip_1">
+                  <strong>内核GPIO系统理解</strong>
+                </a>
+                <p class="overflowClip_2">linux内核中对于硬件平台的GPIO口的管理已经标准化了，目前通过gpio子系统和pinctrl子系统可以本方便的将所有GPIO进行配置管理。对驱动工程师而言，完全可以不关注board相关的内容，只需要知道“我要使用哪个GPIO，我要干什么”，然后直接request、set等操作，可以更加专注应用层面的逻辑，无需关心偏底层的细节了。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      
+    
+      
+        
+        <div class="col-sm-3">
+          <div class="xe-widget xe-conversations box2 label-info" onclick="window.open('/2020/09/15/kernel/linux%E5%86%85%E6%A0%B8%E9%A9%B1%E5%8A%A8%E5%B1%82%E6%9E%B6%E6%9E%84/', '_blank')" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="">
+            <div class="xe-comment-entry">
+              <a class="xe-user-img">
+                  <img data-src="/images/logos/wenzhang.png" class="lozad img-circle" width="40">
+              </a>
+              <div class="xe-comment">
+                <a href="#" class="xe-user-name overflowClip_1">
+                  <strong>Linux内核驱动层架构</strong>
+                </a>
+                <p class="overflowClip_2">linux内核中对于硬件相关的部分都构建了框架，驱动工程师和BSP工程师分属框架的两端，彼此不需要关心对方的实现细节，只需要通过框架API来联系。这种做法让擅长硬件的BSP工程师更能专注于硬件接口，驱动工程师则不需要关注太多硬件层面的东西，大大减轻了驱动工程师的工作量。</p>
+              </div>
+            </div>
+          </div>
+        </div>
       
     
 </div>
@@ -2124,6 +2190,10 @@
     
       
     
+      
+    
+      
+    
 </div>
 <br />
     
@@ -2295,6 +2365,10 @@
             </div>
           </div>
         </div>
+      
+    
+      
+    
       
     
 </div>
@@ -2470,6 +2544,10 @@
     
       
     
+      
+    
+      
+    
 </div>
 <br />
     
@@ -2589,6 +2667,10 @@
             </div>
           </div>
         </div>
+      
+    
+      
+    
       
     
       
@@ -2833,6 +2915,10 @@
     
       
     
+      
+    
+      
+    
 </div>
 <br />
     
@@ -2840,6 +2926,10 @@
     <h4 class="text-gray"><i class="linecons-tag" style="margin-right: 7px;" id="项目管理"></i>项目管理</h4>
 <div class="row">
     
+    
+      
+    
+      
     
       
     
@@ -3080,11 +3170,19 @@
     
       
     
+      
+    
+      
+    
 </div>
 <br /> -->
     <h4 class="text-gray"><i class="linecons-tag" style="margin-right: 7px;" id="有趣的灵魂"></i>有趣的灵魂</h4>
 <div class="row">
     
+    
+      
+    
+      
     
       
     

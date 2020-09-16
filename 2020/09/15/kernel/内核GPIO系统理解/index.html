@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="viggo" />
+  <title> 
+          内核GPIO系统理解
+          |
+          
+          Mr.Piak的博客
+  </title>
+  <meta name="keywords" content="通信,tcp,udp,icmp,arp,ftp,dns,dhcp,snmp,ip,shell,python,kernel,vpp,dpdk,多进程,多线程,进程间通信,net-filter,skb,数据库,postgresql">
+  <meta name="description" content="linux内核中对于硬件平台的GPIO口的管理已经标准化了，目前通过gpio子系统和pinctrl子系统可以本方便的将所有GPIO进行配置管理。对驱动工程师而言，完全可以不关注board相关的内容，只需要知道“我要使用哪个GPIO，我要干什么”，然后直接request、set等操作，可以更加专注应用层面的逻辑，无需关心偏底层的细节了。,本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  <link rel="shortcut icon" href="/images/favicon.png">
+  
+<link rel="stylesheet" href="//fonts.loli.net/css?family=Arimo:400,700,400italic.css">
+<link rel="stylesheet" href="/css/fonts/linecons/css/linecons.min.css">
+<link rel="stylesheet" href="/css/fonts/fontawesome/css/all.min.css">
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+<link rel="stylesheet" href="/css/xenon-core.min.css">
+<link rel="stylesheet" href="/css/xenon-components.min.css">
+<link rel="stylesheet" href="/css/xenon-skins.min.css">
+<link rel="stylesheet" href="/css/nav.min.css">
+
+  
+<script src="/js/jquery-1.11.1.min.js"></script>
+
+  <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!--[if lt IE 9]>
+        
+<script src="/js/html5shiv.min.js"></script>
+
+        
+<script src="/js/respond.min.js"></script>
+
+    <![endif]-->
+  <!-- / FB Open Graph -->
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="http://peiyake.com/2020/09/15/kernel/%E5%86%85%E6%A0%B8GPIO%E7%B3%BB%E7%BB%9F%E7%90%86%E8%A7%A3/index.html">
+  <meta property="og:title" content="Mr.Piak的博客 - ">
+  <meta property="og:description" content="本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  <meta property="og:site_name" content="Mr.Piak的博客 - ">
+  
+  <meta property="og:image" content="/images/webstack_banner_cn.png">
+  
+  <!-- / Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Mr.Piak的博客 - ">
+  <meta name="twitter:description" content="本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  
+  <meta name="twitter:image" content="/images/webstack_banner_cn.png">
+  
+  <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  <script src="/js/prettify.js"></script>
+  <link rel="stylesheet" href="/css/tomorrow_night.css">
+  <link rel="stylesheet" href="/css/tomorrow_night.min.css">
+  <link rel="stylesheet" href="/css/my.css">
+  <script>
+    Date.prototype.Format = function (fmt) {
+      var o = {
+              "M+": this.getMonth() + 1,
+              "d+": this.getDate(),
+              "h+": this.getHours(),
+              "m+": this.getMinutes(),
+              "s+": this.getSeconds(),
+              "q+": Math.floor((this.getMonth() + 3) / 3),
+              "S": this.getMilliseconds()
+      };
+      if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+      for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+      return fmt;
+    }
+  </script>
+<meta name="generator" content="Hexo 4.2.1"></head>
+</head>
+
+<body class="page-body boxed-container">
+  <nav class="navbar horizontal-menu navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="navbar-brand">
+        <a href="/index.html" class="logo">
+          <img src="/images/logo@2x.png" width="180px" alt="" class="hidden-xs">
+        </a>
+      </div>
+      <div class="navbar-mobile-clear"></div>
+      
+      <a href="https://github.com/peiyake/peiyake.github.io.git" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+      
+    </div>
+  </nav>
+  <!--
+  <aside class="post-widget">
+    <nav>
+      <h4>TOC</h4>
+      <ol>
+        <li>
+          <a>
+            <span>1.</span> 
+            <span>发布订阅模式</span>
+          </a>
+        </li>
+        <li>
+          <a>
+            <span>2.</span> 
+            <span>数据流</span>
+          </a>
+        </li>
+        <li>
+            <a href="#Vue中的解决方案">
+              <span>3.</span> 
+              <span>Vue中的解决方案</span>
+            </a>
+        </li>
+      </ol>
+    </nav>
+  </aside>
+  -->   
+  <div class="page-container" style="background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+
+    <div style="margin:35px">
+        <h1 id="内核GPIO系统理解" class="page_title">
+          <a href="#内核GPIO系统理解" class="headerlink" title="内核GPIO系统理解"></a>
+          内核GPIO系统理解
+        </h1>
+        <div>
+          <em class="page_meta">Written by </em>
+          <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+          <em class="page_meta">,Last update
+            <span class="post-time">on 
+              <time datetime="1600135200000" itemprop="datePublished"><script>var times=1600135200000;var date = new Date(times).Format('yy-MM-dd hh:mm');document.write(date);</script></time>
+            </span>
+          </em>
+          <span id="/2020/09/15/kernel/%E5%86%85%E6%A0%B8GPIO%E7%B3%BB%E7%BB%9F%E7%90%86%E8%A7%A3/" class="leancloud_visitors" data-flag-title="内核GPIO系统理解">
+            <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+            <i class="leancloud-visitors-count">loading</i>
+          </span>
+        </div>
+        <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+        <p>linux内核中对于硬件平台的GPIO口的管理已经标准化了，目前通过gpio子系统和pinctrl子系统可以本方便的将所有GPIO进行配置管理。对驱动工程师而言，完全可以不关注board相关的内容，只需要知道“我要使用哪个GPIO，我要干什么”，然后直接request、set等操作，可以更加专注应用层面的逻辑，无需关心偏底层的细节了。</p>
+<hr>
+<h2 id="GPIO系统整体架构"><a href="#GPIO系统整体架构" class="headerlink" title="GPIO系统整体架构"></a>GPIO系统整体架构</h2><img src="/images/gpio_framework.png">
+
+
+<p>根据上图，驱动程序根据设备树<strong>compatible</strong>匹配到一个或一组GPIO，在<strong>probe</strong>中调用pinctrl子系统API设置GPIO口的为哪种功能（有些GPIO口可以复用I2C/SPI/PWM等），然后调用GPIO子系统的API来获取GPIO资源，读写GPIO。</p>
+<p>至于在往下层的东西，都是BSP来做的事情，linux内核已经搭建好了这一套框架，在这套框架内，<strong>驱动开发者</strong>和<strong>BSP开发者</strong>分属于这个框架的两个角色，两者通过框架提供的API来联系，屏蔽了众多细节，从而实现让专业的人来做专业的事。</p>
+<hr>
+<h2 id="驱动工程师如何开发GPIO驱动程序"><a href="#驱动工程师如何开发GPIO驱动程序" class="headerlink" title="驱动工程师如何开发GPIO驱动程序"></a>驱动工程师如何开发GPIO驱动程序</h2><h3 id="1-首先了解两个子系统的API"><a href="#1-首先了解两个子系统的API" class="headerlink" title="1. 首先了解两个子系统的API"></a>1. 首先了解两个子系统的API</h3><p>GPIO子系统的API分为descriptor-based 新版API，和旧版API（integer-based）</p>
+<hr>
+<h4 id="GPIO子系统API"><a href="#GPIO子系统API" class="headerlink" title="GPIO子系统API"></a>GPIO子系统API</h4><table>
+<thead>
+<tr>
+<th>新API（descriptor-based ）</th>
+<th>旧API（integer-based）</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>#include &lt;linux/gpio.h</td>
+<td>#include &lt;linux/gpio/consumer.h&gt;</td>
+<td>头文件</td>
+</tr>
+<tr>
+<td></td>
+<td>gpio_is_valid()</td>
+<td>检测gpio是否可用</td>
+</tr>
+<tr>
+<td>gpiod_get()</td>
+<td>gpio_request()</td>
+<td>申请gpio资源</td>
+</tr>
+<tr>
+<td>gpiod_get_index()</td>
+<td>gpio_request_one()</td>
+<td></td>
+</tr>
+<tr>
+<td>gpiod_get_array()</td>
+<td>gpio_request_array()</td>
+<td></td>
+</tr>
+<tr>
+<td>devm_gpiod_get()</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>devm_gpiod_get_index()</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>devm_gpiod_get_array()</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>gpiod_direction_input()</td>
+<td>gpio_direction_input()</td>
+<td>设置gpio输入、输出模式</td>
+</tr>
+<tr>
+<td>gpiod_direction_output()</td>
+<td>gpio_direction_output()</td>
+<td></td>
+</tr>
+<tr>
+<td>gpiod_put()</td>
+<td>gpio_free()</td>
+<td>释放gpio资源</td>
+</tr>
+<tr>
+<td>gpiod_put_array()</td>
+<td>gpio_free_array()</td>
+<td></td>
+</tr>
+<tr>
+<td>gpiod_get_value()</td>
+<td>gpio_get_value(unsigned gpio)</td>
+<td>读写gpio值</td>
+</tr>
+<tr>
+<td>gpiod_set_value()</td>
+<td>gpio_set_value(unsigned gpio, int value)</td>
+<td></td>
+</tr>
+<tr>
+<td>devm_gpiod_put()</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>devm_gpiod_put_array()</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<hr>
+<h4 id="pinctrl子系统API"><a href="#pinctrl子系统API" class="headerlink" title="pinctrl子系统API"></a>pinctrl子系统API</h4><ul>
+<li>struct pinctrl * __must_check pinctrl_get(struct device *dev);</li>
+<li>void pinctrl_put(struct pinctrl *p);</li>
+<li>struct pinctrl * __must_check devm_pinctrl_get(struct device *dev);</li>
+<li>void devm_pinctrl_put(struct pinctrl *p);</li>
+<li>struct pinctrl_state * __must_check pinctrl_lookup_state(struct pinctrl *p,const char *name);</li>
+<li>int pinctrl_select_state(struct pinctrl *p, struct pinctrl_state *s);</li>
+</ul>
+<h3 id="2-配置设备树，确定你要使用的GPIO资源"><a href="#2-配置设备树，确定你要使用的GPIO资源" class="headerlink" title="2. 配置设备树，确定你要使用的GPIO资源"></a>2. 配置设备树，确定你要使用的GPIO资源</h3><hr>
+<h4 id="pinctrl子系统设备树"><a href="#pinctrl子系统设备树" class="headerlink" title="pinctrl子系统设备树"></a>pinctrl子系统设备树</h4><p><img src="/images/pinctrl.png" alt="图一"></p>
+<p>上图是厂家构建好的pinctrl子系统的设备树，厂家也已经写好了匹配 <strong>compatible = “qcom,ipq6018-pinctrl”;</strong>的BSP驱动程序，对于驱动开发只要能看懂这个就行了。</p>
+<p><img src="/images/pinctrl_node.png" alt="图二"></p>
+<p>该图描述了pinctrl子系统中，包含了4个GPIO节点作为led节点，分别对应GPIO 16/18/24/25。事实上，根据pinctrl子系统的概念，这里定义的 <strong>led_pins</strong>的含义是：把4个GPIO归为一组用于led控制，对每个GPIO的电气特性分别作了定义：</p>
+<ul>
+<li><strong>pins = “gpio18”;</strong> 指定配置的GPIO口</li>
+<li><strong>function = “gpio”;</strong>  GPIO的复用功能，这里作为普通GPIO口使用</li>
+<li><strong>drive-strength = &lt;8&gt;;</strong> GPIO口的电流驱动能力（根据厂家定义，每个数字对应一个输出电流值mA）</li>
+<li><strong>bias-pull-down;</strong> 这是对引脚上/下拉电阻的配置 有关概念参考<a href="http://mcu.eetrend.com/blog/2019/100046180.html">GPIO上拉下拉概念的理解</a></li>
+</ul>
+<p>也就是说，如果你在自己配置驱动设备树时采用了这一组配置，那么在你执行pinctrl子系统API<strong>pinctrl_lookup_state</strong>时，pinctrl的BSP部分就会把这4个GPIO口的电气特性配置成上述值。</p>
+<p>当然，在这里这4个GPIO仅仅是作为普通GPIO口使用的，如果这些GPIO口还有其它复用功能，比如：spi总线的功能，那么你可以再做一组配置，例如：</p>
+<pre><code>&amp;tlmm {
+    spi_pins: spi_pins {
+        spi_cs {
+            pins = &quot;gpio25&quot;;
+            function = &quot;spi&quot;;
+            drive-strength = &lt;8&gt;;
+            bias-pull-down;
+        };
+        spi_rx {
+            pins = &quot;gpio24&quot;;
+            function = &quot;spi&quot;;
+            drive-strength = &lt;8&gt;;
+            bias-pull-down;
+        };
+        spi_tx {
+            pins = &quot;gpio18&quot;;
+            function = &quot;spi&quot;;
+            drive-strength = &lt;8&gt;;
+            bias-pull-down;
+        };
+        spi_clk {
+            pins = &quot;gpio16&quot;;
+            function = &quot;spi&quot;;
+            drive-strength = &lt;8&gt;;
+            bias-pull-down;
+        };
+    };    
+};</code></pre><p>这样的话呢，在下面的图中，你可以修改成这样：</p>
+<pre><code>    led_device {
+        compatible = &quot;gbcom,leds&quot;;
+        pinctrl-0 = &lt;&amp;led_pins&gt;;
+        pinctrl-1 = &lt;&amp;spi_pins&gt;;
+        pinctrl-names = &quot;default&quot;,&quot;spi&quot;;
+        gpios = &lt;&amp;tlmm 16 GPIO_ACTIVE_HIGH&gt;;
+        eth_gpios = &lt;&amp;tlmm 18 GPIO_ACTIVE_HIGH&gt;;
+        two_gpios = &lt;&amp;tlmm 24 GPIO_ACTIVE_HIGH&gt;,&lt;&amp;tlmm 24 GPIO_ACTIVE_HIGH&gt;;
+    };</code></pre><p>如上所示，当你调用 <strong>pinctrl_lookup_state</strong>时，第二个参数 指定<strong>default</strong>,那么4个GPIO配置成led_pins的特性，如果指定<strong>spi</strong>,那么4个GPIO就可以复用为SPI总线使用了。</p>
+<p>上面的修改只是举个例子，有助于理解pinctrl子系统</p>
+<hr>
+<h4 id="配置gpio设备树资源"><a href="#配置gpio设备树资源" class="headerlink" title="配置gpio设备树资源"></a>配置gpio设备树资源</h4><p><img src="/images/pinctrl_driver_node.png" alt="图三"></p>
+<p>上面的额设备树就是需要自行构建的了，原理是这样的：</p>
+<ul>
+<li>厂家实现pinctrl的BSP驱动，将所有GPIO口都纳入了pinctrl控制，同时定义了部分GPIO的电气特性（也就是图二）</li>
+<li>然后我们要使用这些GPIO口，并想使用这个GPIO口的某种复用功能，那么需要我们自行定义。</li>
+</ul>
+<p>设备树中字段的含义如下：</p>
+<ul>
+<li>compatible = “gbcom,leds”;  //用于驱动进行probe</li>
+<li>pinctrl-0 = &lt;&amp;led_pins&gt;; // 选择GPIO口的复用功能（哪种电气特性）</li>
+<li>pinctrl-names = “default”; // 起个名字，用于 pinctrl_select_state 传参</li>
+<li>gpios = &lt;&amp;tlmm 16 GPIO_ACTIVE_HIGH&gt;; // 指定使用的GPIO口</li>
+<li>eth_gpios = &lt;&amp;tlmm 18 GPIO_ACTIVE_HIGH&gt;;</li>
+<li>two_gpios = &lt;&amp;tlmm 24 GPIO_ACTIVE_HIGH&gt;,&lt;&amp;tlmm 24 GPIO_ACTIVE_HIGH&gt;;</li>
+</ul>
+<blockquote>
+<p>这里需要注意，指定GPIO口的属性名称必须是 gpio 或者gpios 或者 xxx_gpio 或者 xxx_gpios，如果没有前缀，那么在使用<strong>新API</strong>申请GPIO资源时 <strong>gpiod_get(struct device *dev,const char *con_id,enum gpiod_flags flags)</strong> 其中参数 <strong>con_id</strong> 应为 <strong>NULL</strong>，如果有前缀，那么 <strong>con_id</strong> 应为 <strong>前缀xxx</strong></p>
+</blockquote>
+<hr>
+<h3 id="3-写驱动"><a href="#3-写驱动" class="headerlink" title="3. 写驱动"></a>3. 写驱动</h3><h4 id="第一步：platfrom驱动固定套路"><a href="#第一步：platfrom驱动固定套路" class="headerlink" title="第一步：platfrom驱动固定套路"></a>第一步：platfrom驱动固定套路</h4><pre><code>static struct of_device_id leds_match_table[] = {
+  {.compatible = &quot;gbcom,leds&quot;},
+  {},
+};
+MODULE_DEVICE_TABLE(of, leds_match_table);
+
+static struct platform_driver leds_driver = {
+  .probe  = leds_probe,
+  .remove = leds_remove,
+  .driver = {
+    .name   = &quot;led_power&quot;,
+    .owner  = THIS_MODULE,
+    .of_match_table = leds_match_table,
+  },
+};
+
+module_platform_driver(leds_driver);
+
+MODULE_LICENSE(&quot;GPL v2&quot;);
+MODULE_VERSION(&quot;0.1&quot;);
+MODULE_ALIAS(&quot;platform:led_power&quot;);</code></pre><p>注意：<code>.compatible = &quot;gbcom,leds&quot;</code> 跟设备树对应</p>
+<h4 id="第二步：重点是probe函数"><a href="#第二步：重点是probe函数" class="headerlink" title="第二步：重点是probe函数"></a>第二步：重点是probe函数</h4><pre><code>static int leds_probe(struct platform_device *pdev)
+{
+  int ret,loop;
+  struct device *dev = &amp;pdev-&gt;dev;
+  struct pinctrl_state *dft_state;
+  struct gpio_leds_dat *pleds;//我们自定义了一个led数据结构，用来存储每个led的信息
+
+    //申请空间，使用 devm_kzalloc 是基于device的内存，当设备卸载时，内存会被自动回收
+    pleds = devm_kzalloc(dev,sizeof(struct gpio_leds_dat),GFP_KERNEL);
+    if (!pleds)
+        return ERR_PTR(-ENOMEM);
+    memset(pleds,0,sizeof(struct gpio_leds_dat));
+    pleds-&gt;num = 4;
+
+    // pinctrl API，获取pinctrl句柄
+  pleds-&gt;pinctrl_leds = devm_pinctrl_get(dev);
+  if (IS_ERR(pleds-&gt;pinctrl_leds)) {
+    ret = PTR_ERR(pleds-&gt;pinctrl_leds);
+    printk(&quot;devm_pinctrl_get fail\n&quot;);
+    goto error;
+  }
+
+    /*查找我们设备树中设置的GPIO默认状态*/
+  dft_state = pinctrl_lookup_state(pleds-&gt;pinctrl_leds,&quot;default&quot;);
+  if (IS_ERR(dft_state)) {
+    ret = PTR_ERR(dft_state);
+    printk(&quot;pinctrl_lookup_state fail\n&quot;);
+    goto error;
+  }
+    /*是默认状态的电气特性生效*/
+  pinctrl_select_state(pleds-&gt;pinctrl_leds,dft_state);
+
+  /*GPIO API使用，获取我们设备树中配置的4个GPIO*/
+  pleds-&gt;leds[0].led_desc = devm_gpiod_get(dev,NULL,GPIOD_OUT_HIGH);            /*设备树中属性名是gpio，第二个参数是NULL*/
+  pleds-&gt;leds[1].led_desc = devm_gpiod_get(dev,&quot;eth&quot;,GPIOD_OUT_HIGH);           /*找设备树中属性名是eth-gpio(s)的GPIO，第二个参数是“eth”*/
+  pleds-&gt;leds[2].led_desc = devm_gpiod_get_index(dev,&quot;two&quot;,0,GPIOD_OUT_HIGH);   /*我们设备树中属性two-gpios指定了2个GPIO，那么第三个参数用来确定要找的GPIO位置索引*/
+  pleds-&gt;leds[3].led_desc = devm_gpiod_get_index(dev,&quot;two&quot;,1,GPIOD_OUT_HIGH);
+
+    /*每个GPIO都指定一个名称，我们这里只是为了简单，其实可以在设备树中指定名称，然后读取的*/
+  strncpy(pleds-&gt;leds[0].name,&quot;none&quot;,sizeof(&quot;none&quot;)); 
+  strncpy(pleds-&gt;leds[1].name,&quot;eth&quot;,sizeof(&quot;eth&quot;));
+  strncpy(pleds-&gt;leds[2].name,&quot;two0&quot;,sizeof(&quot;two0&quot;));
+  strncpy(pleds-&gt;leds[3].name,&quot;two1&quot;,sizeof(&quot;two1&quot;));
+
+  /* 1. 检测获取的GPIO描述符是否有效，并标记
+     2. 获取每个GPIO是否是睡眠GPIO（cansleep GPIO的配置需要在任务上下文中）
+     3. 每个GPIO初始化一个工作任务，如果是cansleep的，那么需要通过这个WORK来设置GPIO的输入、输出
+  */
+  for(loop = 0;loop &lt; 4; loop ++){
+    pleds-&gt;leds[loop].vaild = 1;
+    if(IS_ERR(pleds-&gt;leds[loop].led_desc)){
+      printk(&quot;Error:get %s&#39;s gpio_desc fail\n&quot;,pleds-&gt;leds[loop].name);
+      pleds-&gt;leds[loop].vaild = 0;
+      continue;
+    }
+    pleds-&gt;leds[loop].can_sleep = gpiod_cansleep(pleds-&gt;leds[loop].led_desc);
+    INIT_WORK(&amp;pleds-&gt;leds[loop].work,gpio_led_work);
+    gpiod_direction_output(pleds-&gt;leds[loop].led_desc,0);
+    printk(&quot;led[%d] data:%-6s,can_sleep=%d\n&quot;,loop,pleds-&gt;leds[loop].name,pleds-&gt;leds[loop].can_sleep);
+  }
+
+    /*创建一个sysfs属性节点，方便我们在用户态命令行测试*/
+    ret = sysfs_create_group(&amp;dev-&gt;kobj,&amp;led_attr_group);
+    if(ret &lt; 0){
+    printk(&quot;leds_probe:sysfs_create_group &#39;state/foo&#39; fail\n&quot;);
+    goto error;
+    }
+
+    /*将数据放入到device的私有数据区，这样，我们在其它地方都可以获取到这个数据*/
+    platform_set_drvdata(pdev,pleds);
+    printk(&quot;leds_probe ok\n&quot;);
+  return 0;
+error:
+  devm_kfree(dev,pleds);
+  return ret;
+}</code></pre><h3 id="4-完整的程序"><a href="#4-完整的程序" class="headerlink" title="4. 完整的程序"></a>4. 完整的程序</h3><pre><code>#include &lt;linux/module.h&gt;
+#include &lt;linux/timer.h&gt;
+#include &lt;linux/device.h&gt;
+#include &lt;linux/err.h&gt;
+#include &lt;linux/init.h&gt;
+#include &lt;linux/kernel.h&gt;
+#include &lt;linux/pinctrl/consumer.h&gt;
+#include &lt;linux/platform_device.h&gt;
+#include &lt;linux/gpio/consumer.h&gt;
+#include &lt;linux/property.h&gt;
+#include &lt;linux/workqueue.h&gt;
+
+struct leds_dat{
+  int vaild;
+  char name[32];
+  struct gpio_desc *led_desc;
+    struct work_struct work;
+    int can_sleep;
+    int status;
+};
+struct gpio_leds_dat{
+  int num;
+  struct pinctrl *pinctrl_leds;
+  struct leds_dat leds[4];
+};
+ssize_t led_state_show(struct device *dev, struct device_attribute *attr,
+        char *buf)
+{
+  struct gpio_leds_dat *pleds = dev_get_drvdata(dev);
+  return sprintf(buf,&quot;%d\n&quot;,pleds-&gt;leds[0].status);
+}
+ssize_t led_state_store(struct device *dev, struct device_attribute *attr,
+    const char *buf, size_t count)
+{
+  int ret,status,loop;
+  struct gpio_leds_dat *pleds = dev_get_drvdata(dev);
+
+  ret = kstrtoint(buf,10,&amp;status);
+  if(ret &lt; 0){
+    status = -1;
+    printk(&quot;Error,input param &#39;%s&#39; wrong\n&quot;,buf);
+    goto error;
+  }
+
+  for(loop = 0;loop &lt; pleds-&gt;num;loop ++){
+    if(pleds-&gt;leds[loop].vaild == 0)
+      continue;
+    pleds-&gt;leds[loop].status = status;
+    if(pleds-&gt;leds[loop].can_sleep){
+      schedule_work(&amp;pleds-&gt;leds[loop].work);
+    }else{
+       gpiod_set_value(pleds-&gt;leds[loop].led_desc,status);
+    }
+  }
+error:
+    return count;
+}
+
+static DEVICE_ATTR(state, 0644, led_state_show, led_state_store);
+
+static struct attribute *led_attributes[] = {
+  &amp;dev_attr_state.attr,
+  NULL
+};
+static const struct attribute_group led_attr_group = {
+  .attrs = led_attributes,
+};
+static void gpio_led_work(struct work_struct *work)
+{
+  struct leds_dat *pdat = container_of(work,struct leds_dat,work);
+
+  if(pdat-&gt;vaild){
+    gpiod_set_value(pdat-&gt;led_desc,pdat-&gt;status);
+    printk(&quot;led work set %s status[%d]\n&quot;,pdat-&gt;name,pdat-&gt;status);
+  }else{
+    printk(&quot;led work %s vaild\n&quot;,pdat-&gt;name);
+  }
+  return ;
+}
+
+static int leds_probe(struct platform_device *pdev)
+{
+  int ret,loop;
+  struct device *dev = &amp;pdev-&gt;dev;
+  struct pinctrl_state *dft_state;
+  struct gpio_leds_dat *pleds;
+
+    pleds = devm_kzalloc(dev,sizeof(struct gpio_leds_dat),GFP_KERNEL);
+    if (!pleds)
+        return ERR_PTR(-ENOMEM);
+    memset(pleds,0,sizeof(struct gpio_leds_dat));
+    pleds-&gt;num = 4;
+
+
+  pleds-&gt;pinctrl_leds = devm_pinctrl_get(dev);
+  if (IS_ERR(pleds-&gt;pinctrl_leds)) {
+    ret = PTR_ERR(pleds-&gt;pinctrl_leds);
+    printk(&quot;devm_pinctrl_get fail\n&quot;);
+    goto error;
+  }
+
+  dft_state = pinctrl_lookup_state(pleds-&gt;pinctrl_leds,&quot;default&quot;);
+  if (IS_ERR(dft_state)) {
+    ret = PTR_ERR(dft_state);
+    printk(&quot;pinctrl_lookup_state fail\n&quot;);
+    goto error;
+  }
+
+  pinctrl_select_state(pleds-&gt;pinctrl_leds,dft_state);
+
+
+  pleds-&gt;leds[0].led_desc = devm_gpiod_get(dev,NULL,GPIOD_OUT_HIGH);
+  pleds-&gt;leds[1].led_desc = devm_gpiod_get(dev,&quot;eth&quot;,GPIOD_OUT_HIGH);
+  pleds-&gt;leds[2].led_desc = devm_gpiod_get_index(dev,&quot;two&quot;,0,GPIOD_OUT_HIGH);
+  pleds-&gt;leds[3].led_desc = devm_gpiod_get_index(dev,&quot;two&quot;,1,GPIOD_OUT_HIGH);
+
+  strncpy(pleds-&gt;leds[0].name,&quot;none&quot;,sizeof(&quot;none&quot;));
+  strncpy(pleds-&gt;leds[1].name,&quot;eth&quot;,sizeof(&quot;eth&quot;));
+  strncpy(pleds-&gt;leds[2].name,&quot;two0&quot;,sizeof(&quot;two0&quot;));
+  strncpy(pleds-&gt;leds[3].name,&quot;two1&quot;,sizeof(&quot;two1&quot;));
+
+  for(loop = 0;loop &lt; 4; loop ++){
+    pleds-&gt;leds[loop].vaild = 1;
+    if(IS_ERR(pleds-&gt;leds[loop].led_desc)){
+      printk(&quot;Error:get %s&#39;s gpio_desc fail\n&quot;,pleds-&gt;leds[loop].name);
+      pleds-&gt;leds[loop].vaild = 0;
+      continue;
+    }
+    pleds-&gt;leds[loop].can_sleep = gpiod_cansleep(pleds-&gt;leds[loop].led_desc);
+    INIT_WORK(&amp;pleds-&gt;leds[loop].work,gpio_led_work);
+    gpiod_direction_output(pleds-&gt;leds[loop].led_desc,0);
+    printk(&quot;led[%d] data:%-6s,can_sleep=%d\n&quot;,loop,pleds-&gt;leds[loop].name,pleds-&gt;leds[loop].can_sleep);
+  }
+
+    ret = sysfs_create_group(&amp;dev-&gt;kobj,&amp;led_attr_group);
+    if(ret &lt; 0){
+    printk(&quot;leds_probe:sysfs_create_group &#39;state/foo&#39; fail\n&quot;);
+    goto error;
+    }
+
+    platform_set_drvdata(pdev,pleds);
+    printk(&quot;leds_probe ok\n&quot;);
+  return 0;
+error:
+  devm_kfree(dev,pleds);
+  return ret;
+}
+static int leds_remove(struct platform_device *pdev)
+{
+  int loop;
+  struct device *dev = &amp;pdev-&gt;dev;
+  struct gpio_leds_dat *pleds = platform_get_drvdata(pdev);
+
+  sysfs_remove_group(&amp;dev-&gt;kobj,&amp;led_attr_group);
+
+  devm_pinctrl_put(pleds-&gt;pinctrl_leds);
+
+  for(loop = 0;loop &lt; pleds-&gt;num;loop ++){
+    if(pleds-&gt;leds[loop].vaild == 0)
+      continue;
+
+    cancel_work_sync(&amp;pleds-&gt;leds[loop].work);
+    devm_gpiod_put(dev,pleds-&gt;leds[loop].led_desc);
+  }
+
+    printk(&quot;leds_remove ok\n&quot;);
+  return 0;
+}
+
+static struct of_device_id leds_match_table[] = {
+  {.compatible = &quot;gbcom,leds&quot;},
+  {},
+};
+MODULE_DEVICE_TABLE(of, leds_match_table);
+
+static struct platform_driver leds_driver = {
+  .probe  = leds_probe,
+  .remove = leds_remove,
+  .driver = {
+    .name   = &quot;led_power&quot;,
+    .owner  = THIS_MODULE,
+    .of_match_table = leds_match_table,
+  },
+};
+
+module_platform_driver(leds_driver);
+
+MODULE_LICENSE(&quot;GPL v2&quot;);
+MODULE_VERSION(&quot;0.1&quot;);
+MODULE_ALIAS(&quot;platform:led_power&quot;);
+</code></pre><h3 id="5-测试"><a href="#5-测试" class="headerlink" title="5. 测试"></a>5. 测试</h3><pre><code>root@OpenWrt:/sys/devices/platform/soc/soc:led_device# ls
+driver           driver_override  modalias         of_node          power            state            subsystem        uevent
+root@OpenWrt:/sys/devices/platform/soc/soc:led_device# echo 1 &gt; state
+root@OpenWrt:/sys/devices/platform/soc/soc:led_device# 
+root@OpenWrt:/sys/devices/platform/soc/soc:led_device#
+root@OpenWrt:/sys/devices/platform/soc/soc:led_device# echo 0 &gt; state
+root@OpenWrt:/sys/devices/platform/soc/soc:led_device# 
+root@OpenWrt:/sys/devices/platform/soc/soc:led_device# while true;do echo 1 &gt; state ;sleep 1;echo 0 &gt; state;sleep 1;done</code></pre><h3 id="6-效果"><a href="#6-效果" class="headerlink" title="6. 效果"></a>6. 效果</h3><p><img src="/images/led.gif" alt="led闪烁"></p>
+
+        <script>
+          var dom = document.getElementsByClassName('code');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.width = '750px';
+          }
+          var dom = document.getElementsByTagName('h1');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].className  += 'page_title';
+          }
+          var dom = document.getElementsByTagName('p');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.color = '#303333';
+          }
+          var dom = document.getElementsByTagName('a');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.color = '#2d96bd';
+          }
+          var dom = document.getElementsByTagName('img');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].className += ' img-responsive';
+          }
+          var dom = document.getElementsByTagName('blockquote');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.borderLeft = '5px solid #ddc06b';
+            dom[i].style.backgroundColor = 'rgba(216, 221, 206, 0.49';
+            dom[i].style.fontFamily = '微软雅黑,华文细黑,STHeiti,MingLiu';
+            dom[i].style.fontSize = '13px';
+          }
+        </script>
+
+        <br>
+        <br>
+        <hr>
+        <script>
+          window.onload = (function(){
+              $('pre').addClass('prettyprint linenums').attr('style', 'overflow:auto;');
+              prettyPrint(); 
+          });
+        </script>
+        <p>评论区：</p>
+
+
+        
+        <section id="comments" class="comments" style="margin-left:0px !important">
+          <style>
+            .comments{margin:30px;padding:10px;background:#fff}
+            @media screen and (max-width:800px){.comments{margin:auto;padding:10px;background:#fff}}
+          </style>
+          <div class="valine_comment"></div>
+<!--载入js，在</body>之前插入即可-->
+<!--Leancloud 操作库:-->
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<!--Valine 的核心代码库-->
+<script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+<script>
+  new Valine({
+      el: '.valine_comment',
+      app_id: 'KmguPzUzYoAUXeMp0zqvxPPj-gzGzoHsz',
+      app_key: 'bq515N7CFPO5fHr3XlEXp5EJ',
+      placeholder: '请在这里留言。。。',
+      notify: 'true',
+      verify: 'true',
+      visitor: 'true',
+    });
+</script>
+        </section>
+        
+    </div>
+  </div>
+    
+  <footer class="main-footer sticky footer-type-1">
+  <div class="footer-inner">
+    <!-- Add your copyright text here -->
+    <p class="footer-text">
+      
+      &copy; 2019 - 2020
+      <a href="/about/"><strong>Mr.Piak的博客</strong></a> design by <a href="http://peiyake.com" target="_blank"><strong>Yake Pei</strong></a> | Power by <a href="https://hexo.io/" target="_blank"><strong>Hexo</strong></a> & <a href="https://github.com/peiyake/hexo-theme-webstack.git" target="_blank"><strong>hexo-theme-webstack</strong></a>
+    </p>
+    <div class="go-up">
+      <a href="#" rel="go-top">
+        <i class="fas fa-angle-up"></i>
+      </a>
+    </div>
+  </div>
+</footer>
+</div>
+</div>
+
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/TweenMax.min.js"></script>
+<script src="/js/resizeable.min.js"></script>
+<script src="/js/joinable.js"></script>
+<script src="/js/xenon-api.min.js"></script>
+<script src="/js/xenon-toggles.min.js"></script>
+<script src="/js/xenon-custom.min.js"></script>
+
+
+<textarea tabindex="-1" style="position: absolute; top: -999px; left: 0px; right: auto; bottom: auto; border: 0px; padding: 0px; box-sizing: content-box; word-wrap: break-word; overflow: hidden; transition: none; height: 0px !important; min-height: 0px !important; font-family: Arimo, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 400; font-style: normal; letter-spacing: 0px; text-transform: none; word-spacing: 0px; text-indent: 0px; line-height: 18.5714px; width: 53px;" class="autosizejs" id="autosizejs"></textarea>
+
+</body>
+
+</html>
