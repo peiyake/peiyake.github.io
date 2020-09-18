@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="viggo" />
+  <title> 
+          内核链表2---hash链表
+          |
+          
+          Mr.Piak的博客
+  </title>
+  <meta name="keywords" content="通信,tcp,udp,icmp,arp,ftp,dns,dhcp,snmp,ip,shell,python,kernel,vpp,dpdk,多进程,多线程,进程间通信,net-filter,skb,数据库,postgresql">
+  <meta name="description" content="内核开发者们设计了一套高效的链表操作方法，高效而简洁，直接拿来使用，不要重复造轮子,本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  <link rel="shortcut icon" href="/images/favicon.png">
+  
+<link rel="stylesheet" href="//fonts.loli.net/css?family=Arimo:400,700,400italic.css">
+<link rel="stylesheet" href="/css/fonts/linecons/css/linecons.min.css">
+<link rel="stylesheet" href="/css/fonts/fontawesome/css/all.min.css">
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+<link rel="stylesheet" href="/css/xenon-core.min.css">
+<link rel="stylesheet" href="/css/xenon-components.min.css">
+<link rel="stylesheet" href="/css/xenon-skins.min.css">
+<link rel="stylesheet" href="/css/nav.min.css">
+
+  
+<script src="/js/jquery-1.11.1.min.js"></script>
+
+  <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!--[if lt IE 9]>
+        
+<script src="/js/html5shiv.min.js"></script>
+
+        
+<script src="/js/respond.min.js"></script>
+
+    <![endif]-->
+  <!-- / FB Open Graph -->
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="http://peiyake.com/2020/09/18/kernel/%E5%86%85%E6%A0%B8%E9%93%BE%E8%A1%A82---hash%E9%93%BE%E8%A1%A8/index.html">
+  <meta property="og:title" content="Mr.Piak的博客 - ">
+  <meta property="og:description" content="本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  <meta property="og:site_name" content="Mr.Piak的博客 - ">
+  
+  <meta property="og:image" content="/images/webstack_banner_cn.png">
+  
+  <!-- / Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Mr.Piak的博客 - ">
+  <meta name="twitter:description" content="本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  
+  <meta name="twitter:image" content="/images/webstack_banner_cn.png">
+  
+  <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  <script src="/js/prettify.js"></script>
+  <link rel="stylesheet" href="/css/tomorrow_night.css">
+  <link rel="stylesheet" href="/css/tomorrow_night.min.css">
+  <link rel="stylesheet" href="/css/my.css">
+  <script>
+    Date.prototype.Format = function (fmt) {
+      var o = {
+              "M+": this.getMonth() + 1,
+              "d+": this.getDate(),
+              "h+": this.getHours(),
+              "m+": this.getMinutes(),
+              "s+": this.getSeconds(),
+              "q+": Math.floor((this.getMonth() + 3) / 3),
+              "S": this.getMilliseconds()
+      };
+      if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+      for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+      return fmt;
+    }
+  </script>
+<meta name="generator" content="Hexo 4.2.1"></head>
+</head>
+
+<body class="page-body boxed-container">
+  <nav class="navbar horizontal-menu navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="navbar-brand">
+        <a href="/index.html" class="logo">
+          <img src="/images/logo@2x.png" width="180px" alt="" class="hidden-xs">
+        </a>
+      </div>
+      <div class="navbar-mobile-clear"></div>
+      
+      <a href="https://github.com/peiyake/peiyake.github.io.git" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+      
+    </div>
+  </nav>
+  <!--
+  <aside class="post-widget">
+    <nav>
+      <h4>TOC</h4>
+      <ol>
+        <li>
+          <a>
+            <span>1.</span> 
+            <span>发布订阅模式</span>
+          </a>
+        </li>
+        <li>
+          <a>
+            <span>2.</span> 
+            <span>数据流</span>
+          </a>
+        </li>
+        <li>
+            <a href="#Vue中的解决方案">
+              <span>3.</span> 
+              <span>Vue中的解决方案</span>
+            </a>
+        </li>
+      </ol>
+    </nav>
+  </aside>
+  -->   
+  <div class="page-container" style="background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+
+    <div style="margin:35px">
+        <h1 id="内核链表2---hash链表" class="page_title">
+          <a href="#内核链表2---hash链表" class="headerlink" title="内核链表2---hash链表"></a>
+          内核链表2---hash链表
+        </h1>
+        <div>
+          <em class="page_meta">Written by </em>
+          <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+          <em class="page_meta">,Last update
+            <span class="post-time">on 
+              <time datetime="1600409940000" itemprop="datePublished"><script>var times=1600409940000;var date = new Date(times).Format('yy-MM-dd hh:mm');document.write(date);</script></time>
+            </span>
+          </em>
+          <span id="/2020/09/18/kernel/%E5%86%85%E6%A0%B8%E9%93%BE%E8%A1%A82---hash%E9%93%BE%E8%A1%A8/" class="leancloud_visitors" data-flag-title="内核链表2---hash链表">
+            <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+            <i class="leancloud-visitors-count">loading</i>
+          </span>
+        </div>
+        <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+        <p>内核链表支持双向单链表和哈希链表，其设计简洁、高效，使用简单，简直是开发者的福音。这一套操作方法，不仅使用于内核态，稍加修改后也可以在应用层使用。这里对内核链表的使用方法简单做个总结记录。</p>
+<p>修改后的list.h下载，不依赖任何头文件，<a href="https://peiyake.com/src/list.h">请点击这里下载</a></p>
+<h2 id="HASH-链表使用"><a href="#HASH-链表使用" class="headerlink" title="HASH 链表使用"></a>HASH 链表使用</h2><p>HASH链表结构示意图</p>
+<p><img src="/images/list_hash.png" alt="hash表示意图"></p>
+<p>HASH链表和之前的内核双向链表不同在于，HASH的结构像一张<code>N x M</code>(N行,M列) 的表格。其中呢，对于链表头的使用 通常是这样定义的 <code>struct hlist_head heads[N]</code>。那当我们拿到一个数据时我们应该怎么插入呢？ 分两步:</p>
+<ul>
+<li>计算数据插入行：根据数据某个key计算HASH，这个HASH值通常是 <code>hash = key % N</code>，获取到hash后，那么这个数据应该插入到表格的第<strong>hash</strong>行，其hlist_head 就是 <code>heads[hash]</code></li>
+<li>插入数据：使用接口宏 <code>hlist_add_head</code> 插入数据（只能从该行的首部插入）</li>
+</ul>
+<h2 id="接口函数（宏）"><a href="#接口函数（宏）" class="headerlink" title="接口函数（宏）"></a>接口函数（宏）</h2><ol>
+<li>数据结构</li>
+</ol>
+<pre><code>struct hlist_head {
+    struct hlist_node *first;
+};
+
+struct hlist_node {
+    struct hlist_node *next, **pprev;
+};</code></pre><ol start="2">
+<li><code>INIT_HLIST_NODE(struct hlist_node *h)</code>初始化hash头 </li>
+<li><code>hlist_add_head(struct hlist_node *n, struct hlist_head *h)</code> 向hash表的某行插入数据（行内头插）</li>
+<li><code>void hlist_del(struct hlist_node *n)</code>删除指定节点</li>
+<li><code>hlist_for_each_entry(pos, head, member)</code> 遍历hash表某行<ul>
+<li>pos,数据结构类型指针</li>
+<li>head,指向改行的hlist_head指针</li>
+<li>member,hlist_node在数据结构中的成员名称</li>
+</ul>
+</li>
+<li><code>hlist_for_each_entry_safe(pos, n, head, member)</code> 遍历hash表某行，安全方法(<strong>推荐</strong>)<ul>
+<li>pos,数据结构类型指针</li>
+<li>n,指向hlist_node的指针（定义一个 hlist_node指针临时变量而已）</li>
+<li>head,指向改行的hlist_head指针</li>
+<li>member,hlist_node在数据结构中的成员名称</li>
+</ul>
+</li>
+</ol>
+<h2 id="示例代码"><a href="#示例代码" class="headerlink" title="示例代码"></a>示例代码</h2><ul>
+<li>创建一个HASH表，行数是 HASH_BUCKET = 32</li>
+<li>向表中插入 HASH_BUCKET * 10 个数据</li>
+<li>删除某些行的数据（练习）</li>
+<li>使用安全遍历方法遍历数据并打印输出</li>
+<li>使用非安全遍历方法遍历数据并打印输出</li>
+<li>删除hash表所有数据，并释放内存</li>
+<li>检测hash表每行的数据是否已经被清空，并打印输出</li>
+</ul>
+<pre><code>#include&lt;stdio.h&gt;
+#include&lt;malloc.h&gt;
+#include&lt;string.h&gt;
+#include &quot;list.h&quot;
+
+#define HASH_BUCKET     32
+
+struct hlist_head heads[HASH_BUCKET];
+
+struct hlist_data{
+        int num;
+        struct hlist_node list;
+};
+
+int hash_func(int num)
+{
+        return num % HASH_BUCKET;
+}
+void hash_head_init(struct hlist_head *head,int size)
+{
+        int i;
+        for(i = 0;i &lt; size;i ++){
+                INIT_HLIST_HEAD(head++);
+        }
+
+        return ;
+}
+int main(int argc,char **argv)
+{
+        int loop,hash;
+        struct hlist_data *ph;
+        struct hlist_node *pn;
+
+        hash_head_init(heads,HASH_BUCKET);
+
+        /* 构造数据 */
+        for(loop = 0; loop &lt; HASH_BUCKET * 10; loop ++){
+                ph = (struct hlist_data *)malloc(sizeof(struct hlist_data));
+                ph-&gt;num = loop;
+                hash = hash_func(ph-&gt;num);
+                hlist_add_head(&amp;ph-&gt;list,&amp;heads[hash]);
+        }
+        printf(&quot;%7s\t  |\tdata\n&quot;,&quot;index&quot;);
+        for(loop = 0; loop &lt; HASH_BUCKET;loop ++){
+                if(loop%5 == 1){
+                        hlist_for_each_entry_safe(ph,pn,&amp;heads[loop],list){
+                                hlist_del(&amp;ph-&gt;list);
+                        }
+                }
+                printf(&quot;%7d\t--&gt;&gt;\t&quot;,loop);
+                if(loop &lt; HASH_BUCKET/2){
+                        /* 非安全遍历方法 */
+                        hlist_for_each_entry(ph,&amp;heads[loop],list){
+                                printf(&quot;%-5d&quot;,ph-&gt;num);
+                        }
+                        if(hlist_empty(&amp;heads[loop])){
+                                printf(&quot;刚才删除了&quot;);
+                        }
+                }else{
+                        /* 安全遍历方法 */
+                        hlist_for_each_entry_safe(ph,pn,&amp;heads[loop],list){
+                                printf(&quot;%-5d&quot;,ph-&gt;num);
+                        }
+                        if(hlist_empty(&amp;heads[loop])){
+                                printf(&quot;刚才删除了&quot;);
+                        }
+                }
+                printf(&quot;\n&quot;);
+        }
+
+        printf(&quot;\n\n删除所有数据...\n&quot;);
+        for(loop = 0; loop &lt; HASH_BUCKET;loop ++){
+                hlist_for_each_entry_safe(ph,pn,&amp;heads[loop],list){
+                        hlist_del(&amp;ph-&gt;list);
+                        free(ph);
+                }
+        }
+        printf(&quot;\n\n再次检查hash表...\n\n&quot;);
+        for(loop = 0; loop &lt; HASH_BUCKET;loop ++){
+                printf(&quot;HASH[%2d]是否为空? %s\n&quot;,loop,hlist_empty(&amp;heads[loop]) ? &quot;yes&quot;: &quot;no&quot;);
+        }
+
+        return 0;
+}</code></pre><p>输出结果</p>
+<pre><code>[piak@localhost ~]$ ./a.out 
+  index   |     data
+      0 --&gt;&gt;    288  256  224  192  160  128  96   64   32   0    
+      1 --&gt;&gt;    刚才删除了
+      2 --&gt;&gt;    290  258  226  194  162  130  98   66   34   2    
+      3 --&gt;&gt;    291  259  227  195  163  131  99   67   35   3    
+      4 --&gt;&gt;    292  260  228  196  164  132  100  68   36   4    
+      5 --&gt;&gt;    293  261  229  197  165  133  101  69   37   5    
+      6 --&gt;&gt;    刚才删除了
+      7 --&gt;&gt;    295  263  231  199  167  135  103  71   39   7    
+      8 --&gt;&gt;    296  264  232  200  168  136  104  72   40   8    
+      9 --&gt;&gt;    297  265  233  201  169  137  105  73   41   9    
+     10 --&gt;&gt;    298  266  234  202  170  138  106  74   42   10   
+     11 --&gt;&gt;    刚才删除了
+     12 --&gt;&gt;    300  268  236  204  172  140  108  76   44   12   
+     13 --&gt;&gt;    301  269  237  205  173  141  109  77   45   13   
+     14 --&gt;&gt;    302  270  238  206  174  142  110  78   46   14   
+     15 --&gt;&gt;    303  271  239  207  175  143  111  79   47   15   
+     16 --&gt;&gt;    刚才删除了
+     17 --&gt;&gt;    305  273  241  209  177  145  113  81   49   17   
+     18 --&gt;&gt;    306  274  242  210  178  146  114  82   50   18   
+     19 --&gt;&gt;    307  275  243  211  179  147  115  83   51   19   
+     20 --&gt;&gt;    308  276  244  212  180  148  116  84   52   20   
+     21 --&gt;&gt;    刚才删除了
+     22 --&gt;&gt;    310  278  246  214  182  150  118  86   54   22   
+     23 --&gt;&gt;    311  279  247  215  183  151  119  87   55   23   
+     24 --&gt;&gt;    312  280  248  216  184  152  120  88   56   24   
+     25 --&gt;&gt;    313  281  249  217  185  153  121  89   57   25   
+     26 --&gt;&gt;    刚才删除了
+     27 --&gt;&gt;    315  283  251  219  187  155  123  91   59   27   
+     28 --&gt;&gt;    316  284  252  220  188  156  124  92   60   28   
+     29 --&gt;&gt;    317  285  253  221  189  157  125  93   61   29   
+     30 --&gt;&gt;    318  286  254  222  190  158  126  94   62   30   
+     31 --&gt;&gt;    刚才删除了
+
+
+删除所有数据...
+
+
+再次检查hash表...
+
+HASH[ 0]是否为空? yes
+HASH[ 1]是否为空? yes
+HASH[ 2]是否为空? yes
+HASH[ 3]是否为空? yes
+HASH[ 4]是否为空? yes
+HASH[ 5]是否为空? yes
+HASH[ 6]是否为空? yes
+HASH[ 7]是否为空? yes
+HASH[ 8]是否为空? yes
+HASH[ 9]是否为空? yes
+HASH[10]是否为空? yes
+HASH[11]是否为空? yes
+HASH[12]是否为空? yes
+HASH[13]是否为空? yes
+HASH[14]是否为空? yes
+HASH[15]是否为空? yes
+HASH[16]是否为空? yes
+HASH[17]是否为空? yes
+HASH[18]是否为空? yes
+HASH[19]是否为空? yes
+HASH[20]是否为空? yes
+HASH[21]是否为空? yes
+HASH[22]是否为空? yes
+HASH[23]是否为空? yes
+HASH[24]是否为空? yes
+HASH[25]是否为空? yes
+HASH[26]是否为空? yes
+HASH[27]是否为空? yes
+HASH[28]是否为空? yes
+HASH[29]是否为空? yes
+HASH[30]是否为空? yes
+HASH[31]是否为空? yes</code></pre>
+        <script>
+          var dom = document.getElementsByClassName('code');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.width = '750px';
+          }
+          var dom = document.getElementsByTagName('h1');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].className  += 'page_title';
+          }
+          var dom = document.getElementsByTagName('p');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.color = '#303333';
+          }
+          var dom = document.getElementsByTagName('a');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.color = '#2d96bd';
+          }
+          var dom = document.getElementsByTagName('img');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].className += ' img-responsive';
+          }
+          var dom = document.getElementsByTagName('blockquote');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.borderLeft = '5px solid #ddc06b';
+            dom[i].style.backgroundColor = 'rgba(216, 221, 206, 0.49';
+            dom[i].style.fontFamily = '微软雅黑,华文细黑,STHeiti,MingLiu';
+            dom[i].style.fontSize = '13px';
+          }
+        </script>
+
+        <br>
+        <br>
+        <hr>
+        <script>
+          window.onload = (function(){
+              $('pre').addClass('prettyprint linenums').attr('style', 'overflow:auto;');
+              prettyPrint(); 
+          });
+        </script>
+        <p>评论区：</p>
+
+
+        
+        <section id="comments" class="comments" style="margin-left:0px !important">
+          <style>
+            .comments{margin:30px;padding:10px;background:#fff}
+            @media screen and (max-width:800px){.comments{margin:auto;padding:10px;background:#fff}}
+          </style>
+          <div class="valine_comment"></div>
+<!--载入js，在</body>之前插入即可-->
+<!--Leancloud 操作库:-->
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<!--Valine 的核心代码库-->
+<script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+<script>
+  new Valine({
+      el: '.valine_comment',
+      app_id: 'KmguPzUzYoAUXeMp0zqvxPPj-gzGzoHsz',
+      app_key: 'bq515N7CFPO5fHr3XlEXp5EJ',
+      placeholder: '请在这里留言。。。',
+      notify: 'true',
+      verify: 'true',
+      visitor: 'true',
+    });
+</script>
+        </section>
+        
+    </div>
+  </div>
+    
+  <footer class="main-footer sticky footer-type-1">
+  <div class="footer-inner">
+    <!-- Add your copyright text here -->
+    <p class="footer-text">
+      
+      &copy; 2019 - 2020
+      <a href="/about/"><strong>Mr.Piak的博客</strong></a> design by <a href="http://peiyake.com" target="_blank"><strong>Yake Pei</strong></a> | Power by <a href="https://hexo.io/" target="_blank"><strong>Hexo</strong></a> & <a href="https://github.com/peiyake/hexo-theme-webstack.git" target="_blank"><strong>hexo-theme-webstack</strong></a>
+    </p>
+    <div class="go-up">
+      <a href="#" rel="go-top">
+        <i class="fas fa-angle-up"></i>
+      </a>
+    </div>
+  </div>
+</footer>
+</div>
+</div>
+
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/TweenMax.min.js"></script>
+<script src="/js/resizeable.min.js"></script>
+<script src="/js/joinable.js"></script>
+<script src="/js/xenon-api.min.js"></script>
+<script src="/js/xenon-toggles.min.js"></script>
+<script src="/js/xenon-custom.min.js"></script>
+
+
+<textarea tabindex="-1" style="position: absolute; top: -999px; left: 0px; right: auto; bottom: auto; border: 0px; padding: 0px; box-sizing: content-box; word-wrap: break-word; overflow: hidden; transition: none; height: 0px !important; min-height: 0px !important; font-family: Arimo, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 400; font-style: normal; letter-spacing: 0px; text-transform: none; word-spacing: 0px; text-indent: 0px; line-height: 18.5714px; width: 53px;" class="autosizejs" id="autosizejs"></textarea>
+
+</body>
+
+</html>

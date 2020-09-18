@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="viggo" />
+  <title> 
+          linux中断子系统---中断处理流程
+          |
+          
+          Mr.Piak的博客
+  </title>
+  <meta name="keywords" content="通信,tcp,udp,icmp,arp,ftp,dns,dhcp,snmp,ip,shell,python,kernel,vpp,dpdk,多进程,多线程,进程间通信,net-filter,skb,数据库,postgresql">
+  <meta name="description" content="linux中断处理流程分为上半部和下半部，上半部程序退出后会唤醒下半部程序，然后下半部会在合适的时机执行,本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  <link rel="shortcut icon" href="/images/favicon.png">
+  
+<link rel="stylesheet" href="//fonts.loli.net/css?family=Arimo:400,700,400italic.css">
+<link rel="stylesheet" href="/css/fonts/linecons/css/linecons.min.css">
+<link rel="stylesheet" href="/css/fonts/fontawesome/css/all.min.css">
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+<link rel="stylesheet" href="/css/xenon-core.min.css">
+<link rel="stylesheet" href="/css/xenon-components.min.css">
+<link rel="stylesheet" href="/css/xenon-skins.min.css">
+<link rel="stylesheet" href="/css/nav.min.css">
+
+  
+<script src="/js/jquery-1.11.1.min.js"></script>
+
+  <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!--[if lt IE 9]>
+        
+<script src="/js/html5shiv.min.js"></script>
+
+        
+<script src="/js/respond.min.js"></script>
+
+    <![endif]-->
+  <!-- / FB Open Graph -->
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="http://peiyake.com/2020/09/16/kernel/linux%E4%B8%AD%E6%96%AD%E5%AD%90%E7%B3%BB%E7%BB%9F---%E4%B8%AD%E6%96%AD%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B/index.html">
+  <meta property="og:title" content="Mr.Piak的博客 - ">
+  <meta property="og:description" content="本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  <meta property="og:site_name" content="Mr.Piak的博客 - ">
+  
+  <meta property="og:image" content="/images/webstack_banner_cn.png">
+  
+  <!-- / Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Mr.Piak的博客 - ">
+  <meta name="twitter:description" content="本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  
+  <meta name="twitter:image" content="/images/webstack_banner_cn.png">
+  
+  <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  <script src="/js/prettify.js"></script>
+  <link rel="stylesheet" href="/css/tomorrow_night.css">
+  <link rel="stylesheet" href="/css/tomorrow_night.min.css">
+  <link rel="stylesheet" href="/css/my.css">
+  <script>
+    Date.prototype.Format = function (fmt) {
+      var o = {
+              "M+": this.getMonth() + 1,
+              "d+": this.getDate(),
+              "h+": this.getHours(),
+              "m+": this.getMinutes(),
+              "s+": this.getSeconds(),
+              "q+": Math.floor((this.getMonth() + 3) / 3),
+              "S": this.getMilliseconds()
+      };
+      if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+      for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+      return fmt;
+    }
+  </script>
+<meta name="generator" content="Hexo 4.2.1"></head>
+</head>
+
+<body class="page-body boxed-container">
+  <nav class="navbar horizontal-menu navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="navbar-brand">
+        <a href="/index.html" class="logo">
+          <img src="/images/logo@2x.png" width="180px" alt="" class="hidden-xs">
+        </a>
+      </div>
+      <div class="navbar-mobile-clear"></div>
+      
+      <a href="https://github.com/peiyake/peiyake.github.io.git" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+      
+    </div>
+  </nav>
+  <!--
+  <aside class="post-widget">
+    <nav>
+      <h4>TOC</h4>
+      <ol>
+        <li>
+          <a>
+            <span>1.</span> 
+            <span>发布订阅模式</span>
+          </a>
+        </li>
+        <li>
+          <a>
+            <span>2.</span> 
+            <span>数据流</span>
+          </a>
+        </li>
+        <li>
+            <a href="#Vue中的解决方案">
+              <span>3.</span> 
+              <span>Vue中的解决方案</span>
+            </a>
+        </li>
+      </ol>
+    </nav>
+  </aside>
+  -->   
+  <div class="page-container" style="background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+
+    <div style="margin:35px">
+        <h1 id="linux中断子系统---中断处理流程" class="page_title">
+          <a href="#linux中断子系统---中断处理流程" class="headerlink" title="linux中断子系统---中断处理流程"></a>
+          linux中断子系统---中断处理流程
+        </h1>
+        <div>
+          <em class="page_meta">Written by </em>
+          <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+          <em class="page_meta">,Last update
+            <span class="post-time">on 
+              <time datetime="1600235874000" itemprop="datePublished"><script>var times=1600235874000;var date = new Date(times).Format('yy-MM-dd hh:mm');document.write(date);</script></time>
+            </span>
+          </em>
+          <span id="/2020/09/16/kernel/linux%E4%B8%AD%E6%96%AD%E5%AD%90%E7%B3%BB%E7%BB%9F---%E4%B8%AD%E6%96%AD%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B/" class="leancloud_visitors" data-flag-title="linux中断子系统---中断处理流程">
+            <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+            <i class="leancloud-visitors-count">loading</i>
+          </span>
+        </div>
+        <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+        <p>关于中断子系统，网上<a href="">蜗蜗科技</a>有很详细深入的介绍。本人在拜读蜗蜗的文章后，自己也做一些总结，加深印象。</p>
+<p><a href="http://www.wowotech.net/sort/irq_subsystem">请点这里，找蜗蜗科技,中断子系统系列文章</a></p>
+<h2 id="linux中断子系统示意流程图"><a href="#linux中断子系统示意流程图" class="headerlink" title="linux中断子系统示意流程图"></a>linux中断子系统示意流程图</h2><p><img src="/images/softirq.png" alt="中断子系统"></p>
+<h2 id="上半部处理流程"><a href="#上半部处理流程" class="headerlink" title="上半部处理流程"></a>上半部处理流程</h2><p><strong>do_IRQ</strong></p>
+<p><code>do_IRQ</code>函数是依赖体系结构的，在linux源码中不同硬件平台的实现不一样，但整体都差不多，都会调用<code>irq_enter</code>、<code>generic_handle_irq</code>、<code>irq_exit</code>，下面举个例子看一下：</p>
+<pre><code>unsigned int do_IRQ(int irq, struct uml_pt_regs *regs)
+{
+    struct pt_regs *old_regs = set_irq_regs((struct pt_regs *)regs);
+    irq_enter();
+    generic_handle_irq(irq);
+    irq_exit();
+    set_irq_regs(old_regs);
+    return 1;
+}</code></pre><ul>
+<li>set_irq_regs 保存中断发生时，一些必要的寄存器信息，用于中断返回时恢复现场</li>
+<li>irq_enter 进入中断上下文</li>
+<li>generic_handle_irq调用注册的中断的上半部处理程序handle</li>
+<li>irq_exit退出中断上下文</li>
+<li>set_irq_regs恢复现场，继续原来的工作</li>
+</ul>
+<p><code>irq_enter</code>进入中断上下文之后，做了什么？</p>
+<p>进入irq_enter先判断如果是调度空闲上下文 并且 不在中断上下文（软/硬中断），那么会先屏蔽软中断进行 <code>tick_irq_enter</code>，之后开启软中断。最后调用 <code>_irq_enter</code>，记录中断进入的时间用于统计，将<strong>preempt_count</strong>值的硬中断标记位 +1，(这样就保证，硬中断执行期间不会被打断)</p>
+<pre><code>/*
+ * Enter an interrupt context.
+ */
+void irq_enter(void)
+{
+    rcu_irq_enter();
+    if (is_idle_task(current) &amp;&amp; !in_interrupt()) {
+        /*
+         * Prevent raise_softirq from needlessly waking up ksoftirqd
+         * here, as softirq will be serviced on return from interrupt.
+         */
+        local_bh_disable();
+        tick_irq_enter();
+        _local_bh_enable();
+    }
+
+    __irq_enter();
+}
+/*
+ * It is safe to do non-atomic ops on -&gt;hardirq_context,
+ * because NMI handlers may not preempt and the ops are
+ * always balanced, so the interrupted value of -&gt;hardirq_context
+ * will always be restored.
+ */
+#define __irq_enter()                    \
+    do {                        \
+        account_irq_enter_time(current);    \
+        preempt_count_add(HARDIRQ_OFFSET);    \
+        trace_hardirq_enter();            \
+    } while (0)</code></pre><p>然后调用generic_handle_irq调用注册的中断的上半部处理程序handle</p>
+<pre><code>/**
+ * generic_handle_irq - Invoke the handler for a particular irq
+ * @irq:    The irq number to handle
+ *
+ */
+int generic_handle_irq(unsigned int irq)
+{
+    struct irq_desc *desc = irq_to_desc(irq);
+
+    if (!desc)
+        return -EINVAL;
+    generic_handle_irq_desc(desc);
+    return 0;
+}
+/*
+ * Architectures call this to let the generic IRQ layer
+ * handle an interrupt.
+ */
+static inline void generic_handle_irq_desc(struct irq_desc *desc)
+{
+    desc-&gt;handle_irq(desc);
+}</code></pre><p>最后调用 <code>irq_exit</code>，记录硬中断处理结束时间用来统计；将<strong>preempt_count</strong> -1；再判断如果当前不在中断上下文 并且有下半部中断在等待处理，那么调用<code>invoke_softirq</code>唤醒软中断。最后调用<code>tick_irq_exit</code>和<code>rcu_irq_exit</code>退出。 </p>
+<pre><code>/*
+ * Exit an interrupt context. Process softirqs if needed and possible:
+ */
+void irq_exit(void)
+{
+#ifndef __ARCH_IRQ_EXIT_IRQS_DISABLED
+    local_irq_disable();
+#else
+    WARN_ON_ONCE(!irqs_disabled());
+#endif
+
+    account_irq_exit_time(current);
+    preempt_count_sub(HARDIRQ_OFFSET);
+    if (!in_interrupt() &amp;&amp; local_softirq_pending())
+        invoke_softirq();
+
+    tick_irq_exit();
+    rcu_irq_exit();
+    trace_hardirq_exit(); /* must be last! */
+}</code></pre><p>至此，一次硬中断的上半部处理过程结束。</p>
+<h2 id="下半部处理流程"><a href="#下半部处理流程" class="headerlink" title="下半部处理流程"></a>下半部处理流程</h2><p>在讲解下半部流程之前，先说明一下下半部程序是如何组织的。</p>
+<p>事实上，在内核初始化时，会为每个CPU创建一个线程<code>ksoftirqd/%u</code>，这里%u就是对应CPU core id，线程的信息用结构体 <code>struct smp_hotplug_thread</code>描述，如下：</p>
+<pre><code>static struct smp_hotplug_thread softirq_threads = {
+    .store            = &amp;ksoftirqd,
+    .thread_should_run    = ksoftirqd_should_run,
+    .thread_fn        = run_ksoftirqd,
+    .thread_comm        = &quot;ksoftirqd/%u&quot;,
+};</code></pre><p>可以看到，线程的入口统一为 <code>run_ksoftirqd</code>，该函数会去检测当前是否有软中断pedding，如果有的话调用 <code>__do_softirq</code>来处理下半部注册函数。</p>
+<blockquote>
+<p>注意：在 <code>kernel/softirq.c</code>中通过内核宏 <code>early_initcall</code>来提早注册内核线程</p>
+</blockquote>
+<p>也就是说有两种情况会触发中断下半部的执行：</p>
+<ol>
+<li>在上半部流程中，最后<code>irq_exit</code>在退出前，检测是如果不处于中断上下文，并且有软中断pendding的话，直接唤醒软中断。</li>
+<li>内核线程<code>ksoftirqd/%u</code>来轮询检测是否存在软中断需要处理</li>
+</ol>
+<p>下面介绍，软中断处理过程，</p>
+<p>首先是，内核线程入口 <code>run_ksoftirqd</code></p>
+<pre><code>static void run_ksoftirqd(unsigned int cpu)
+{
+    local_irq_disable();
+    if (local_softirq_pending()) {
+        /*
+         * We can safely run softirq on inline stack, as we are not deep
+         * in the task stack here.
+         */
+        __do_softirq();
+        local_irq_enable();
+        cond_resched_rcu_qs();
+        return;
+    }
+    local_irq_enable();
+}</code></pre><p>我们看到，线程运行后首先关闭了全局中断（此时硬中断无法触发），如果有pending，调用 <code>__do_softirq</code>。</p>
+<p>看到这里有个疑问：关闭全局中断，难道软中断运行中，硬中断真的无法触发了？带着以为继续看 <code>__do_softirq</code></p>
+<pre><code>asmlinkage __visible void __do_softirq(void)
+{
+//////////////////////////////////第一部分//////////////////////////////////////////////////////////////
+    unsigned long end = jiffies + MAX_SOFTIRQ_TIME;
+    unsigned long old_flags = current-&gt;flags;
+    int max_restart = MAX_SOFTIRQ_RESTART;
+    struct softirq_action *h;
+    bool in_hardirq;
+    __u32 pending;
+    int softirq_bit;
+
+    /*
+     * Mask out PF_MEMALLOC s current task context is borrowed for the
+     * softirq. A softirq handled such as network RX might set PF_MEMALLOC
+     * again if the socket is related to swap
+     */
+    current-&gt;flags &amp;= ~PF_MEMALLOC;
+
+    pending = local_softirq_pending();
+    account_irq_enter_time(current);
+    __local_bh_disable_ip(_RET_IP_, SOFTIRQ_OFFSET);
+///////////////////////////////////第二部分//////////////////////////////////////////////////////////////////
+
+    in_hardirq = lockdep_softirq_start();
+
+restart:
+    /* Reset the pending bitmask before enabling irqs */
+    set_softirq_pending(0);
+
+    local_irq_enable();
+////////////////////////////////////第三部分/////////////////////////////////////////////////////////////////
+    h = softirq_vec;
+
+    while ((softirq_bit = ffs(pending))) {
+        unsigned int vec_nr;
+        int prev_count;
+
+        h += softirq_bit - 1;
+
+        vec_nr = h - softirq_vec;
+        prev_count = preempt_count();
+
+        kstat_incr_softirqs_this_cpu(vec_nr);
+
+        trace_softirq_entry(vec_nr);
+        STOPWATCH_START(softirq[vec_nr]);
+        h-&gt;action(h);
+        STOPWATCH_STOP(softirq[vec_nr]);
+        trace_softirq_exit(vec_nr);
+        if (unlikely(prev_count != preempt_count())) {
+            pr_err(&quot;huh, entered softirq %u %s %p with preempt_count %08x, exited with %08x?\n&quot;,
+                   vec_nr, softirq_to_name[vec_nr], h-&gt;action,
+                   prev_count, preempt_count());
+            preempt_count_set(prev_count);
+        }
+        h++;
+        pending &gt;&gt;= softirq_bit;
+    }
+
+    rcu_bh_qs();
+    local_irq_disable();
+
+//////////////////////////////////////第四部分//////////////////////////////////////////////////////////
+    pending = local_softirq_pending();
+    if (pending) {
+        if (time_before(jiffies, end) &amp;&amp; !need_resched() &amp;&amp;
+            --max_restart)
+            goto restart;
+
+        wakeup_softirqd();
+    }
+
+    lockdep_softirq_end(in_hardirq);
+    account_irq_exit_time(current);
+///////////////////////////////////////第五部分/////////////////////////////////////////////////////////////
+    __local_bh_enable(SOFTIRQ_OFFSET);
+    WARN_ON_ONCE(in_interrupt());
+    tsk_restore_flags(current, old_flags, PF_MEMALLOC);
+}</code></pre><p>我们用 <strong>//</strong>将<code>__do_softirq</code>分成5个部分，一个一个来看：</p>
+<p><strong>第一部分</strong>，因为在进入<code>__do_softirq</code>之前调用了<code>local_irq_disable</code>，所以在第一部分，全局中断关闭，此时无法再产生新的硬中断。而第一步分的工作只是做了很少量的工作。重点是最后调用<code>__local_bh_disable_ip</code>，用来屏蔽软中断（这里说明，软中断是串行执行的，软中断执行期间不能被其它软中断打断，但是可以被硬中断打断。注意：这里只是只单个cpu上）。屏蔽软中断后进入第二部分。<br><strong>第二部分</strong>，重点是调用 <code>local_irq_enable</code>开启全局中断，开启后如果再有硬中断产生，那么此时就会被打断</p>
+<p><strong>第三部分</strong>，进入第三部分，此时全局中断是打开的。第三部分重点是 while循环中调用 <code>h-&gt;action(h);</code> 这里其实就是调用内核注册的每个软中断类型的action函数，在action函数中再执行我们注册的软中断处理函数。关于软中的部分，另外还有文章讲解</p>
+<p><strong>第四部分</strong>，在第三部分退出前调用<code>local_irq_disable</code>，再次屏蔽了全局中断，因为第四部分的内容不能被打断，第四部分主要作用是，下面三个条件同时满足再restart 软中断的处理</p>
+<ol>
+<li>softirq的处理时间没有超过2个ms</li>
+<li>上次的softirq中没有设定TIF_NEED_RESCHED，也就是说没有有高优先级任务需要调度</li>
+<li>loop的次数小于 10次</li>
+</ol>
+<p><strong>第五部分</strong>，重点是<code>__local_bh_enable</code>，开启软中断，此时允许其它软中断处理。</p>
+
+        <script>
+          var dom = document.getElementsByClassName('code');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.width = '750px';
+          }
+          var dom = document.getElementsByTagName('h1');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].className  += 'page_title';
+          }
+          var dom = document.getElementsByTagName('p');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.color = '#303333';
+          }
+          var dom = document.getElementsByTagName('a');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.color = '#2d96bd';
+          }
+          var dom = document.getElementsByTagName('img');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].className += ' img-responsive';
+          }
+          var dom = document.getElementsByTagName('blockquote');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.borderLeft = '5px solid #ddc06b';
+            dom[i].style.backgroundColor = 'rgba(216, 221, 206, 0.49';
+            dom[i].style.fontFamily = '微软雅黑,华文细黑,STHeiti,MingLiu';
+            dom[i].style.fontSize = '13px';
+          }
+        </script>
+
+        <br>
+        <br>
+        <hr>
+        <script>
+          window.onload = (function(){
+              $('pre').addClass('prettyprint linenums').attr('style', 'overflow:auto;');
+              prettyPrint(); 
+          });
+        </script>
+        <p>评论区：</p>
+
+
+        
+        <section id="comments" class="comments" style="margin-left:0px !important">
+          <style>
+            .comments{margin:30px;padding:10px;background:#fff}
+            @media screen and (max-width:800px){.comments{margin:auto;padding:10px;background:#fff}}
+          </style>
+          <div class="valine_comment"></div>
+<!--载入js，在</body>之前插入即可-->
+<!--Leancloud 操作库:-->
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<!--Valine 的核心代码库-->
+<script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+<script>
+  new Valine({
+      el: '.valine_comment',
+      app_id: 'KmguPzUzYoAUXeMp0zqvxPPj-gzGzoHsz',
+      app_key: 'bq515N7CFPO5fHr3XlEXp5EJ',
+      placeholder: '请在这里留言。。。',
+      notify: 'true',
+      verify: 'true',
+      visitor: 'true',
+    });
+</script>
+        </section>
+        
+    </div>
+  </div>
+    
+  <footer class="main-footer sticky footer-type-1">
+  <div class="footer-inner">
+    <!-- Add your copyright text here -->
+    <p class="footer-text">
+      
+      &copy; 2019 - 2020
+      <a href="/about/"><strong>Mr.Piak的博客</strong></a> design by <a href="http://peiyake.com" target="_blank"><strong>Yake Pei</strong></a> | Power by <a href="https://hexo.io/" target="_blank"><strong>Hexo</strong></a> & <a href="https://github.com/peiyake/hexo-theme-webstack.git" target="_blank"><strong>hexo-theme-webstack</strong></a>
+    </p>
+    <div class="go-up">
+      <a href="#" rel="go-top">
+        <i class="fas fa-angle-up"></i>
+      </a>
+    </div>
+  </div>
+</footer>
+</div>
+</div>
+
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/TweenMax.min.js"></script>
+<script src="/js/resizeable.min.js"></script>
+<script src="/js/joinable.js"></script>
+<script src="/js/xenon-api.min.js"></script>
+<script src="/js/xenon-toggles.min.js"></script>
+<script src="/js/xenon-custom.min.js"></script>
+
+
+<textarea tabindex="-1" style="position: absolute; top: -999px; left: 0px; right: auto; bottom: auto; border: 0px; padding: 0px; box-sizing: content-box; word-wrap: break-word; overflow: hidden; transition: none; height: 0px !important; min-height: 0px !important; font-family: Arimo, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 400; font-style: normal; letter-spacing: 0px; text-transform: none; word-spacing: 0px; text-indent: 0px; line-height: 18.5714px; width: 53px;" class="autosizejs" id="autosizejs"></textarea>
+
+</body>
+
+</html>
