@@ -149,7 +149,93 @@
         <h2 id="RAW-socket"><a href="#RAW-socket" class="headerlink" title="RAW socket"></a>RAW socket</h2><blockquote>
 <p>原始套接字（raw socket）是一种网络套接字，允许直接发送/接收IP协议数据包而不需要任何传输层协议格式。对于标准的套接字，通常数据按照选定的传输层协议(例如TCP、UDP)自动封装，socket用户并不知道在网络介质上广播的数据包含了这种协议包头。从原始套接字读取数据包含了传输层协议包头。用原始套接字发送数据，是否自动增加传输层协议包头是可选的。原始套接字用于安全相关的应用程序，如nmap。原始套接字一种可能的用例是在用户空间实现新的传输层协议。 原始套接字常在网络设备上用于路由协议，例如IGMPv4、开放式最短路径优先协议 (OSPF)、互联网控制消息协议 (ICMP)。Ping就是发送一个ICMP响应请求包然后接收ICMP响应回复.</p>
 </blockquote>
+<h2 id="RAW-socket-可以做什么？"><a href="#RAW-socket-可以做什么？" class="headerlink" title="RAW socket 可以做什么？"></a>RAW socket 可以做什么？</h2><ol>
+<li>收包。<ol>
+<li>携带IP头的包</li>
+<li>携带以太网头的包</li>
+</ol>
+</li>
+<li>发包<ol>
+<li>发送报文时，自己封装IP头</li>
+<li>发送所有IPV4协议栈支持的协议报文 ICMP/UDP/TCP .. （普通套接字我们只是常用于TCP/UDP）</li>
+<li>发送报文时，自己封装以太网头</li>
+</ol>
+</li>
+</ol>
+<h2 id="使用-RAW-socket"><a href="#使用-RAW-socket" class="headerlink" title="使用 RAW socket"></a>使用 RAW socket</h2><ol>
+<li>创建raw socket</li>
+</ol>
+<pre><code class="c">    #include &lt;sys/socket.h&gt;
+    #include &lt;netinet/in.h&gt;
+    raw_socket = socket(int family, int socket_type, int protocol);</code></pre>
+<ul>
+<li><p><em>family</em>:</p>
+<ul>
+<li>AF_INET : 该类型套接字发送或接受的包，不包括以太网头</li>
+<li>AF_PACKET : 收到的包 根据 <em>socket_type</em> 的值，可以包含以太网头，也可以不包含以太网头</li>
+</ul>
+</li>
+<li><p><em>socket_type</em> 和 <em>protocol</em> 的值,根据 <em>family</em> 来定，具体参考官网手册最可靠</p>
+<ul>
+<li>AF_INET : 参考 <a href="https://man7.org/linux/man-pages/man7/raw.7.html">man手册raw(7)</a></li>
+<li>AF_PACKET ： 参考 <a href="https://man7.org/linux/man-pages/man7/packet.7.html">man手册packet(7)</a></li>
+</ul>
+</li>
+</ul>
+<ol start="2">
+<li>例子程序</li>
+</ol>
+<p>本人写了raw socket一些常见的收发包程序,请参考 <a href="https://peiyake.com/manpage/html/l2__recive_8c_source.html">raw socket例子程序</a></p>
+<h2 id="知识点"><a href="#知识点" class="headerlink" title="知识点"></a>知识点</h2><ul>
+<li>二层收发包，使用 <code>struct sockaddr_ll</code> 结构来描述接收、发送的源/目的地址（物理接口级别的）</li>
+<li>三层收发包，使用 <code>struct sockaddr_in</code> 结构来描述接收、发送的源/目的地址（IP地址级别的）</li>
+<li>二层收包, 可以绑定物理接口,如果需要接收非本机mac的报文，需要设置混杂模式（在例子程序l2_recive.c）中都有体现</li>
+<li>三层发包,如果只是TCP/UDP的包,其实用 普通套接字就可以了</li>
+<li>二层发包,需要指定发包的物理接口, 这个使用 <code>struct sockaddr_ll</code> 结构 设置 <strong>sll_ifindex</strong>为发包接口，传给 <code>sendto</code> 第5个参数</li>
+</ul>
+<p><code>struct sockaddr_ll</code> 结构使用介绍：</p>
+<p>在 <a href="https://man7.org/linux/man-pages/man7/packet.7.html">man手册packet(7)</a> 有很详细的解释：</p>
+<pre><code>The sockaddr_ll structure is a device-independent physical-layer
+       address.
 
+           struct sockaddr_ll {
+               unsigned short sll_family;   /* Always AF_PACKET */
+               unsigned short sll_protocol; /* Physical-layer protocol */
+               int            sll_ifindex;  /* Interface number */
+               unsigned short sll_hatype;   /* ARP hardware type */
+               unsigned char  sll_pkttype;  /* Packet type */
+               unsigned char  sll_halen;    /* Length of address */
+               unsigned char  sll_addr[8];  /* Physical-layer address */
+           };
+
+       The fields of this structure are as follows:
+
+       *  sll_protocol is the standard ethernet protocol type in network
+          byte order as defined in the &lt;linux/if_ether.h&gt; include file.  It
+          defaults to the socket&#39;s protocol.
+
+       *  sll_ifindex is the interface index of the interface (see
+          netdevice(7)); 0 matches any interface (only permitted for bind‐
+          ing).  sll_hatype is an ARP type as defined in the
+          &lt;linux/if_arp.h&gt; include file.
+
+       *  sll_pkttype contains the packet type.  Valid types are PACKET_HOST
+          for a packet addressed to the local host, PACKET_BROADCAST for a
+          physical-layer broadcast packet, PACKET_MULTICAST for a packet
+          sent to a physical-layer multicast address, PACKET_OTHERHOST for a
+          packet to some other host that has been caught by a device driver
+          in promiscuous mode, and PACKET_OUTGOING for a packet originating
+          from the local host that is looped back to a packet socket.  These
+          types make sense only for receiving.
+
+       *  sll_addr and sll_halen contain the physical-layer (e.g., IEEE
+          802.3) address and its length.  The exact interpretation depends
+          on the device.
+
+       When you send packets, it is enough to specify sll_family, sll_addr,
+       sll_halen, sll_ifindex, and sll_protocol.  The other fields should be
+       0.  sll_hatype and sll_pkttype are set on received packets for your
+       information.</code></pre>
         <script>
           var dom = document.getElementsByClassName('code');
           for(var i=0,len=dom.length; i<len; i++){
