@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="viggo" />
+  <title> 
+          OpenWRT之luci界面开发
+          |
+          
+          Mr.Piak的博客
+  </title>
+  <meta name="keywords" content="通信,tcp,udp,icmp,arp,ftp,dns,dhcp,snmp,ip,shell,python,kernel,vpp,dpdk,多进程,多线程,进程间通信,net-filter,skb,数据库,postgresql">
+  <meta name="description" content="luci是一套web界面框架，其采用MVC架构。,本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  <link rel="shortcut icon" href="/images/favicon.png">
+  
+<link rel="stylesheet" href="//fonts.loli.net/css?family=Arimo:400,700,400italic.css">
+<link rel="stylesheet" href="/css/fonts/linecons/css/linecons.min.css">
+<link rel="stylesheet" href="/css/fonts/fontawesome/css/all.min.css">
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+<link rel="stylesheet" href="/css/xenon-core.min.css">
+<link rel="stylesheet" href="/css/xenon-components.min.css">
+<link rel="stylesheet" href="/css/xenon-skins.min.css">
+<link rel="stylesheet" href="/css/nav.min.css">
+
+  
+<script src="/js/jquery-1.11.1.min.js"></script>
+
+  <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!--[if lt IE 9]>
+        
+<script src="/js/html5shiv.min.js"></script>
+
+        
+<script src="/js/respond.min.js"></script>
+
+    <![endif]-->
+  <!-- / FB Open Graph -->
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="http://peiyake.com/2021/04/30/openwrt/OpenWrt%E4%B9%8Bluci%E7%95%8C%E9%9D%A2%E5%BC%80%E5%8F%91/index.html">
+  <meta property="og:title" content="Mr.Piak的博客 - ">
+  <meta property="og:description" content="本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  <meta property="og:site_name" content="Mr.Piak的博客 - ">
+  
+  <meta property="og:image" content="/images/webstack_banner_cn.png">
+  
+  <!-- / Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Mr.Piak的博客 - ">
+  <meta name="twitter:description" content="本博客专注于通信领域技术总结：TCP/IP网络协议、网络编程、linux内核开发、shell命令、网络服务等">
+  
+  <meta name="twitter:image" content="/images/webstack_banner_cn.png">
+  
+  <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  <script src="/js/prettify.js"></script>
+  <link rel="stylesheet" href="/css/tomorrow_night.css">
+  <link rel="stylesheet" href="/css/tomorrow_night.min.css">
+  <link rel="stylesheet" href="/css/my.css">
+  <script>
+    Date.prototype.Format = function (fmt) {
+      var o = {
+              "M+": this.getMonth() + 1,
+              "d+": this.getDate(),
+              "h+": this.getHours(),
+              "m+": this.getMinutes(),
+              "s+": this.getSeconds(),
+              "q+": Math.floor((this.getMonth() + 3) / 3),
+              "S": this.getMilliseconds()
+      };
+      if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + ""));
+      for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+      return fmt;
+    }
+  </script>
+<meta name="generator" content="Hexo 4.2.1"></head>
+</head>
+
+<body class="page-body boxed-container">
+  <nav class="navbar horizontal-menu navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="navbar-brand">
+        <a href="/index.html" class="logo">
+          <img src="/images/logo@2x.png" width="180px" alt="" class="hidden-xs">
+        </a>
+      </div>
+      <div class="navbar-mobile-clear"></div>
+      
+      <a href="https://github.com/peiyake/peiyake.github.io.git" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+      
+    </div>
+  </nav>
+  <!--
+  <aside class="post-widget">
+    <nav>
+      <h4>TOC</h4>
+      <ol>
+        <li>
+          <a>
+            <span>1.</span> 
+            <span>发布订阅模式</span>
+          </a>
+        </li>
+        <li>
+          <a>
+            <span>2.</span> 
+            <span>数据流</span>
+          </a>
+        </li>
+        <li>
+            <a href="#Vue中的解决方案">
+              <span>3.</span> 
+              <span>Vue中的解决方案</span>
+            </a>
+        </li>
+      </ol>
+    </nav>
+  </aside>
+  -->   
+  <div class="page-container" style="background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+
+    <div style="margin:35px">
+        <h1 id="OpenWRT之luci界面开发" class="page_title">
+          <a href="#OpenWRT之luci界面开发" class="headerlink" title="OpenWRT之luci界面开发"></a>
+          OpenWRT之luci界面开发
+        </h1>
+        <div>
+          <em class="page_meta">Written by </em>
+          <a itemprop="name" href="http://peiyake.com" rel="author">Yake Pei</a> 
+          <em class="page_meta">,Last update
+            <span class="post-time">on 
+              <time datetime="1619771022000" itemprop="datePublished"><script>var times=1619771022000;var date = new Date(times).Format('yy-MM-dd hh:mm');document.write(date);</script></time>
+            </span>
+          </em>
+          <span id="/2021/04/30/openwrt/OpenWrt%E4%B9%8Bluci%E7%95%8C%E9%9D%A2%E5%BC%80%E5%8F%91/" class="leancloud_visitors" data-flag-title="OpenWRT之luci界面开发">
+            <em class="post-meta-item-text" style="color:#55555587 !important">,Pageviews:</em>
+            <i class="leancloud-visitors-count">loading</i>
+          </span>
+        </div>
+        <hr style="margin-top: 0;border:1;border-top:1px solid #b0a71d !important">
+        <h2 id="MVC架构"><a href="#MVC架构" class="headerlink" title="MVC架构"></a>MVC架构</h2><blockquote>
+<p>经典MVC模式中，M是指业务模型，V是指用户界面，C则是控制器，使用MVC的目的是将M和V的实现代码分离，从而使同一个程序可以使用不同的表现形式。其中，View的定义比较清晰，就是用户界面.</p>
+</blockquote>
+<h2 id="luci开发的参考资料"><a href="#luci开发的参考资料" class="headerlink" title="luci开发的参考资料"></a>luci开发的参考资料</h2><p><a href="https://github.com/openwrt/luci/wiki/Documentation">luci官方资料</a></p>
+<p>官方资料是开发luci必不可少的，在开发过程中遇到问题，在官方资料中基本都能找到答案；</p>
+<h2 id="luci界面开发的基本思路"><a href="#luci界面开发的基本思路" class="headerlink" title="luci界面开发的基本思路"></a>luci界面开发的基本思路</h2><ol>
+<li>下载一套luci代码</li>
+<li>搭建一套openwrt的环境，能够打开该环境的luci界面</li>
+<li>构想你要开发的界面的位置</li>
+<li>在luci代码的applications目录新增你自己的代码（可以直接拷贝其它已有的代码然后对照修改）</li>
+<li>参考其它模块的代码，写自己的界面（例如：按钮、输入款、下拉列表、多选结构、table等）</li>
+<li>编译模块</li>
+<li>安装调试</li>
+</ol>
+<h2 id="一个完整的luci的applications"><a href="#一个完整的luci的applications" class="headerlink" title="一个完整的luci的applications"></a>一个完整的luci的applications</h2><p>需要包含以下目录</p>
+<ul>
+<li><input disabled="" type="checkbox"> <p>src </p>
+<p>  The src directory is reserved for C sourcecode.</p>
+</li>
+<li><input checked="" disabled="" type="checkbox"> <p>luasrc</p>
+<p>  luasrc contains all Lua sourcecode files. These will automatically be stripped or compiled depending on the Make target and are installed in the LuCI installation directory.</p>
+</li>
+<li><input disabled="" type="checkbox"> <p>lua</p>
+<p>  lua is equivalent to luasrc but containing Lua files will be installed in the Lua document root.</p>
+</li>
+<li><input disabled="" type="checkbox"> <p>htdocs</p>
+<p>  All files under htdocs will be copied to the document root of the target webserver.</p>
+</li>
+<li><input disabled="" type="checkbox"> <p>root</p>
+<p>  All directories and files under root will be copied to the installation target as they are.(如果存在默认的uci配置，那么在root/files/etc/config/目录下新增uci文件)</p>
+</li>
+<li><input disabled="" type="checkbox"> <p>dist</p>
+<p>  dist is reserved for the builder to create a working installation tree that will represent the filesystem on the target machine. DO NOT put any files there as they will get deleted.</p>
+</li>
+<li><input disabled="" type="checkbox"> <p>ipkg</p>
+<p>  ipkg contains IPKG package control files, like preinst, posinst, prerm, postrm. conffiles. See IPKG documentation for details.</p>
+</li>
+</ul>
+<h2 id="luci界面和uci"><a href="#luci界面和uci" class="headerlink" title="luci界面和uci"></a>luci界面和uci</h2><pre><code class="mermaid">graph LR
+    luci界面 --&gt; GET读取;
+    GET读取 --&gt; uci配置;
+    uci配置 --&gt; luci界面;
+    luci界面 --&gt; POST提交;
+    POST提交 --&gt; uci配置;
+    uci配置 --&gt; luci界面;</code></pre>
+<h2 id="一个开发实例"><a href="#一个开发实例" class="headerlink" title="一个开发实例"></a>一个开发实例</h2><p><a href="/src/luci-app-strongswan.tar.gz">luci-app-strongswan</a></p>
+<h2 id="界面预览"><a href="#界面预览" class="headerlink" title="界面预览"></a>界面预览</h2><p><img src="/images/ipsec1.png" alt="1"><br><img src="/images/ipsec2.png" alt="2"><br><img src="/images/ipsec3.png" alt="3"><br><img src="/images/ipsec4.png" alt="4"><br><img src="/images/ipsec5.png" alt="5"></p>
+
+        <script>
+          var dom = document.getElementsByClassName('code');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.width = '750px';
+          }
+          var dom = document.getElementsByTagName('h1');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].className  += 'page_title';
+          }
+          var dom = document.getElementsByTagName('p');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.color = '#303333';
+          }
+          var dom = document.getElementsByTagName('a');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.color = '#2d96bd';
+          }
+          var dom = document.getElementsByTagName('img');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].className += ' img-responsive';
+          }
+          var dom = document.getElementsByTagName('blockquote');
+          for(var i=0,len=dom.length; i<len; i++){
+            dom[i].style.borderLeft = '5px solid #ddc06b';
+            dom[i].style.backgroundColor = 'rgba(216, 221, 206, 0.49';
+            dom[i].style.fontFamily = '微软雅黑,华文细黑,STHeiti,MingLiu';
+            dom[i].style.fontSize = '13px';
+          }
+        </script>
+
+        <br>
+        <br>
+        <hr>
+        <script>
+          window.onload = (function(){
+              $('pre').addClass('prettyprint linenums').attr('style', 'overflow:auto;');
+              prettyPrint(); 
+          });
+        </script>
+        <p>评论区：</p>
+
+
+        
+        <section id="comments" class="comments" style="margin-left:0px !important">
+          <style>
+            .comments{margin:30px;padding:10px;background:#fff}
+            @media screen and (max-width:800px){.comments{margin:auto;padding:10px;background:#fff}}
+          </style>
+          <div class="valine_comment"></div>
+<!--载入js，在</body>之前插入即可-->
+<!--Leancloud 操作库:-->
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<!--Valine 的核心代码库-->
+<script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+<script>
+  new Valine({
+      el: '.valine_comment',
+      app_id: 'KmguPzUzYoAUXeMp0zqvxPPj-gzGzoHsz',
+      app_key: 'bq515N7CFPO5fHr3XlEXp5EJ',
+      placeholder: '请在这里留言。。。',
+      notify: 'true',
+      verify: 'true',
+      visitor: 'true',
+    });
+</script>
+        </section>
+        
+    </div>
+  </div>
+    
+  <footer class="main-footer sticky footer-type-1">
+  <div class="footer-inner">
+    <!-- Add your copyright text here -->
+    <p class="footer-text">
+      
+      &copy; 2019 - 2021
+      <a href="/about/"><strong>Mr.Piak的博客</strong></a> design by <a href="http://peiyake.com" target="_blank"><strong>Yake Pei</strong></a> | Power by <a href="https://hexo.io/" target="_blank"><strong>Hexo</strong></a> & <a href="https://github.com/peiyake/hexo-theme-webstack.git" target="_blank"><strong>hexo-theme-webstack</strong></a>
+    </p>
+    <div class="go-up">
+      <a href="#" rel="go-top">
+        <i class="fas fa-angle-up"></i>
+      </a>
+    </div>
+  </div>
+</footer>
+</div>
+</div>
+
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/TweenMax.min.js"></script>
+<script src="/js/resizeable.min.js"></script>
+<script src="/js/joinable.js"></script>
+<script src="/js/xenon-api.min.js"></script>
+<script src="/js/xenon-toggles.min.js"></script>
+<script src="/js/xenon-custom.min.js"></script>
+
+
+<textarea tabindex="-1" style="position: absolute; top: -999px; left: 0px; right: auto; bottom: auto; border: 0px; padding: 0px; box-sizing: content-box; word-wrap: break-word; overflow: hidden; transition: none; height: 0px !important; min-height: 0px !important; font-family: Arimo, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 400; font-style: normal; letter-spacing: 0px; text-transform: none; word-spacing: 0px; text-indent: 0px; line-height: 18.5714px; width: 53px;" class="autosizejs" id="autosizejs"></textarea>
+
+</body>
+
+</html>
