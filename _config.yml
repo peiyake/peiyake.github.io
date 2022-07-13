@@ -1,0 +1,148 @@
+# Hexo Configuration
+## Docs: https://hexo.io/docs/configuration.html
+## Source: https://github.com/hexojs/hexo/
+
+# Site
+title: Mr.Piak
+#avatar: https://images.unsplash.com/photo-1533743983669-94fa5c4338ec?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1992&q=80
+avatar: /images/avatar.png
+subtitle: '青青子衿，悠悠我心'
+description: ''
+keywords:
+author: Yake Pei
+language: zh-CN
+timezone: 'Asia/Shanghai'
+favicon: /images/favicon.png
+
+# URL
+## Set your site url here. For example, if you use GitHub Page, set url as 'https://username.github.io/project'
+url: http://piak.gitee.io/
+#permalink: :year/:month/:day/:title/
+permalink: :year/:month/:day/:hash/
+permalink_defaults:
+pretty_urls:
+  trailing_index: true # Set to false to remove trailing 'index.html' from permalinks
+  trailing_html: true # Set to false to remove trailing '.html' from permalinks
+
+# Directory
+source_dir: source
+public_dir: public
+tag_dir: tags
+archive_dir: archives
+category_dir: categories
+code_dir: downloads/code
+i18n_dir: :lang
+skip_render:
+
+# Writing
+#new_post_name: :title.md # File name of new posts
+new_post_name: :year:month:day-:title.md
+default_layout: post
+titlecase: false # Transform title into titlecase
+external_link:
+  enable: true # Open external links in new tab
+  field: site # Apply to the whole site
+  exclude: ''
+filename_case: 0
+render_drafts: false
+post_asset_folder: false
+marked:
+  prependRoot: true
+  postAsset: true
+relative_link: false
+future: true
+highlight:
+  enable: true
+  line_number: true
+  auto_detect: false
+  tab_replace: ''
+  wrap: true
+  hljs: false
+prismjs:
+  enable: false
+  preprocess: true
+  line_number: true
+  tab_replace: ''
+
+# Home page setting
+# path: Root path for your blogs index page. (default = '')
+# per_page: Posts displayed per page. (0 = disable pagination)
+# order_by: Posts order. (Order by date descending by default)
+index_generator:
+  path: ''
+  per_page: 10
+  order_by: -date
+
+# Category & Tag
+default_category: uncategorized
+category_map:
+  关于: about
+  编程: biancheng
+  理论: yuanli
+  专题: zhuanti
+  其它: qita
+
+tag_map:
+  编程: code
+  C语言: C
+  Linux: linux
+  内核: kernel
+  IPSec: IPSec
+  网络协议栈: netstack
+  协议: proto
+  OpenWRT: OpenWrt
+  Makefile: Makefile
+  GCC: gcc
+  TCPIP: tcpip
+  Linux防火墙: netfilter
+  Iptables: iptables
+  文件系统: filesystem
+  驱动: driver
+  设备树: dts
+  WIFI: wifi
+  源码: source
+  LUA: lua
+  GDB: gdb
+
+
+
+# Metadata elements
+## https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta
+meta_generator: true
+
+# Date / Time format
+## Hexo uses Moment.js to parse and display date
+## You can customize the date format as defined in
+## http://momentjs.com/docs/#/displaying/format/
+date_format: YYYY-MM-DD
+time_format: HH:mm:ss
+## updated_option supports 'mtime', 'date', 'empty'
+updated_option: 'mtime'
+
+# Pagination
+## Set per_page to 0 to disable pagination
+per_page: 10
+pagination_dir: page
+
+# Include / Exclude file(s)
+## include:/exclude: options only apply to the 'source/' folder
+include:
+exclude:
+ignore:
+
+# Extensions
+## Plugins: https://hexo.io/plugins/
+## Themes: https://hexo.io/themes/
+#theme: landscape
+#theme: wixo
+#theme: stellar-1.8.0
+theme: stellar
+
+# Deployment
+## Docs: https://hexo.io/docs/one-command-deployment
+deploy:
+  type: git
+  #repo: git@gitee.com:piak/piak.git
+  #branch: master
+  repo: git@github.com:peiyake/peiyake.github.io.git
+  branch: hexo

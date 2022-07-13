@@ -1,0 +1,97 @@
+sidebar:
+  menu:
+    post: '[btn.blog](/)'
+    wiki: '[btn.wiki](/wiki/)'
+    about: '[btn.about](/about/)'
+  widget_layout:
+    index: [welcome, recent] # for home/wiki/categories/tags/archives/404 pages
+    page: [welcome, toc] # for pages using 'layout:page'
+    post: [toc, repo_info] # for pages using 'layout:post'
+    wiki: [toc, repo_info, wiki_more] # for pages using 'layout:wiki'
+  # Sidebar widgets
+  widgets:
+    # Recent update
+    recent:
+      layout: recent
+      #rss: /atom.xml # npm i hexo-generator-feed
+      limit: 5 # Count of posts
+    # TOC (valid only in layout:post/wiki)
+    toc:
+      layout: toc
+      list_number: false
+      min_depth: 2
+      max_depth: 5
+    # welcome
+    welcome:
+      layout: markdown
+      title: 欢迎看官
+      content: |
+        欢迎光临小站，本站专注于Linux环境开发技术。总结、归纳、收藏博主在工作中遇到的问题和解决办法。不拘泥于某个技术实现细节，侧重记录解决方案、实现原理、编程思想。本站也会记录一些实用的技巧、方法，欢迎同行来站[留言](/about/#comments)、交流...
+        <br>
+        <em style="color: gray;">新建站点，以前的一些文章将陆续迁移过来…</em>
+        <br>
+        <hr>
+        <font size="1" style="display: block;color: gray;padding-bottom: 5px;">21th&middot;开发者</font>
+        <font size="1">
+        虚拟世界 <br>
+        你是内存中哪一个孤独的进程？<br>
+        现实社会<br>
+        你是人群中哪一个平凡的身影？<br>
+        此端，彼岸 <br>
+        在冯·诺伊曼体系中切换 <br>
+        </font>
+######## Article ########
+article:
+  # 如果没有指定封面，是否根据 tags 作为关键词搜索封面？
+  auto_cover: false # search from https://source.unsplash.com/
+  # 如果没有指定 excerpt 和 description，将自动取多长的内容作为文章摘要？
+  auto_excerpt: 200
+  # 分类颜色
+  category_color:
+    '新闻稿': '#DA0F47'
+    '收藏': '#c14545'
+    '知识点': '#c19b45'
+    '技巧': '#cad922'
+    '编程': '#1ab21f'
+    '语言': '#34d3d3'
+    '概念': '#3b83dc'
+    '原理': '#7a2eaa'
+    '想法': '#d33cc7'
+    '英语': '#b35d8c'
+  # 文章许可协议
+  license: '本文采用 [署名-非商业性使用-相同方式共享 4.0 国际](https://creativecommons.org/licenses/by-nc-sa/4.0/) 许可协议，转载请注明出处。'
+  # 分享
+  share: # [wechat, weibo, email, link]
+  # 相关文章，需要安装插件 (for layout: post)
+  # npm i hexo-related-popular-posts
+  related_posts:
+    enable: false
+    max_count: 5
+    auto_cover: true # 如果没有封面就根据 tags 作为关键词搜索封面，开了此项将不会自动从文章中提取首张图片作为封面了。
+
+######## Comments ########
+comments:
+  service: valine # beaudar, utterances, valine, twikoo, waline
+  valine:
+    js: https://fastly.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js
+    appId: KmguPzUzYoAUXeMp0zqvxPPj-gzGzoHsz # your appId
+    appKey: bq515N7CFPO5fHr3XlEXp5EJ # your appKey
+    placeholder:
+    visitor: true
+    requiredFields: [nick, mail]
+    enableQQ: true # Unstable avatar link
+    recordIP: false # Record commenter IP
+    avatar: robohash # gravatar style https://valine.js.org/avatar
+    pageSize: 10 # comment list page size
+    lang: zh-cn
+    highlight: true
+    mathJax: false
+    tagMeta: [博主, 小伙伴, 访客] # 标签要显示的文字,默认'博主,小伙伴,访客'
+    metaPlaceholder:
+      nick: "昵称/QQ号(必填)"
+      mail: "邮箱（必填，完全保密）"
+      link: "网址(https://)"
+    master: #md5加密后的博主邮箱
+      - 6783037F2DF30EAB99F9FC256157D875
+    friends: #md5加密后的小伙伴邮箱
+      - 6783037F2DF30EAB99F9FC256157D875

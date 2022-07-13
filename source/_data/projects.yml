@@ -1,0 +1,8 @@
+Demo:
+  title: 基于Stallar的wiki示例
+  tags: [专栏示例]
+  cover: false
+  #cover: true
+  #logo:
+    #src: https://source.unsplash.com/random/200x120
+  description: Stallar是一个非常好用的的hexo主题，尤其是它的wiki功能，让你可以把零散的文章制作成一个专栏。本文就简要介绍了wiki的搭建方法
