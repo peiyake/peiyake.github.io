@@ -1,12 +1,9 @@
-# Mr.Piak's Blog Source Files
-
-
 ## 使用说明
 
 ### 1. 搭建本地预览环境
 
 ```
-$ git clone git@gitee.com:piak/piak.git
+$ git clone -b hexo git@github.com:peiyake/peiyake.github.io.git
 $ cd piak
 $ npm install #安装npm包
 $ hexo clean
