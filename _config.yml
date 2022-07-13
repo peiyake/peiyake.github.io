@@ -145,4 +145,4 @@ deploy:
   #repo: git@gitee.com:piak/piak.git
   #branch: master
   repo: git@github.com:peiyake/peiyake.github.io.git
-  branch: hexo
+  branch: master
