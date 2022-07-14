@@ -2,6 +2,15 @@
 function div_default() {
   var el = '';
   el += '<article class="md">';
+  var index_path = new String(post.path);
+  if(theme.comments.service && theme.comments.service.length > 0) {
+    if(theme.comments.service === 'waline' && theme.comments.waline.pageview){
+      var n = index_path.search(/index.html$/);
+      if(n != -1){
+        index_path=index_path.slice(0,n);
+      }
+    }
+  }
 
   // 封面
   if (post.cover || theme.article.auto_cover) {
@@ -77,6 +86,11 @@ function div_default() {
         el += cat;
         el += '</span>';
       }
+    }
+  }
+  if(theme.comments.service && theme.comments.service.length > 0) {
+    if(theme.comments.service === 'waline' && theme.comments.waline.pageview){
+      el += '&nbsp;&nbsp;<span>阅读:</span>&nbsp;<span class="waline-pageview-count" data-path="' + url_for(index_path) + '">loading</span></span>';
     }
   }
   if (post.pin) {

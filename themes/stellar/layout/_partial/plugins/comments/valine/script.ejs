@@ -25,7 +25,12 @@
     if(!document.getElementById("valine_container"))return;
     stellar.loadScript('<%- theme.comments.valine.js %>', {defer:true}).then(function () {
       const el = document.getElementById("valine_container");
-      var path = el.getAttribute('comment_id');
+      //var path = el.getAttribute('comment_id');
+      var path = "<%- url_for(page.path) %>";
+      var n = path.search(/index.html$/);
+      if(-1 != n){
+        path = path.slice(0,n);
+      }
       const placeholder = "<%= theme.comments.valine.placeholder %>";
       if (!path) {
         path = decodeURI(window.location.pathname);

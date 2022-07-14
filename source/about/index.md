@@ -15,6 +15,6 @@ date: 2022-07-12 00:19:12
 <em>本站收集或记录工作中遇到的问题、经验，欢迎同行来站交流...</em>
 
 
-{% navbar [文章](/) [项目](/wiki/) [留言](#comments) [GitHub](#) %}
+{% navbar [文章](/) [专栏](/wiki/) [留言](#comments) [GitHub](#) %}
 
 {% endabout %}

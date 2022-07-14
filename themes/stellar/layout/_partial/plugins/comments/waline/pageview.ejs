@@ -1,0 +1,30 @@
+<script>
+  function load_pageview(){
+    stellar.loadScript('https://unpkg.com/@waline/client/dist/pageview.js', {defer:true}).then(function () {
+      var paths = new Array();
+      <% page.posts.forEach((post, i) => { %>
+        <% if(post.layout === "post") { %>
+          paths.push("<%- url_for(post.path) %>");
+          console.log("path = " + "<%- url_for(post.path) %>");
+        <% } %>
+      <% }); %>
+      if(paths && paths.length > 0){
+        for(var i=0;i < paths.length; i ++){
+          var path = paths[i];
+          var n = path.search(/index.html$/);
+          if(-1 != n){
+            path = path.slice(0,n);
+          }
+          Waline.pageviewCount({
+            serverURL: '<%- theme.comments.waline.serverURL %>',
+            path: path,
+            update: false
+          });
+        }
+      }
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    load_pageview();
+  });
+</script>

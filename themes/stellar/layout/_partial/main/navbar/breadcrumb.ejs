@@ -4,6 +4,16 @@ function layoutDiv() {
   if (page.breadcrumb === false) {
     return el;
   }
+  if(theme.comments.service && theme.comments.service.length > 0) {
+    if((theme.comments.service === 'valine' && theme.comments.valine.visitor) 
+        || (theme.comments.service === 'waline' && theme.comments.waline.pageview)){
+      var index_path = new String(page.path);
+      var n = index_path.search(/index.html$/);
+      if(n != -1){
+        index_path=index_path.slice(0,n);
+      }
+    }
+  }
   var home_title = __("btn.home");
   if (theme.breadcrumb && theme.breadcrumb.home) {
     if (theme.breadcrumb.home === 'config.title') {
@@ -37,8 +47,12 @@ function layoutDiv() {
     // 发布日期
     el += '<div id="post-meta">';
     el += __("meta.created") + '&nbsp;<time datetime="' + date_xml(page.date) + '">' + date(page.date, config.date_format) + '</time>';
-    if(theme.comments.service === 'valine' && theme.comments.valine.visitor){
-      el += '&nbsp;&nbsp;<span id="' + url + '" class="leancloud_visitors" data-flag-title="' + page.title + '"><span class="post-meta-item-text">阅读:</span>&nbsp;<span class="leancloud-visitors-count">loading</span></span>'
+    if(theme.comments.service && theme.comments.service.length > 0) {
+      if(theme.comments.service === 'valine' && theme.comments.valine.visitor){
+        el += '&nbsp;&nbsp;<span id="' + url_for(index_path) + '" class="leancloud_visitors" data-flag-title="' + page.title + '"><span class="post-meta-item-text">阅读:</span>&nbsp;<span class="leancloud-visitors-count">loading</span></span>'
+      }else if(theme.comments.service === 'waline' && theme.comments.waline.pageview){
+        el += '&nbsp;&nbsp;<span>阅读:</span>&nbsp;<span class="waline-pageview-count" data-path="' + url_for(index_path) + '">loading</span></span>'
+      }
     }
     el += '</div>';
     el += '</div>';
@@ -71,8 +85,12 @@ function layoutDiv() {
     // 更新日期
     el += '<div id="post-meta">';
     el += __("meta.updated") + '&nbsp;<time datetime="' + date_xml(page.updated) + '">' + date(page.updated, config.date_format) + '</time>';
-    if(theme.comments.service === 'valine' && theme.comments.valine.visitor){
-      el += '&nbsp;&nbsp;<span id="' + url + '" class="leancloud_visitors" data-flag-title="' + page.title + '"><span class="post-meta-item-text">阅读:</span>&nbsp;<span class="leancloud-visitors-count">loading</span></span>'
+    if(theme.comments.service && theme.comments.service.length > 0) {
+      if(theme.comments.service === 'valine' && theme.comments.valine.visitor){
+        el += '&nbsp;&nbsp;<span id="' + url_for(index_path) + '" class="leancloud_visitors" data-flag-title="' + page.title + '"><span class="post-meta-item-text">阅读:</span>&nbsp;<span class="leancloud-visitors-count">loading</span></span>'
+      }else if(theme.comments.service === 'waline' && theme.comments.waline.pageview){
+        el += '&nbsp;&nbsp;<span>阅读:</span>&nbsp;<span class="waline-pageview-count" data-path="' + url_for(index_path) + '">loading</span></span>'
+      }
     }
     el += '</div>';
     el += '</div>';

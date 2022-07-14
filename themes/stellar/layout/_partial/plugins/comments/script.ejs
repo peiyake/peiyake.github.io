@@ -1,3 +1,8 @@
 <% if (theme.comments.service && theme.comments.service.length > 0) { %>
   <%- partial(theme.comments.service + '/script') %>
+  <% if (theme.comments.service === 'waline' && theme.comments.waline.pageview && is_home() && page.posts && page.posts.length > 0) { %>
+    <%- partial(theme.comments.service + '/pageview') %>
+  <% } %>
 <% } %>
+
+

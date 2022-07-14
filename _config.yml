@@ -8,7 +8,7 @@ title: Mr.Piak
 avatar: /images/avatar.png
 subtitle: '青青子衿，悠悠我心'
 description: ''
-keywords:
+keywords: Linux,内核,IPSec,国密,网络知识,网络协议,Strongswan,openwrt,feed,luci,uboot,文件系统,shell,lua,全栈
 author: Yake Pei
 language: zh-CN
 timezone: 'Asia/Shanghai'
@@ -16,7 +16,7 @@ favicon: /images/favicon.png
 
 # URL
 ## Set your site url here. For example, if you use GitHub Page, set url as 'https://username.github.io/project'
-url: http://piak.gitee.io/
+url: https://peiyake.com/
 #permalink: :year/:month/:day/:title/
 permalink: :year/:month/:day/:hash/
 permalink_defaults:
@@ -76,34 +76,7 @@ index_generator:
 # Category & Tag
 default_category: uncategorized
 category_map:
-  关于: about
-  编程: biancheng
-  理论: yuanli
-  专题: zhuanti
-  其它: qita
-
 tag_map:
-  编程: code
-  C语言: C
-  Linux: linux
-  内核: kernel
-  IPSec: IPSec
-  网络协议栈: netstack
-  协议: proto
-  OpenWRT: OpenWrt
-  Makefile: Makefile
-  GCC: gcc
-  TCPIP: tcpip
-  Linux防火墙: netfilter
-  Iptables: iptables
-  文件系统: filesystem
-  驱动: driver
-  设备树: dts
-  WIFI: wifi
-  源码: source
-  LUA: lua
-  GDB: gdb
-
 
 
 # Metadata elements

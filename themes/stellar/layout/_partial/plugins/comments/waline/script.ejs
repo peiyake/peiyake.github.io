@@ -4,7 +4,12 @@
     stellar.loadCSS('<%- theme.comments.waline.css %>');
     stellar.loadScript('<%- theme.comments.waline.js %>', {defer:true}).then(function () {
       const el = document.getElementById("waline_container");
-      var path = el.getAttribute('comment_id');
+      //var path = el.getAttribute('comment_id');
+      var path = "<%- url_for(page.path) %>";
+      var n = path.search(/index.html$/);
+      if(-1 != n){
+        path = path.slice(0,n);
+      }
       if (!path) {
         path = decodeURI(window.location.pathname);
       }
