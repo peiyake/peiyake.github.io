@@ -24,7 +24,7 @@
     <meta name="description" content="在Linux运行环境，内核日志对我们排查内核态的故障非常重要，尤其是当内核发生panic或者Oops故障时，内核会通过日志输出堆栈信息，但是当发生此类问题时，设备往往会重启，重启后日志信息就会丢失，导致无法通过日志来定位问题。尤其是在嵌入式设备上，出现此类问题往往让人头疼。那么有没有什么办法能保存故障现场的日志呢？本文提供一种方法：在内核printk代码中添加日志处理钩子函数，通过此钩子你可以注册">
 <meta property="og:type" content="article">
 <meta property="og:title" content="通过钩子实时获取内核日志">
-<meta property="og:url" content="http://piak.gitee.io/2022/07/13/2f9c86473b67/index.html">
+<meta property="og:url" content="https://peiyake.com/2022/07/13/2f9c86473b67/index.html">
 <meta property="og:site_name" content="Mr.Piak">
 <meta property="og:description" content="在Linux运行环境，内核日志对我们排查内核态的故障非常重要，尤其是当内核发生panic或者Oops故障时，内核会通过日志输出堆栈信息，但是当发生此类问题时，设备往往会重启，重启后日志信息就会丢失，导致无法通过日志来定位问题。尤其是在嵌入式设备上，出现此类问题往往让人头疼。那么有没有什么办法能保存故障现场的日志呢？本文提供一种方法：在内核printk代码中添加日志处理钩子函数，通过此钩子你可以注册">
 <meta property="og:locale" content="zh_CN">
@@ -85,7 +85,7 @@
 
       
 
-<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E6%8A%80%E5%B7%A7/">技巧</a> <span class="sep"></span> <a class="cap breadcrumb-link" href="/categories/biancheng/">编程</a></div><div id="post-meta">发布于&nbsp;<time datetime="2022-07-13T01:15:11.000Z">2022-07-13</time>&nbsp;&nbsp;<span id="http://piak.gitee.io/2022/07/13/2f9c86473b67/index.html" class="leancloud_visitors" data-flag-title="通过钩子实时获取内核日志"><span class="post-meta-item-text">阅读:</span>&nbsp;<span class="leancloud-visitors-count">loading</span></span></div></div>
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E6%8A%80%E5%B7%A7/">技巧</a> <span class="sep"></span> <a class="cap breadcrumb-link" href="/categories/%E7%BC%96%E7%A8%8B/">编程</a></div><div id="post-meta">发布于&nbsp;<time datetime="2022-07-13T01:15:11.000Z">2022-07-13</time>&nbsp;&nbsp;<span>阅读:</span>&nbsp;<span class="waline-pageview-count" data-path="/2022/07/13/2f9c86473b67/">loading</span></span></div></div>
 
 <article class='content md post'>
 <h1 class="article-title"><span>通过钩子实时获取内核日志</span></h1>
@@ -102,7 +102,7 @@
 
 </article>
 
-
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><div class="line"></div><a id="prev" href="/2022/07/14/d050aabdbce5/">测试文章<span class="note">较新</span></a></section></div>
 
 
 
@@ -113,10 +113,10 @@
     <div class='cmt-title cap theme'>
       快来参与讨论吧
     </div>
-    <div class='cmt-body valine'>
+    <div class='cmt-body waline'>
       
 
-<div id="valine_container" class="valine_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+<div id="waline_container" class="waline_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
 
     </div>
   </div>
@@ -125,7 +125,7 @@
 
       
 <footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
-<p>本站由 <a href="http://piak.gitee.io/">@Yake Pei</a> 创建，使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.8.0" title="v1.8.0">Stellar</a> 作为主题。</p>
+<p>本站由 <a href="https://peiyake.com/">@Yake Pei</a> 创建，使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.8.0" title="v1.8.0">Stellar</a> 作为主题。</p>
 </div></footer>
 
       <div class='float-panel mobile-only blur' style='display:none'>
@@ -278,44 +278,23 @@
 <!-- optional -->
 
   <script>
-  function getEmojiMaps() {
-    function emoji(path, idx, ext) {
-      return path + "/" + path + "-" + idx + "." + ext;
-    }
-    var emojiMaps = {};
-    for (var i = 1; i <= 54; i++) {
-      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
-    }
-    for (var i = 1; i <= 101; i++) {
-      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
-    }
-    for (var i = 1; i <= 116; i++) {
-      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
-    }
-    for (var i = 1; i <= 125; i++) {
-      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
-    }
-    for (var i = 1; i <= 4; i++) {
-      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
-    }
-    return emojiMaps;
-  }
   function load_comment(){
-    if(!document.getElementById("valine_container"))return;
-    stellar.loadScript('https://fastly.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
-      const el = document.getElementById("valine_container");
-      var path = el.getAttribute('comment_id');
-      const placeholder = "";
+    if(!document.getElementById("waline_container"))return;
+    stellar.loadCSS('https://unpkg.com/@waline/client@v2/dist/waline.css');
+    stellar.loadScript('https://unpkg.com/@waline/client@v2/dist/waline.js', {defer:true}).then(function () {
+      const el = document.getElementById("waline_container");
+      //var path = el.getAttribute('comment_id');
+      var path = "/2022/07/13/2f9c86473b67/";
+      var n = path.search(/index.html$/);
+      if(-1 != n){
+        path = path.slice(0,n);
+      }
       if (!path) {
         path = decodeURI(window.location.pathname);
       }
-      var valine = new Valine();
-      valine.init(Object.assign({"js":"https://fastly.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"KmguPzUzYoAUXeMp0zqvxPPj-gzGzoHsz","appKey":"bq515N7CFPO5fHr3XlEXp5EJ","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"visitor":true}, {
-        el: '#valine_container',
+      Waline.init(Object.assign({"js":"https://unpkg.com/@waline/client@v2/dist/waline.js","css":"https://unpkg.com/@waline/client@v2/dist/waline.css","serverURL":"https://peiyake.com.cn/","commentCount":false,"pageview":true,"requiredMeta":["nick","mail"],"copyright":false,"placeholder":"请留言。(填写邮箱可在被回复时收到邮件提醒)"}, {
+        el: '#waline_container',
         path: path,
-        placeholder: placeholder,
-        emojiCDN: 'https://fastly.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
-        emojiMaps: getEmojiMaps(),
       }));
     });
   }
@@ -325,6 +304,9 @@
   });
 
 </script>
+
+  
+
 
 
 

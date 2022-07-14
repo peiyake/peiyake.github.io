@@ -4,6 +4,31 @@
   
     
     <entry>
+      <title>测试文章</title>
+      <link href="/2022/07/14/d050aabdbce5/"/>
+      <url>/2022/07/14/d050aabdbce5/</url>
+      
+        <content type="html"><![CDATA[<p>这是一篇测试文章。</p><p>仅仅为了增加文章数量，然后查看一下“当首页有多篇文章时，<strong>阅读数</strong>能否正常显示”。</p><p>谢谢！</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 技巧 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 测试 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>通过钩子实时获取内核日志</title>
       <link href="/2022/07/13/2f9c86473b67/"/>
       <url>/2022/07/13/2f9c86473b67/</url>

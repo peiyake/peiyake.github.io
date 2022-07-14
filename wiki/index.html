@@ -23,10 +23,11 @@
   
     <meta property="og:type" content="website">
 <meta property="og:title" content="专栏">
-<meta property="og:url" content="http://piak.gitee.io/wiki/index.html">
+<meta property="og:url" content="https://peiyake.com/wiki/index.html">
 <meta property="og:site_name" content="Mr.Piak">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:author" content="Yake Pei">
+<meta property="article:tag" content="Linux,内核,IPSec,国密,网络知识,网络协议,Strongswan,openwrt,feed,luci,uboot,文件系统,shell,lua,全栈">
 <meta name="twitter:card" content="summary">
   
   
@@ -109,7 +110,7 @@
 
       
 <footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
-<p>本站由 <a href="http://piak.gitee.io/">@Yake Pei</a> 创建，使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.8.0" title="v1.8.0">Stellar</a> 作为主题。</p>
+<p>本站由 <a href="https://peiyake.com/">@Yake Pei</a> 创建，使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.8.0" title="v1.8.0">Stellar</a> 作为主题。</p>
 </div></footer>
 
       <div class='float-panel mobile-only blur' style='display:none'>
@@ -262,44 +263,23 @@
 <!-- optional -->
 
   <script>
-  function getEmojiMaps() {
-    function emoji(path, idx, ext) {
-      return path + "/" + path + "-" + idx + "." + ext;
-    }
-    var emojiMaps = {};
-    for (var i = 1; i <= 54; i++) {
-      emojiMaps['tieba-' + i] = emoji('tieba', i, 'png');
-    }
-    for (var i = 1; i <= 101; i++) {
-      emojiMaps['qq-' + i] = emoji('qq', i, 'gif');
-    }
-    for (var i = 1; i <= 116; i++) {
-      emojiMaps['aru-' + i] = emoji('aru', i, 'gif');
-    }
-    for (var i = 1; i <= 125; i++) {
-      emojiMaps['twemoji-' + i] = emoji('twemoji', i, 'png');
-    }
-    for (var i = 1; i <= 4; i++) {
-      emojiMaps['weibo-' + i] = emoji('weibo', i, 'png');
-    }
-    return emojiMaps;
-  }
   function load_comment(){
-    if(!document.getElementById("valine_container"))return;
-    stellar.loadScript('https://fastly.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js', {defer:true}).then(function () {
-      const el = document.getElementById("valine_container");
-      var path = el.getAttribute('comment_id');
-      const placeholder = "";
+    if(!document.getElementById("waline_container"))return;
+    stellar.loadCSS('https://unpkg.com/@waline/client@v2/dist/waline.css');
+    stellar.loadScript('https://unpkg.com/@waline/client@v2/dist/waline.js', {defer:true}).then(function () {
+      const el = document.getElementById("waline_container");
+      //var path = el.getAttribute('comment_id');
+      var path = "/wiki/index.html";
+      var n = path.search(/index.html$/);
+      if(-1 != n){
+        path = path.slice(0,n);
+      }
       if (!path) {
         path = decodeURI(window.location.pathname);
       }
-      var valine = new Valine();
-      valine.init(Object.assign({"js":"https://fastly.jsdelivr.net/gh/XuxuGood/simple-blog-cdn@main/js/Valine.min.js","appId":"KmguPzUzYoAUXeMp0zqvxPPj-gzGzoHsz","appKey":"bq515N7CFPO5fHr3XlEXp5EJ","placeholder":null,"requiredFields":["nick","mail"],"enableQQ":true,"recordIP":false,"avatar":"robohash","pageSize":10,"lang":"zh-cn","highlight":true,"mathJax":false,"tagMeta":["博主","小伙伴","访客"],"metaPlaceholder":{"nick":"昵称/QQ号(必填)","mail":"邮箱（必填，完全保密）","link":"网址(https://)"},"master":["6783037F2DF30EAB99F9FC256157D875"],"friends":["6783037F2DF30EAB99F9FC256157D875"],"visitor":true}, {
-        el: '#valine_container',
+      Waline.init(Object.assign({"js":"https://unpkg.com/@waline/client@v2/dist/waline.js","css":"https://unpkg.com/@waline/client@v2/dist/waline.css","serverURL":"https://peiyake.com.cn/","commentCount":false,"pageview":true,"requiredMeta":["nick","mail"],"copyright":false,"placeholder":"请留言。(填写邮箱可在被回复时收到邮件提醒)"}, {
+        el: '#waline_container',
         path: path,
-        placeholder: placeholder,
-        emojiCDN: 'https://fastly.jsdelivr.net/gh/volantis-x/cdn-emoji/valine/',
-        emojiMaps: getEmojiMaps(),
       }));
     });
   }
@@ -309,6 +289,9 @@
   });
 
 </script>
+
+  
+
 
 
 
