@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.2">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://fastly.jsdelivr.net'>
+  <link rel="preconnect" href="https://fastly.jsdelivr.net" crossorigin>
+  <link rel='dns-prefetch' href='//unpkg.com'>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>StrongSwan：StrongSwan的使用和源码解析 - Mr.Piak</title>
+
+  
+    <meta name="description" content="介绍StrongSwan支持在网络中创建基于IKEv1&#x2F;IKEv2协议的IPSec隧道。其核心功能由守护进程charon实现。  版本: StrongSwan-5.9.1  charon框架官方介绍  The charon daemon was built from scratch to implement the IKEv2 protocol for the strongSwan project">
+<meta property="og:type" content="website">
+<meta property="og:title" content="StrongSwan的使用和源码解析">
+<meta property="og:url" content="https://peiyake.com/wiki/strongswan/index.html">
+<meta property="og:site_name" content="Mr.Piak">
+<meta property="og:description" content="介绍StrongSwan支持在网络中创建基于IKEv1&#x2F;IKEv2协议的IPSec隧道。其核心功能由守护进程charon实现。  版本: StrongSwan-5.9.1  charon框架官方介绍  The charon daemon was built from scratch to implement the IKEv2 protocol for the strongSwan project">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-08-25T10:15:02.071Z">
+<meta property="article:modified_time" content="2022-08-25T10:15:02.071Z">
+<meta property="article:author" content="Yake Pei">
+<meta property="article:tag" content="Linux,内核,IPSec,国密,网络知识,网络协议,Strongswan,openwrt,feed,luci,uboot,文件系统,shell,lua,全栈">
+<meta name="twitter:card" content="summary">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+    <link rel="shortcut icon" href="/images/favicon.png">
+  
+
+  
+</head>
+
+<body>
+  
+
+
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='wiki'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap wiki"><a style="filter: grayscale(100%)" class="wiki-home cap" href="/"><svg aria-hidden="true" viewBox="0 0 16 16" width="1rem" height="1rem" fill="currentColor"><path fill-rule="evenodd" d="M7.78 12.53a.75.75 0 01-1.06 0L2.47 8.28a.75.75 0 010-1.06l4.25-4.25a.75.75 0 011.06 1.06L4.81 7h7.44a.75.75 0 010 1.5H4.81l2.97 2.97a.75.75 0 010 1.06z"></path></svg>所有项目</a><a class="title" href="/wiki/strongswan/index.html"><div class="main">StrongSwan的使用和源码解析</div></a></div>
+</header>
+
+<div class="widgets">
+
+<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%8B%E7%BB%8D"><span class="toc-text">介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#charon%E6%A1%86%E6%9E%B6"><span class="toc-text">charon框架</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#charon%E6%A0%B8%E5%BF%83%E6%A1%86%E6%9E%B6"><span class="toc-text">charon核心框架</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%84%E4%B8%AA%E6%A8%A1%E5%9D%97%E5%8A%9F%E8%83%BD"><span class="toc-text">各个模块功能</span></a></li></ol></li></ol></div></div></div>
+
+
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+  
+  
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" id="home" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" id="menu" href="/wiki/">专栏</a><span class="sep"></span><a class="cap breadcrumb" id="proj" href="/wiki/strongswan/index.html">StrongSwan的使用和源码解析</a></div><div id="post-meta">更新于&nbsp;<time datetime="2022-08-25T10:15:02.071Z">2022-08-25</time>&nbsp;&nbsp;<span>阅读:</span>&nbsp;<span class="waline-pageview-count" data-path="/wiki/strongswan/">loading</span></span></div></div>
+
+  <article class='content md wiki'>
+  <h1 class="article-title"><span>StrongSwan的使用和源码解析</span></h1>
+  <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>StrongSwan支持在网络中创建基于IKEv1/IKEv2协议的IPSec隧道。其核心功能由守护进程<code>charon</code>实现。</p>
+<ul>
+<li>版本: StrongSwan-5.9.1</li>
+</ul>
+<h2 id="charon框架"><a href="#charon框架" class="headerlink" title="charon框架"></a>charon框架</h2><p><a target="_blank" rel="noopener" href="https://docs.strongswan.org/docs/5.9/daemons/charon.html">官方介绍</a></p>
+<blockquote>
+<p>The charon daemon was built from scratch to implement the IKEv2 protocol for the strongSwan project. Most of its code is located in the libcharon library making the IKE daemon core available to other programs such as charon-systemd, charon-svc, charon-cmd or the Android app.</p>
+</blockquote>
+<h3 id="charon核心框架"><a href="#charon核心框架" class="headerlink" title="charon核心框架"></a>charon核心框架</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">     +---------------------------------+       +----------------------------+</span><br><span class="line">     |          Credentials            |       |          Backends          |</span><br><span class="line">     +---------------------------------+       +----------------------------+</span><br><span class="line"></span><br><span class="line">      +------------+    +-----------+        +------+            +----------+</span><br><span class="line">      |  receiver  |    |           |        |      |  +------+  | CHILD_SA |</span><br><span class="line">      +----+-------+    | Scheduler |        | IKE- |  | IKE- |--+----------+</span><br><span class="line">           |            |           |        | SA   |--| SA   |  | CHILD_SA |</span><br><span class="line">   +-------+--+         +-----------+        |      |  +------+  +----------+</span><br><span class="line">&lt;-&gt;|  socket  |               |              | Man- |</span><br><span class="line">   +-------+--+         +-----------+        | ager |  +------+  +----------+</span><br><span class="line">           |            |           |        |      |  | IKE- |--| CHILD_SA |</span><br><span class="line">      +----+-------+    | Processor |--------|      |--| SA   |  +----------+</span><br><span class="line">      |   sender   |    |           |        |      |  +------+</span><br><span class="line">      +------------+    +-----------+        +------+</span><br><span class="line"></span><br><span class="line">     +---------------------------------+       +----------------------------+</span><br><span class="line">     |               Bus               |       |      Kernel Interface      |</span><br><span class="line">     +---------------------------------+       +----------------------------+</span><br><span class="line">            |                    |                           |</span><br><span class="line">     +-------------+     +-------------+                     V</span><br><span class="line">     | File-Logger |     |  Sys-Logger |                  //////</span><br><span class="line">     +-------------+     +-------------+</span><br></pre></td></tr></table></figure>
+
+<h3 id="各个模块功能"><a href="#各个模块功能" class="headerlink" title="各个模块功能"></a>各个模块功能</h3><ol>
+<li><strong>Processor</strong></li>
+</ol>
+<p>处理器（Processor）创建了一个线程池，线程数量可以根据配置修改。其它模块通过将<strong>job</strong>加入到<strong>Processor</strong>的方式来异步执行业务功能。</p>
+<p>The threading is realized with the help of a thread pool (called processor) which contains a fixed amount of precreated threads. All threads in the daemon originate from the processor. To delegate work to a thread, jobs are queued to the processor for asynchronous execution</p>
+<ol start="2">
+<li><strong>Scheduler</strong></li>
+</ol>
+<p>调度器（Schdeuler）。调度器用来执行一些定时任务，例如：rekeying。调度器本身并不执行<strong>job</strong>，而是通过把<strong>job</strong>加入到<strong>Processor</strong>的队列中由线程执行。</p>
+<p>The scheduler is responsible to execute timed events. Jobs may be queued to the scheduler to get executed at a defined time (e.g. rekeying). The scheduler does not execute the jobs itself, it queues them to the processor</p>
+<ol start="3">
+<li><strong>IKE_SA Manager</strong></li>
+</ol>
+<p>IKE_SA管理员（IKE_SA Manager）。其管理所有的IKE_SAs。它进一步同步执行：每个IKE_SA必须严格执行<strong>check_out</strong>，同时在IKE_SA被使用后必须严格执行<strong>check_in</strong>。管理员确保单个IKE_SA只被一个线程处理。这将使我们可以简单化的操作负载的IKE_SA.</p>
+<p>The IKE_SA manager manages all IKE_SAs. It further handles the synchronization: Each IKE_SA must be checked out strictly and checked in again after use. The manager guarantees that only one thread may check out a single IKE_SA. This allows us to write the (complex) IKE_SAs routines as non-threadsave</p>
+<ol start="4">
+<li><strong>IKE_SA</strong></li>
+</ol>
+<p>熟悉IPSec的都知道，在建立IPSec隧道前要首先协商出两个SA用来交换秘钥数据，指的就是这里的 <strong>IKE_SA</strong>。每个<strong>IKE_SA</strong>包含它的状态、逻辑处理已经相关数据信息。在charon中，IPSec隧道的每个SA对应一个 <strong>IKE_SA</strong>对象。</p>
+<p>The IKE_SA contain the state and the logic of each IKE_SA and handle the messages</p>
+<ol start="5">
+<li><strong>CHILD_SA</strong></li>
+</ol>
+<p>我的理解是：<strong>IKE_SA</strong>是IPSec隧道的前提，它用来确保端-端数据交换的安全性；<strong>CHILD_SA</strong>则对应隧道建立后，在隧道内传输数据的合法性。（例如：<br>我们建立了隧道，但是我们可能只允许指定的子网在隧道内进行数据传输，我们称之为兴趣流）。每个隧道可以管理多对兴趣流（每个<strong>IKE_SA</strong>可以包含多个<br><strong>CHILD_SA</strong>）。 兴趣流的参数往往需要告知内核（<strong>CHILD_SA</strong>需要和内核交互，通过<strong>kernel interface</strong>）</p>
+<p>The CHILD_SA contains state about an IPsec security association and manages them. An IKE_SA may have multiple CHILD_SAs. Communication to the kernel takes place here through the kernel interface</p>
+
+  
+
+
+  </article>
+  
+<br>
+
+  
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body waline'>
+      
+
+<div id="waline_container" class="waline_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>本站由 <a href="https://peiyake.com/">@Yake Pei</a> 创建，使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.8.0" title="v1.8.0">Stellar</a> 作为主题。</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.8.0';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://fastly.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://fastly.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://fastly.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://fastly.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://fastly.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.fancybox = Object.assign({"enable":true,"js":"https://fastly.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.js","css":"https://fastly.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.css","selector":".swiper-slide img"});
+  }
+  if ('false' == 'true') {
+    stellar.plugins.heti = Object.assign({"enable":false,"css":"https://unpkg.com/heti/umd/heti.min.css","js":"https://unpkg.com/heti/umd/heti-addon.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function load_comment(){
+    if(!document.getElementById("waline_container"))return;
+    stellar.loadCSS('https://unpkg.com/@waline/client@v2/dist/waline.css');
+    stellar.loadScript('https://unpkg.com/@waline/client@v2/dist/waline.js', {defer:true}).then(function () {
+      const el = document.getElementById("waline_container");
+      //var path = el.getAttribute('comment_id');
+      var path = "/wiki/strongswan/index.html";
+      var n = path.search(/index.html$/);
+      if(-1 != n){
+        path = path.slice(0,n);
+      }
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      Waline.init(Object.assign({"js":"https://unpkg.com/@waline/client@v2/dist/waline.js","css":"https://unpkg.com/@waline/client@v2/dist/waline.css","serverURL":"https://peiyake.com.cn/","commentCount":false,"pageview":true,"requiredMeta":["nick","mail"],"copyright":false,"placeholder":"请留言。(填写邮箱可在被回复时收到邮件提醒)"}, {
+        el: '#waline_container',
+        path: path,
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+  
+
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
