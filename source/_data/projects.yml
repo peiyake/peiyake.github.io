@@ -6,3 +6,11 @@ Demo:
   #logo:
     #src: https://source.unsplash.com/random/200x120
   description: Stallar是一个非常好用的的hexo主题，尤其是它的wiki功能，让你可以把零散的文章制作成一个专栏。本文就简要介绍了wiki的搭建方法
+StrongSwan:
+  title: StrongSwan的使用和源码解析
+  tags: [StrongSwan]
+  cover: false
+  #cover: true
+  #logo:
+    #src: https://source.unsplash.com/random/200x120
+  description: 工作中使用到了StrongSwan来搭建业务数据传输隧道，而且要新增一些StrongSwan本身并没有的加密算法，于是开始了对StrongSwan的深入阅读和修改之路。并决定对StrongSwan的源码进行剖析、记录.
