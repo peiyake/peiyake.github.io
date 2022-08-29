@@ -18,18 +18,18 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="theme-color" content="#f8f8f8">
-  <title>StrongSwan：StrongSwan的使用和源码解析 - Mr.Piak</title>
+  <title>StrongSwan：核心进程charon - Mr.Piak</title>
 
   
     <meta name="description" content="介绍StrongSwan支持在网络中创建基于IKEv1&#x2F;IKEv2协议的IPSec隧道。其核心功能由守护进程charon实现。  版本: StrongSwan-5.9.1  charon框架官方介绍  The charon daemon was built from scratch to implement the IKEv2 protocol for the strongSwan project">
 <meta property="og:type" content="website">
-<meta property="og:title" content="StrongSwan的使用和源码解析">
+<meta property="og:title" content="核心进程charon">
 <meta property="og:url" content="https://peiyake.com/wiki/strongswan/index.html">
 <meta property="og:site_name" content="Mr.Piak">
 <meta property="og:description" content="介绍StrongSwan支持在网络中创建基于IKEv1&#x2F;IKEv2协议的IPSec隧道。其核心功能由守护进程charon实现。  版本: StrongSwan-5.9.1  charon框架官方介绍  The charon daemon was built from scratch to implement the IKEv2 protocol for the strongSwan project">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2022-08-25T10:15:02.071Z">
-<meta property="article:modified_time" content="2022-08-25T10:15:02.071Z">
+<meta property="article:published_time" content="2022-08-26T05:16:19.160Z">
+<meta property="article:modified_time" content="2022-08-26T05:16:19.160Z">
 <meta property="article:author" content="Yake Pei">
 <meta property="article:tag" content="Linux,内核,IPSec,国密,网络知识,网络协议,Strongswan,openwrt,feed,luci,uboot,文件系统,shell,lua,全栈">
 <meta name="twitter:card" content="summary">
@@ -70,7 +70,7 @@
 
 <div class="widgets">
 
-<div class="widget-wrap single" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%8B%E7%BB%8D"><span class="toc-text">介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#charon%E6%A1%86%E6%9E%B6"><span class="toc-text">charon框架</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#charon%E6%A0%B8%E5%BF%83%E6%A1%86%E6%9E%B6"><span class="toc-text">charon核心框架</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%84%E4%B8%AA%E6%A8%A1%E5%9D%97%E5%8A%9F%E8%83%BD"><span class="toc-text">各个模块功能</span></a></li></ol></li></ol></div></div></div>
+<div class="widget-wrap multi" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree active"><a class="doc-tree-link active" href="/wiki/strongswan/index.html"><span class="toc-text">核心进程charon</span></a><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%8B%E7%BB%8D"><span class="toc-text">介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#charon%E6%A1%86%E6%9E%B6"><span class="toc-text">charon框架</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#charon%E6%A0%B8%E5%BF%83%E6%A1%86%E6%9E%B6"><span class="toc-text">charon核心框架</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%84%E4%B8%AA%E6%A8%A1%E5%9D%97%E5%8A%9F%E8%83%BD"><span class="toc-text">各个模块功能</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#charon%E6%A1%86%E6%9E%B6%E7%BB%BC%E8%BF%B0"><span class="toc-text">charon框架综述</span></a></li></ol></div><div class="doc-tree"><a class="doc-tree-link" href="/wiki/strongswan/charon_code.html"><span class="toc-text">charon解析</span></a></div><div class="doc-tree"><a class="doc-tree-link" href="/wiki/strongswan/start_point.html"><span class="toc-text">charon启动过程分析</span></a></div><div class="doc-tree"><a class="doc-tree-link" href="/wiki/strongswan/ike_sa_manager.html"><span class="toc-text">IKE_SA Manager</span></a></div><div class="doc-tree"><a class="doc-tree-link" href="/wiki/strongswan/ike_sa.html"><span class="toc-text">IKE_SA</span></a></div></div></div>
 
 
 
@@ -86,10 +86,10 @@
 
   
   
-<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" id="home" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" id="menu" href="/wiki/">专栏</a><span class="sep"></span><a class="cap breadcrumb" id="proj" href="/wiki/strongswan/index.html">StrongSwan的使用和源码解析</a></div><div id="post-meta">更新于&nbsp;<time datetime="2022-08-25T10:15:02.071Z">2022-08-25</time>&nbsp;&nbsp;<span>阅读:</span>&nbsp;<span class="waline-pageview-count" data-path="/wiki/strongswan/">loading</span></span></div></div>
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" id="home" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" id="menu" href="/wiki/">专栏</a><span class="sep"></span><a class="cap breadcrumb" id="proj" href="/wiki/strongswan/index.html">StrongSwan的使用和源码解析</a></div><div id="post-meta">更新于&nbsp;<time datetime="2022-08-26T05:16:19.160Z">2022-08-26</time>&nbsp;&nbsp;<span>阅读:</span>&nbsp;<span class="waline-pageview-count" data-path="/wiki/strongswan/">loading</span></span></div></div>
 
   <article class='content md wiki'>
-  <h1 class="article-title"><span>StrongSwan的使用和源码解析</span></h1>
+  <h1 class="article-title"><span>核心进程charon</span></h1>
   <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>StrongSwan支持在网络中创建基于IKEv1/IKEv2协议的IPSec隧道。其核心功能由守护进程<code>charon</code>实现。</p>
 <ul>
 <li>版本: StrongSwan-5.9.1</li>
@@ -125,13 +125,41 @@
 </ol>
 <p>我的理解是：<strong>IKE_SA</strong>是IPSec隧道的前提，它用来确保端-端数据交换的安全性；<strong>CHILD_SA</strong>则对应隧道建立后，在隧道内传输数据的合法性。（例如：<br>我们建立了隧道，但是我们可能只允许指定的子网在隧道内进行数据传输，我们称之为兴趣流）。每个隧道可以管理多对兴趣流（每个<strong>IKE_SA</strong>可以包含多个<br><strong>CHILD_SA</strong>）。 兴趣流的参数往往需要告知内核（<strong>CHILD_SA</strong>需要和内核交互，通过<strong>kernel interface</strong>）</p>
 <p>The CHILD_SA contains state about an IPsec security association and manages them. An IKE_SA may have multiple CHILD_SAs. Communication to the kernel takes place here through the kernel interface</p>
+<ol start="6">
+<li><strong>Kernel Interface</strong></li>
+</ol>
+<p>内核接口来安装IPSec的SA、Policy、Route、VIP等。它提供一组方法来访问接口，同时底层状态变化时向守护进程发出通知。</p>
+<p>The kernel interface installs IPsec security associations, policies, routes and virtual addresses. It further provides methods to enumerate interfaces and may notify the daemon about state changes at lower layers</p>
+<ol start="7">
+<li><strong>Bus</strong></li>
+</ol>
+<p>总线（Bus）接收来自不同线程的信息，并把它们转发给对此信号感兴趣的监听者。</p>
+<p>The bus receives signals from the different threads and relays them to interested listeners. Debugging signals, but also important state changes or error messages are sent over the bus</p>
+<ol start="8">
+<li><strong>Controller</strong></li>
+</ol>
+<p>控制器（Controller）提供了简单的API，供各种插件访问和控制守护进程（例如：初始化IKE_SA等）</p>
+<p>The controller provides a simple API for plugins to control the daemon (e.g. initiate IKE_SA, close IKE_SA, …​)</p>
+<ol start="9">
+<li><strong>Backends</strong></li>
+</ol>
+<p>后端（Backends）是一个提供配置信息的可插拔模块。它必须提供有用守护进程用来获取配置的接口。</p>
+<p>Backends are pluggable modules which provide configuration. They have to implement an API which the daemon core uses to get configuration</p>
+<ol start="10">
+<li>Credentials</li>
+</ol>
+<p>证书（Credentials）提供证书相关的服务。</p>
+<p>Provides trustchain verification and credential serving using registered plugins</p>
+<h2 id="charon框架综述"><a href="#charon框架综述" class="headerlink" title="charon框架综述"></a>charon框架综述</h2><p>了解了上面各个模块的功能，那么大概可以理解<strong>charon</strong>的工作机制：</p>
+<p><strong>IKE_SA Manager</strong>从后端<strong>Backends</strong>获取配置信息，并根据配置信息初始化<strong>IKE_SA</strong>。<strong>IKE_SA</strong>的初始化包括：构建IKE_SA实例，交付给<strong>处理器（Processor）</strong>、<strong>调度器（Scheduler）</strong>，根据IKE协议执行报文构建<strong>发送（sender）</strong>或者<strong>接收（receiver）</strong>报文并解析。<strong>IKE_SA</strong>协商成功后，创建对应的<strong>CHILD_SA</strong>，同时调用<strong>内核接口（Kernel Interface）</strong>将相关信息下发到内核，隧道建立成功后，根据配置转入状态监控（<strong>Rekey</strong>等）。以上所有过程对各个阶段的事件交付<strong>总线（Bus）</strong>，由总线确定事件的流向。</p>
+<p>总之，<strong>charon</strong>的核心任务是管理IPSec的<strong>SA</strong>，所以业务逻辑核心是<strong>IKE_SA Manager</strong>，其它的模块都是为其服务的。</p>
 
   
 
 
   </article>
   
-<br>
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/wiki/strongswan/charon_code.html">charon解析<span class="note">下一篇</span></a><div class="line"></div></section></div>
 
   
 

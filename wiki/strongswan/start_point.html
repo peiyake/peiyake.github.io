@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.2">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://fastly.jsdelivr.net'>
+  <link rel="preconnect" href="https://fastly.jsdelivr.net" crossorigin>
+  <link rel='dns-prefetch' href='//unpkg.com'>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>StrongSwan：charon启动过程分析 - Mr.Piak</title>
+
+  
+    <meta name="description" content="根据上个章节charon解析中的分析，我们知道整个核心进程charon的启动点在start_action_job_create，那么本节我们就来具体展开分析一下这个启动过程。 charon业务启动流程我们首先把启动过程的函数调用栈粘贴出来 12345charon.c 				main							charon-&gt;initialize(...);daemon.c							METHOD(da">
+<meta property="og:type" content="website">
+<meta property="og:title" content="charon启动过程分析">
+<meta property="og:url" content="https://peiyake.com/wiki/strongswan/start_point.html">
+<meta property="og:site_name" content="Mr.Piak">
+<meta property="og:description" content="根据上个章节charon解析中的分析，我们知道整个核心进程charon的启动点在start_action_job_create，那么本节我们就来具体展开分析一下这个启动过程。 charon业务启动流程我们首先把启动过程的函数调用栈粘贴出来 12345charon.c 				main							charon-&gt;initialize(...);daemon.c							METHOD(da">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-08-29T02:30:44.251Z">
+<meta property="article:modified_time" content="2022-08-29T02:30:44.251Z">
+<meta property="article:author" content="Yake Pei">
+<meta property="article:tag" content="Linux,内核,IPSec,国密,网络知识,网络协议,Strongswan,openwrt,feed,luci,uboot,文件系统,shell,lua,全栈">
+<meta name="twitter:card" content="summary">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+    <link rel="shortcut icon" href="/images/favicon.png">
+  
+
+  
+</head>
+
+<body>
+  
+
+
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='wiki'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap wiki"><a style="filter: grayscale(100%)" class="wiki-home cap" href="/"><svg aria-hidden="true" viewBox="0 0 16 16" width="1rem" height="1rem" fill="currentColor"><path fill-rule="evenodd" d="M7.78 12.53a.75.75 0 01-1.06 0L2.47 8.28a.75.75 0 010-1.06l4.25-4.25a.75.75 0 011.06 1.06L4.81 7h7.44a.75.75 0 010 1.5H4.81l2.97 2.97a.75.75 0 010 1.06z"></path></svg>所有项目</a><a class="title" href="/wiki/strongswan/index.html"><div class="main">StrongSwan的使用和源码解析</div></a></div>
+</header>
+
+<div class="widgets">
+
+<div class="widget-wrap multi" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree"><a class="doc-tree-link" href="/wiki/strongswan/index.html"><span class="toc-text">核心进程charon</span></a></div><div class="doc-tree"><a class="doc-tree-link" href="/wiki/strongswan/charon_code.html"><span class="toc-text">charon解析</span></a></div><div class="doc-tree active"><a class="doc-tree-link active" href="/wiki/strongswan/start_point.html"><span class="toc-text">charon启动过程分析</span></a><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#charon%E4%B8%9A%E5%8A%A1%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B"><span class="toc-text">charon业务启动流程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AD%94%E5%B9%BB%E8%BF%AD%E4%BB%A3%E5%99%A8"><span class="toc-text">魔幻迭代器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%81%E6%B0%B4%E7%BA%BF"><span class="toc-text">流水线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%8D%E6%9D%82%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96SA"><span class="toc-text">复杂的初始化SA</span></a></li></ol></li></ol></div><div class="doc-tree"><a class="doc-tree-link" href="/wiki/strongswan/ike_sa_manager.html"><span class="toc-text">IKE_SA Manager</span></a></div><div class="doc-tree"><a class="doc-tree-link" href="/wiki/strongswan/ike_sa.html"><span class="toc-text">IKE_SA</span></a></div></div></div>
+
+
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+  
+  
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" id="home" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" id="menu" href="/wiki/">专栏</a><span class="sep"></span><a class="cap breadcrumb" id="proj" href="/wiki/strongswan/index.html">StrongSwan的使用和源码解析</a></div><div id="post-meta">更新于&nbsp;<time datetime="2022-08-29T02:30:44.251Z">2022-08-29</time>&nbsp;&nbsp;<span>阅读:</span>&nbsp;<span class="waline-pageview-count" data-path="/wiki/strongswan/start_point.html">loading</span></span></div></div>
+
+  <article class='content md wiki'>
+  <h1 class="article-title"><span>charon启动过程分析</span></h1>
+  <p>根据上个章节<a href="charon_code#charon%E6%A0%B8%E5%BF%83%E4%B8%9A%E5%8A%A1%E7%9A%84%E5%90%AF%E5%8A%A8%E7%82%B9%E5%9C%A8%E4%BB%80%E4%B9%88%E5%9C%B0%E6%96%B9">charon解析</a>中的分析，我们知道整个核心进程charon的启动点在<code>start_action_job_create</code>，那么本节我们就来具体展开分析一下这个启动过程。</p>
+<h2 id="charon业务启动流程"><a href="#charon业务启动流程" class="headerlink" title="charon业务启动流程"></a>charon业务启动流程</h2><p>我们首先把启动过程的函数调用栈粘贴出来</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">charon.c 				main</span><br><span class="line">							charon-&gt;initialize(...);</span><br><span class="line">daemon.c							<span class="title function_">METHOD</span><span class="params">(<span class="type">daemon_t</span>, initialize, <span class="type">bool</span>,<span class="type">private_daemon_t</span> *this, <span class="type">char</span> *plugins)</span></span><br><span class="line">start_action_job.c						start_action_job_create</span><br><span class="line">											<span class="title function_">METHOD</span><span class="params">(<span class="type">job_t</span>, execute, <span class="type">job_requeue_t</span>,<span class="type">private_start_action_job_t</span> *this)</span></span><br></pre></td></tr></table></figure>
+
+<p>我们看到整个启动过程最终落在了<strong>start_action_job.c</strong>的<code>execute</code>函数，下面就分析一下这个函数做了什么事情：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">METHOD(<span class="type">job_t</span>, execute, <span class="type">job_requeue_t</span>,</span><br><span class="line">	<span class="type">private_start_action_job_t</span> *this)</span><br><span class="line">&#123;</span><br><span class="line">	...</span><br><span class="line">	enumerator = charon-&gt;backends-&gt;create_peer_cfg_enumerator(charon-&gt;backends,</span><br><span class="line">											<span class="literal">NULL</span>, <span class="literal">NULL</span>, <span class="literal">NULL</span>, <span class="literal">NULL</span>, IKE_ANY);</span><br><span class="line">	<span class="keyword">while</span> (enumerator-&gt;enumerate(enumerator, &amp;peer_cfg))</span><br><span class="line">	&#123;</span><br><span class="line">		children = peer_cfg-&gt;create_child_cfg_enumerator(peer_cfg);</span><br><span class="line">		<span class="keyword">while</span> (children-&gt;enumerate(children, &amp;child_cfg))</span><br><span class="line">		&#123;</span><br><span class="line">			name = child_cfg-&gt;get_name(child_cfg);</span><br><span class="line"></span><br><span class="line">			<span class="keyword">switch</span> (child_cfg-&gt;get_start_action(child_cfg))</span><br><span class="line">			&#123;</span><br><span class="line">				<span class="keyword">case</span> ACTION_RESTART:</span><br><span class="line">					DBG1(DBG_JOB, <span class="string">&quot;start action: initiate &#x27;%s&#x27;&quot;</span>, name);</span><br><span class="line">					charon-&gt;controller-&gt;initiate(charon-&gt;controller,</span><br><span class="line">												 peer_cfg-&gt;get_ref(peer_cfg),</span><br><span class="line">												 child_cfg-&gt;get_ref(child_cfg),</span><br><span class="line">												 <span class="literal">NULL</span>, <span class="literal">NULL</span>, <span class="number">0</span>, FALSE);</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">				<span class="keyword">case</span> ACTION_ROUTE:</span><br><span class="line">					DBG1(DBG_JOB, <span class="string">&quot;start action: route &#x27;%s&#x27;&quot;</span>, name);</span><br><span class="line">					mode = child_cfg-&gt;get_mode(child_cfg);</span><br><span class="line">					<span class="keyword">if</span> (mode == MODE_PASS || mode == MODE_DROP)</span><br><span class="line">					&#123;</span><br><span class="line">						charon-&gt;shunts-&gt;install(charon-&gt;shunts,</span><br><span class="line">												peer_cfg-&gt;get_name(peer_cfg),</span><br><span class="line">												child_cfg);</span><br><span class="line">					&#125;</span><br><span class="line">					<span class="keyword">else</span></span><br><span class="line">					&#123;</span><br><span class="line">						charon-&gt;traps-&gt;install(charon-&gt;traps, peer_cfg,</span><br><span class="line">											   child_cfg);</span><br><span class="line">					&#125;</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">				<span class="keyword">case</span> ACTION_NONE:</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		children-&gt;destroy(children);</span><br><span class="line">	&#125;</span><br><span class="line">	enumerator-&gt;destroy(enumerator);</span><br><span class="line">	<span class="keyword">return</span> JOB_REQUEUE_NONE;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们逐行分析</p>
+<h3 id="魔幻迭代器"><a href="#魔幻迭代器" class="headerlink" title="魔幻迭代器"></a>魔幻迭代器</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">enumerator = charon-&gt;backends-&gt;create_peer_cfg_enumerator(charon-&gt;backends,</span><br></pre></td></tr></table></figure>
+
+<p>起初，看到<code>enumerator</code>这个东西的时候整个人都蒙了，满脑子疑问：这是什么东西？它在干啥？为什么这样写？为什么几乎每个结构体都有这个东西？啊啊啊啊啊~~</p>
+<p>但是看的多了我发现，这个东西的实现细节压根勿需关注，我们只要知道它用来做什么就行了，举个简单的例子：</p>
+<p>假设有这样一个逗号分隔字符串</p>
+<p><code>aes,3des,sha</code></p>
+<p>那么这样一个字符串在被使用<code>enumerator</code>的地方处理后，我们可以通过类似上面<code>while (enumerator-&gt;enumerate(enumerator, &amp;peer_cfg))</code>的形式，迭代处理每个单独的字符串:<code>aes</code>、<code>3des</code>、<code>sha</code>。就是这么简单，这么魔幻。</p>
+<p>同样道理，我们这里的这个用法是针对 <code>peer_cfg</code>创建了一个迭代器。（在<a href="index#%E5%90%84%E4%B8%AA%E6%A8%A1%E5%9D%97%E5%8A%9F%E8%83%BD">charon框架-各模块功能</a>中我们介绍过，<strong>backends</strong>是一个可插拔的配置管理模块）这里的<code>peer_cfg</code>就是backends管理的配置。那么，新的疑问来了，backends里面的配置在什么时候创建的呢？这里简单说一下：charon在各种系统中有不通的启动方法，参见<a target="_blank" rel="noopener" href="https://docs.strongswan.org/docs/5.9/daemons/charon-systemd.html">charon服务</a>，还有一种已经被新版本弃用（但仍然支持）的方法：通过starter进程。</p>
+<p>启动进程和charon大概是这样一个关系：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">starter	-------------&gt;|							+++++++++++++++++++++</span><br><span class="line">					  |							+		charon		+</span><br><span class="line">charon-systemd ------&gt;|		/-[stroke]-&gt;\		+		   |		+</span><br><span class="line">					  |----&gt;-------------&gt;[backends] &lt;----&gt;|		+</span><br><span class="line">charon-svc ----------&gt;|		\-[vici]-&gt;/			+					+</span><br><span class="line">					  |							+					+</span><br><span class="line">charon-cmd-----------&gt;|							+++++++++++++++++++++</span><br></pre></td></tr></table></figure>
+
+<p>上面的<strong>stroke</strong>和<strong>vici</strong>是配置管理的两个插件，启动进程可以使用插件的接口向charon发送配置。其中<strong>vici</strong>是当前官方新的推荐使用的，<strong>stroke</strong>插件已经不推荐使用。</p>
+<h3 id="流水线"><a href="#流水线" class="headerlink" title="流水线"></a>流水线</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">switch</span> (child_cfg-&gt;get_start_action(child_cfg))</span><br></pre></td></tr></table></figure>
+
+<p>每个<strong>child_cfg</strong>都被维护2个状态<strong>ACTION_RESTART</strong>和<strong>ACTION_ROUTE</strong>，像流水线一样，每个配置的隧道都要经过这两步的处理才行。</p>
+<h3 id="复杂的初始化SA"><a href="#复杂的初始化SA" class="headerlink" title="复杂的初始化SA"></a>复杂的初始化SA</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> ACTION_RESTART:</span><br><span class="line">	DBG1(DBG_JOB, <span class="string">&quot;start action: initiate &#x27;%s&#x27;&quot;</span>, name);</span><br><span class="line">	charon-&gt;controller-&gt;initiate(charon-&gt;controller,</span><br><span class="line">								 peer_cfg-&gt;get_ref(peer_cfg),</span><br><span class="line">								 child_cfg-&gt;get_ref(child_cfg),</span><br><span class="line">								 <span class="literal">NULL</span>, <span class="literal">NULL</span>, <span class="number">0</span>, FALSE);</span><br></pre></td></tr></table></figure>
+
+<p>在这里我们又看到了charon的另一个模块<strong>controller</strong>，该模块的功能时提供各种API，那么我们就看看这里调用的<code>initiate</code>干了什么事情。</p>
+<p>调用栈如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">controller.c +<span class="number">498</span>			charon-&gt;controller-&gt;initiate(...)</span><br><span class="line">								METHOD(<span class="type">controller_t</span>, initiate, <span class="type">status_t</span>,...)</span><br><span class="line">									METHOD(<span class="type">job_t</span>, initiate_execute, <span class="type">job_requeue_t</span>,...)</span><br><span class="line">ike_sa_manager.c +<span class="number">1425</span>					haron-&gt;ike_sa_manager-&gt;checkout_by_config(...)</span><br><span class="line">											ike_sa-&gt;initiate(ike_sa, listener-&gt;child_cfg, <span class="number">0</span>, <span class="literal">NULL</span>, <span class="literal">NULL</span>)</span><br><span class="line">ike_sa.c +<span class="number">1501</span>									METHOD(<span class="type">ike_sa_t</span>, initiate, <span class="type">status_t</span>,...)</span><br><span class="line">													task_manager-&gt;initiate(this-&gt;task_manager)</span><br><span class="line">task_manager_v1.c +<span class="number">482</span>									METHOD(<span class="type">task_manager_t</span>, initiate, <span class="type">status_t</span>,<span class="type">private_task_manager_t</span> *this)</span><br><span class="line">										charon-&gt;ike_sa_manager-&gt;checkin(...)</span><br></pre></td></tr></table></figure>
+
+<p>最终程序执行都落在了 task_manager_v1.c 的<code>initiate</code>函数上，在这里完成了IKEv1协议的的协商过程…</p>
+
+  
+
+
+  </article>
+  
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/wiki/strongswan/ike_sa_manager.html">IKE_SA Manager<span class="note">下一篇</span></a><div class="line"></div><a id="prev" href="/wiki/strongswan/charon_code.html">charon解析<span class="note">上一篇</span></a></section></div>
+
+  
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body waline'>
+      
+
+<div id="waline_container" class="waline_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>本站由 <a href="https://peiyake.com/">@Yake Pei</a> 创建，使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.8.0" title="v1.8.0">Stellar</a> 作为主题。</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.8.0';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://fastly.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://fastly.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://fastly.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://fastly.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://fastly.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.fancybox = Object.assign({"enable":true,"js":"https://fastly.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.js","css":"https://fastly.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.css","selector":".swiper-slide img"});
+  }
+  if ('false' == 'true') {
+    stellar.plugins.heti = Object.assign({"enable":false,"css":"https://unpkg.com/heti/umd/heti.min.css","js":"https://unpkg.com/heti/umd/heti-addon.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function load_comment(){
+    if(!document.getElementById("waline_container"))return;
+    stellar.loadCSS('https://unpkg.com/@waline/client@v2/dist/waline.css');
+    stellar.loadScript('https://unpkg.com/@waline/client@v2/dist/waline.js', {defer:true}).then(function () {
+      const el = document.getElementById("waline_container");
+      //var path = el.getAttribute('comment_id');
+      var path = "/wiki/strongswan/start_point.html";
+      var n = path.search(/index.html$/);
+      if(-1 != n){
+        path = path.slice(0,n);
+      }
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      Waline.init(Object.assign({"js":"https://unpkg.com/@waline/client@v2/dist/waline.js","css":"https://unpkg.com/@waline/client@v2/dist/waline.css","serverURL":"https://peiyake.com.cn/","commentCount":false,"pageview":true,"requiredMeta":["nick","mail"],"copyright":false,"placeholder":"请留言。(填写邮箱可在被回复时收到邮件提醒)"}, {
+        el: '#waline_container',
+        path: path,
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+  
+
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

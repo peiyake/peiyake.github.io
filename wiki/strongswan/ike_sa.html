@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.2">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://fastly.jsdelivr.net'>
+  <link rel="preconnect" href="https://fastly.jsdelivr.net" crossorigin>
+  <link rel='dns-prefetch' href='//unpkg.com'>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>StrongSwan：IKE_SA - Mr.Piak</title>
+
+  
+    <meta name="description" content="IKE_SA是charon依据IKE协议对SA管理的最小单元，每个IKE_SA对应一个配置的隧道，该隧道所有相关的东西都在数据结构IKE_SA中进行管理。—- ike_sa.c IKE_SA初始化每个IKE_SA在复杂的SA初始化被初始化，最终程序落在 IKE_SA-&gt; task_manager-&gt;initiate(..)  IKEv1:task_manager_v1.c IKEv2:">
+<meta property="og:type" content="website">
+<meta property="og:title" content="IKE_SA">
+<meta property="og:url" content="https://peiyake.com/wiki/strongswan/ike_sa.html">
+<meta property="og:site_name" content="Mr.Piak">
+<meta property="og:description" content="IKE_SA是charon依据IKE协议对SA管理的最小单元，每个IKE_SA对应一个配置的隧道，该隧道所有相关的东西都在数据结构IKE_SA中进行管理。—- ike_sa.c IKE_SA初始化每个IKE_SA在复杂的SA初始化被初始化，最终程序落在 IKE_SA-&gt; task_manager-&gt;initiate(..)  IKEv1:task_manager_v1.c IKEv2:">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-08-29T06:11:26.878Z">
+<meta property="article:modified_time" content="2022-08-29T06:11:26.878Z">
+<meta property="article:author" content="Yake Pei">
+<meta property="article:tag" content="Linux,内核,IPSec,国密,网络知识,网络协议,Strongswan,openwrt,feed,luci,uboot,文件系统,shell,lua,全栈">
+<meta name="twitter:card" content="summary">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+    <link rel="shortcut icon" href="/images/favicon.png">
+  
+
+  
+</head>
+
+<body>
+  
+
+
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='wiki'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap wiki"><a style="filter: grayscale(100%)" class="wiki-home cap" href="/"><svg aria-hidden="true" viewBox="0 0 16 16" width="1rem" height="1rem" fill="currentColor"><path fill-rule="evenodd" d="M7.78 12.53a.75.75 0 01-1.06 0L2.47 8.28a.75.75 0 010-1.06l4.25-4.25a.75.75 0 011.06 1.06L4.81 7h7.44a.75.75 0 010 1.5H4.81l2.97 2.97a.75.75 0 010 1.06z"></path></svg>所有项目</a><a class="title" href="/wiki/strongswan/index.html"><div class="main">StrongSwan的使用和源码解析</div></a></div>
+</header>
+
+<div class="widgets">
+
+<div class="widget-wrap multi" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree"><a class="doc-tree-link" href="/wiki/strongswan/index.html"><span class="toc-text">核心进程charon</span></a></div><div class="doc-tree"><a class="doc-tree-link" href="/wiki/strongswan/charon_code.html"><span class="toc-text">charon解析</span></a></div><div class="doc-tree"><a class="doc-tree-link" href="/wiki/strongswan/start_point.html"><span class="toc-text">charon启动过程分析</span></a></div><div class="doc-tree"><a class="doc-tree-link" href="/wiki/strongswan/ike_sa_manager.html"><span class="toc-text">IKE_SA Manager</span></a></div><div class="doc-tree active"><a class="doc-tree-link active" href="/wiki/strongswan/ike_sa.html"><span class="toc-text">IKE_SA</span></a><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#IKE-SA%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-text">IKE_SA初始化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#IKE-SA%E7%9A%84TASKs"><span class="toc-text">IKE_SA的TASKs</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#TASK%E5%85%A5%E9%98%9F"><span class="toc-text">TASK入队</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#IKE-SA%E7%8A%B6%E6%80%81%E6%9C%BA"><span class="toc-text">IKE_SA状态机</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#IKE-SA%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90"><span class="toc-text">IKE_SA代码分析</span></a></li></ol></div></div></div>
+
+
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+  
+  
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" id="home" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" id="menu" href="/wiki/">专栏</a><span class="sep"></span><a class="cap breadcrumb" id="proj" href="/wiki/strongswan/index.html">StrongSwan的使用和源码解析</a></div><div id="post-meta">更新于&nbsp;<time datetime="2022-08-29T06:11:26.878Z">2022-08-29</time>&nbsp;&nbsp;<span>阅读:</span>&nbsp;<span class="waline-pageview-count" data-path="/wiki/strongswan/ike_sa.html">loading</span></span></div></div>
+
+  <article class='content md wiki'>
+  <h1 class="article-title"><span>IKE_SA</span></h1>
+  <p><strong>IKE_SA</strong>是charon依据IKE协议对SA管理的最小单元，每个<strong>IKE_SA</strong>对应一个配置的隧道，该隧道所有相关的东西都在数据结构<strong>IKE_SA</strong>中进行管理。—- <code>ike_sa.c</code></p>
+<h2 id="IKE-SA初始化"><a href="#IKE-SA初始化" class="headerlink" title="IKE_SA初始化"></a>IKE_SA初始化</h2><p>每个<strong>IKE_SA</strong>在<a href="start_point/#%E5%A4%8D%E6%9D%82%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96sa">复杂的SA初始化</a>被初始化，最终程序落在 <code>IKE_SA</code>-&gt; <code>task_manager-&gt;initiate(..)</code></p>
+<ul>
+<li>IKEv1:<code>task_manager_v1.c</code></li>
+<li>IKEv2:<code>task_manager_v2.c</code></li>
+</ul>
+<h2 id="IKE-SA的TASKs"><a href="#IKE-SA的TASKs" class="headerlink" title="IKE_SA的TASKs"></a>IKE_SA的TASKs</h2><p>以IKEv1为例，我们知道V1的主模式下，IKE的协商需要6个报文交互，每个报文都发送或处理IKE协议的特定信息。在<strong>IKE_SA</strong>中，它把IKE协议的处理过程分为一个一个的小的TASK：比如构建SA报文、构建证书报文等等。这些TASK被放在该<strong>IKE_SA</strong>的TASK_QUEUE中，根据不同阶段来激活不同的TASK，当该阶段所有TASK都完成后（报文构建、解析）进行下一步处理。</p>
+<h3 id="TASK入队"><a href="#TASK入队" class="headerlink" title="TASK入队"></a>TASK入队</h3><p>strongswan-5.9.1\src\libcharon\sa\ikev1\task_manager_v1.c +1593</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">METHOD(<span class="type">task_manager_t</span>, queue_ike, <span class="type">void</span>,</span><br><span class="line">	<span class="type">private_task_manager_t</span> *this)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">peer_cfg_t</span> *peer_cfg;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (!has_queued(this, TASK_ISAKMP_VENDOR))</span><br><span class="line">	&#123;</span><br><span class="line">		queue_task(this, (<span class="type">task_t</span>*)isakmp_vendor_create(this-&gt;ike_sa, TRUE));</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> (!has_queued(this, TASK_ISAKMP_CERT_PRE))</span><br><span class="line">	&#123;</span><br><span class="line">		queue_task(this, (<span class="type">task_t</span>*)isakmp_cert_pre_create(this-&gt;ike_sa, TRUE));</span><br><span class="line">	&#125;</span><br><span class="line">	peer_cfg = this-&gt;ike_sa-&gt;get_peer_cfg(this-&gt;ike_sa);</span><br><span class="line">	<span class="keyword">if</span> (peer_cfg-&gt;use_aggressive(peer_cfg))</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">if</span> (!has_queued(this, TASK_AGGRESSIVE_MODE))</span><br><span class="line">		&#123;</span><br><span class="line">			queue_task(this, (<span class="type">task_t</span>*)aggressive_mode_create(this-&gt;ike_sa, TRUE));</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">if</span> (!has_queued(this, TASK_MAIN_MODE))</span><br><span class="line">		&#123;</span><br><span class="line">			queue_task(this, (<span class="type">task_t</span>*)main_mode_create(this-&gt;ike_sa, TRUE));</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> (!has_queued(this, TASK_ISAKMP_CERT_POST))</span><br><span class="line">	&#123;</span><br><span class="line">		queue_task(this, (<span class="type">task_t</span>*)isakmp_cert_post_create(this-&gt;ike_sa, TRUE));</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> (!has_queued(this, TASK_ISAKMP_NATD))</span><br><span class="line">	&#123;</span><br><span class="line">		queue_task(this, (<span class="type">task_t</span>*)isakmp_natd_create(this-&gt;ike_sa, TRUE));</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="IKE-SA状态机"><a href="#IKE-SA状态机" class="headerlink" title="IKE_SA状态机"></a>IKE_SA状态机</h3><p>strongswan-5.9.1\src\libcharon\sa\ike_sa.h +268</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * State of an IKE_SA.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * An IKE_SA passes various states in its lifetime. A newly created</span></span><br><span class="line"><span class="comment"> * SA is in the state CREATED.</span></span><br><span class="line"><span class="comment"> * @verbatim</span></span><br><span class="line"><span class="comment">                 +----------------+</span></span><br><span class="line"><span class="comment">                 ¦   SA_CREATED   ¦</span></span><br><span class="line"><span class="comment">                 +----------------+</span></span><br><span class="line"><span class="comment">                         ¦</span></span><br><span class="line"><span class="comment">    on initiate()---&gt;    ¦   &lt;----- on IKE_SA_INIT received</span></span><br><span class="line"><span class="comment">                         V</span></span><br><span class="line"><span class="comment">                 +----------------+</span></span><br><span class="line"><span class="comment">                 ¦ SA_CONNECTING  ¦</span></span><br><span class="line"><span class="comment">                 +----------------+</span></span><br><span class="line"><span class="comment">                         ¦</span></span><br><span class="line"><span class="comment">                         ¦   &lt;----- on IKE_AUTH successfully completed</span></span><br><span class="line"><span class="comment">                         V</span></span><br><span class="line"><span class="comment">                 +----------------+</span></span><br><span class="line"><span class="comment">                 ¦ SA_ESTABLISHED ¦-------------------------+ &lt;-- on rekeying</span></span><br><span class="line"><span class="comment">                 +----------------+                         ¦</span></span><br><span class="line"><span class="comment">                         ¦                                  V</span></span><br><span class="line"><span class="comment">    on delete()---&gt;      ¦   &lt;----- on IKE_SA        +-------------+</span></span><br><span class="line"><span class="comment">                         ¦          delete request   ¦ SA_REKEYING ¦</span></span><br><span class="line"><span class="comment">                         ¦          received         +-------------+</span></span><br><span class="line"><span class="comment">                         V                                  ¦</span></span><br><span class="line"><span class="comment">                 +----------------+                         ¦</span></span><br><span class="line"><span class="comment">                 ¦  SA_DELETING   ¦&lt;------------------------+ &lt;-- after rekeying</span></span><br><span class="line"><span class="comment">                 +----------------+</span></span><br><span class="line"><span class="comment">                         ¦</span></span><br><span class="line"><span class="comment">                         ¦   &lt;----- after delete() acknowledged</span></span><br><span class="line"><span class="comment">                         ¦</span></span><br><span class="line"><span class="comment">                        \V/</span></span><br><span class="line"><span class="comment">                         X</span></span><br><span class="line"><span class="comment">                        / \</span></span><br><span class="line"><span class="comment">   @endverbatim</span></span><br><span class="line"><span class="comment"> */</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="IKE-SA代码分析"><a href="#IKE-SA代码分析" class="headerlink" title="IKE_SA代码分析"></a>IKE_SA代码分析</h2><p>主要是4个过程，已经在代码中注释：</p>
+<ol>
+<li>IKE_SA 状态机转换</li>
+<li>激活的TASK迭代处理</li>
+<li>构建报文并发送</li>
+<li>进入状态机下一个阶段</li>
+</ol>
+<p>strongswan-5.9.1\src\libcharon\sa\ikev1\task_manager_v1.c +482</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br></pre></td><td class="code"><pre><span class="line">METHOD(<span class="type">task_manager_t</span>, initiate, <span class="type">status_t</span>,</span><br><span class="line">	<span class="type">private_task_manager_t</span> *this)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">enumerator_t</span> *enumerator;</span><br><span class="line">	<span class="type">task_t</span> *task;</span><br><span class="line">	<span class="type">message_t</span> *message;</span><br><span class="line">	<span class="type">host_t</span> *me, *other;</span><br><span class="line">	<span class="type">exchange_type_t</span> exchange = EXCHANGE_TYPE_UNDEFINED;</span><br><span class="line">	<span class="type">bool</span> new_mid = FALSE, expect_response = FALSE, cancelled = FALSE, keep = FALSE;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (this-&gt;initiating.type != EXCHANGE_TYPE_UNDEFINED &amp;&amp;</span><br><span class="line">		this-&gt;initiating.type != INFORMATIONAL_V1)</span><br><span class="line">	&#123;</span><br><span class="line">		DBG2(DBG_IKE, <span class="string">&quot;delaying task initiation, %N exchange in progress&quot;</span>,</span><br><span class="line">				exchange_type_names, this-&gt;initiating.type);</span><br><span class="line">		<span class="comment">/* do not initiate if we already have a message in the air */</span></span><br><span class="line">		<span class="keyword">return</span> SUCCESS;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (this-&gt;active_tasks-&gt;get_count(this-&gt;active_tasks) == <span class="number">0</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">// IKE_SA 状态机转换</span></span><br><span class="line">		DBG2(DBG_IKE, <span class="string">&quot;activating new tasks&quot;</span>);</span><br><span class="line">		<span class="keyword">switch</span> (this-&gt;ike_sa-&gt;get_state(this-&gt;ike_sa))</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">case</span> IKE_CREATED:</span><br><span class="line">				activate_task(this, TASK_ISAKMP_VENDOR);</span><br><span class="line">				activate_task(this, TASK_ISAKMP_CERT_PRE);</span><br><span class="line">				<span class="keyword">if</span> (activate_task(this, TASK_MAIN_MODE))</span><br><span class="line">				&#123;</span><br><span class="line">					exchange = ID_PROT;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">else</span> <span class="keyword">if</span> (activate_task(this, TASK_AGGRESSIVE_MODE))</span><br><span class="line">				&#123;</span><br><span class="line">					exchange = AGGRESSIVE;</span><br><span class="line">				&#125;</span><br><span class="line">				activate_task(this, TASK_ISAKMP_CERT_POST);</span><br><span class="line">				activate_task(this, TASK_ISAKMP_NATD);</span><br><span class="line">				<span class="keyword">break</span>;</span><br><span class="line">			<span class="keyword">case</span> IKE_CONNECTING:</span><br><span class="line">				<span class="keyword">if</span> (activate_task(this, TASK_ISAKMP_DELETE))</span><br><span class="line">				&#123;</span><br><span class="line">					exchange = INFORMATIONAL_V1;</span><br><span class="line">					new_mid = TRUE;</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">if</span> (activate_task(this, TASK_XAUTH))</span><br><span class="line">				&#123;</span><br><span class="line">					exchange = TRANSACTION;</span><br><span class="line">					new_mid = TRUE;</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">if</span> (activate_task(this, TASK_INFORMATIONAL))</span><br><span class="line">				&#123;</span><br><span class="line">					exchange = INFORMATIONAL_V1;</span><br><span class="line">					new_mid = TRUE;</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">break</span>;</span><br><span class="line">			<span class="keyword">case</span> IKE_ESTABLISHED:</span><br><span class="line">				<span class="keyword">if</span> (activate_task(this, TASK_MODE_CONFIG))</span><br><span class="line">				&#123;</span><br><span class="line">					exchange = TRANSACTION;</span><br><span class="line">					new_mid = TRUE;</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">if</span> (activate_task(this, TASK_QUICK_DELETE))</span><br><span class="line">				&#123;</span><br><span class="line">					exchange = INFORMATIONAL_V1;</span><br><span class="line">					new_mid = TRUE;</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">if</span> (activate_task(this, TASK_ISAKMP_DELETE))</span><br><span class="line">				&#123;</span><br><span class="line">					exchange = INFORMATIONAL_V1;</span><br><span class="line">					new_mid = TRUE;</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">if</span> (activate_task(this, TASK_ISAKMP_DPD))</span><br><span class="line">				&#123;</span><br><span class="line">					exchange = INFORMATIONAL_V1;</span><br><span class="line">					new_mid = TRUE;</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">if</span> (!mode_config_expected(this) &amp;&amp;</span><br><span class="line">					activate_task(this, TASK_QUICK_MODE))</span><br><span class="line">				&#123;</span><br><span class="line">					exchange = QUICK_MODE;</span><br><span class="line">					new_mid = TRUE;</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">if</span> (activate_task(this, TASK_INFORMATIONAL))</span><br><span class="line">				&#123;</span><br><span class="line">					exchange = INFORMATIONAL_V1;</span><br><span class="line">					new_mid = TRUE;</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">break</span>;</span><br><span class="line">			<span class="keyword">case</span> IKE_REKEYING:</span><br><span class="line">				<span class="keyword">if</span> (activate_task(this, TASK_ISAKMP_DELETE))</span><br><span class="line">				&#123;</span><br><span class="line">					exchange = INFORMATIONAL_V1;</span><br><span class="line">					new_mid = TRUE;</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">if</span> (activate_task(this, TASK_ISAKMP_DPD))</span><br><span class="line">				&#123;</span><br><span class="line">					exchange = INFORMATIONAL_V1;</span><br><span class="line">					new_mid = TRUE;</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">break</span>;</span><br><span class="line">			<span class="keyword">default</span>:</span><br><span class="line">				<span class="keyword">break</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">	&#123;</span><br><span class="line">		DBG2(DBG_IKE, <span class="string">&quot;reinitiating already active tasks&quot;</span>);</span><br><span class="line">		enumerator = this-&gt;active_tasks-&gt;create_enumerator(this-&gt;active_tasks);</span><br><span class="line">		<span class="keyword">while</span> (enumerator-&gt;enumerate(enumerator, (<span class="type">void</span>**)&amp;task))</span><br><span class="line">		&#123;</span><br><span class="line">			DBG2(DBG_IKE, <span class="string">&quot;  %N task&quot;</span>, task_type_names, task-&gt;get_type(task));</span><br><span class="line">			<span class="keyword">switch</span> (task-&gt;get_type(task))</span><br><span class="line">			&#123;</span><br><span class="line">				<span class="keyword">case</span> TASK_MAIN_MODE:</span><br><span class="line">					exchange = ID_PROT;</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">				<span class="keyword">case</span> TASK_AGGRESSIVE_MODE:</span><br><span class="line">					exchange = AGGRESSIVE;</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">				<span class="keyword">case</span> TASK_QUICK_MODE:</span><br><span class="line">					exchange = QUICK_MODE;</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">				<span class="keyword">case</span> TASK_XAUTH:</span><br><span class="line">					exchange = TRANSACTION;</span><br><span class="line">					new_mid = TRUE;</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">				<span class="keyword">default</span>:</span><br><span class="line">					<span class="keyword">continue</span>;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		enumerator-&gt;destroy(enumerator);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (exchange == EXCHANGE_TYPE_UNDEFINED)</span><br><span class="line">	&#123;</span><br><span class="line">		DBG2(DBG_IKE, <span class="string">&quot;nothing to initiate&quot;</span>);</span><br><span class="line">		<span class="comment">/* nothing to do yet... */</span></span><br><span class="line">		<span class="keyword">return</span> SUCCESS;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	me = this-&gt;ike_sa-&gt;get_my_host(this-&gt;ike_sa);</span><br><span class="line">	other = this-&gt;ike_sa-&gt;get_other_host(this-&gt;ike_sa);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (new_mid)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">if</span> (!this-&gt;rng-&gt;get_bytes(this-&gt;rng, <span class="keyword">sizeof</span>(this-&gt;initiating.mid),</span><br><span class="line">								 (<span class="type">void</span>*)&amp;this-&gt;initiating.mid))</span><br><span class="line">		&#123;</span><br><span class="line">			DBG1(DBG_IKE, <span class="string">&quot;failed to allocate message ID, destroying IKE_SA&quot;</span>);</span><br><span class="line">			flush(this);</span><br><span class="line">			<span class="keyword">return</span> DESTROY_ME;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	message = message_create(IKEV1_MAJOR_VERSION, IKEV1_MINOR_VERSION);</span><br><span class="line">	message-&gt;set_message_id(message, this-&gt;initiating.mid);</span><br><span class="line">	message-&gt;set_source(message, me-&gt;clone(me));</span><br><span class="line">	message-&gt;set_destination(message, other-&gt;clone(other));</span><br><span class="line">	message-&gt;set_exchange_type(message, exchange);</span><br><span class="line">	this-&gt;initiating.type = exchange;</span><br><span class="line">	this-&gt;initiating.retransmitted = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// IKE_SA 激活的TASK迭代处理</span></span><br><span class="line">	enumerator = this-&gt;active_tasks-&gt;create_enumerator(this-&gt;active_tasks);</span><br><span class="line">	<span class="keyword">while</span> (enumerator-&gt;enumerate(enumerator, (<span class="type">void</span>*)&amp;task))</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">switch</span> (task-&gt;build(task, message))</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">case</span> SUCCESS:</span><br><span class="line">				<span class="comment">/* task completed, remove it */</span></span><br><span class="line">				this-&gt;active_tasks-&gt;remove_at(this-&gt;active_tasks, enumerator);</span><br><span class="line">				<span class="keyword">if</span> (task-&gt;get_type(task) == TASK_AGGRESSIVE_MODE ||</span><br><span class="line">					task-&gt;get_type(task) == TASK_QUICK_MODE)</span><br><span class="line">				&#123;	<span class="comment">/* last message of three message exchange */</span></span><br><span class="line">					keep = TRUE;</span><br><span class="line">				&#125;</span><br><span class="line">				task-&gt;destroy(task);</span><br><span class="line">				<span class="keyword">continue</span>;</span><br><span class="line">			<span class="keyword">case</span> NEED_MORE:</span><br><span class="line">				expect_response = TRUE;</span><br><span class="line">				<span class="comment">/* processed, but task needs another exchange */</span></span><br><span class="line">				<span class="keyword">continue</span>;</span><br><span class="line">			<span class="keyword">case</span> ALREADY_DONE:</span><br><span class="line">				cancelled = TRUE;</span><br><span class="line">				<span class="keyword">break</span>;</span><br><span class="line">			<span class="keyword">case</span> FAILED:</span><br><span class="line">			<span class="keyword">default</span>:</span><br><span class="line">				<span class="keyword">if</span> (this-&gt;ike_sa-&gt;get_state(this-&gt;ike_sa) != IKE_CONNECTING)</span><br><span class="line">				&#123;</span><br><span class="line">					charon-&gt;bus-&gt;ike_updown(charon-&gt;bus, this-&gt;ike_sa, FALSE);</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="comment">/* FALL */</span></span><br><span class="line">			<span class="keyword">case</span> DESTROY_ME:</span><br><span class="line">				<span class="comment">/* critical failure, destroy IKE_SA */</span></span><br><span class="line">				enumerator-&gt;destroy(enumerator);</span><br><span class="line">				message-&gt;destroy(message);</span><br><span class="line">				flush(this);</span><br><span class="line">				<span class="keyword">return</span> DESTROY_ME;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	enumerator-&gt;destroy(enumerator);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (this-&gt;active_tasks-&gt;get_count(this-&gt;active_tasks) == <span class="number">0</span> &amp;&amp;</span><br><span class="line">		(exchange == QUICK_MODE || exchange == AGGRESSIVE))</span><br><span class="line">	&#123;	<span class="comment">/* tasks completed, no exchange active anymore */</span></span><br><span class="line">		this-&gt;initiating.type = EXCHANGE_TYPE_UNDEFINED;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> (cancelled)</span><br><span class="line">	&#123;</span><br><span class="line">		message-&gt;destroy(message);</span><br><span class="line">		<span class="keyword">return</span> initiate(this);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 构建报文</span></span><br><span class="line">	clear_packets(this-&gt;initiating.packets);</span><br><span class="line">	<span class="keyword">if</span> (!generate_message(this, message, &amp;this-&gt;initiating.packets))</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">/* message generation failed. There is nothing more to do than to</span></span><br><span class="line"><span class="comment">		 * close the SA */</span></span><br><span class="line">		message-&gt;destroy(message);</span><br><span class="line">		flush(this);</span><br><span class="line">		charon-&gt;bus-&gt;ike_updown(charon-&gt;bus, this-&gt;ike_sa, FALSE);</span><br><span class="line">		<span class="keyword">return</span> DESTROY_ME;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	this-&gt;initiating.seqnr++;</span><br><span class="line">	<span class="keyword">if</span> (expect_response)</span><br><span class="line">	&#123;</span><br><span class="line">		message-&gt;destroy(message);</span><br><span class="line">		<span class="keyword">return</span> retransmit(this, this-&gt;initiating.seqnr);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 发送报文</span></span><br><span class="line">	send_packets(this, this-&gt;initiating.packets);</span><br><span class="line">	<span class="keyword">if</span> (!keep)</span><br><span class="line">	&#123;</span><br><span class="line">		clear_packets(this-&gt;initiating.packets);</span><br><span class="line">	&#125;</span><br><span class="line">	message-&gt;destroy(message);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (exchange == INFORMATIONAL_V1)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">switch</span> (this-&gt;ike_sa-&gt;get_state(this-&gt;ike_sa))</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">case</span> IKE_CONNECTING:</span><br><span class="line">				<span class="comment">/* close after sending an INFORMATIONAL when unestablished */</span></span><br><span class="line">				charon-&gt;bus-&gt;ike_updown(charon-&gt;bus, this-&gt;ike_sa, FALSE);</span><br><span class="line">				<span class="keyword">return</span> FAILED;</span><br><span class="line">			<span class="keyword">case</span> IKE_DELETING:</span><br><span class="line">				<span class="comment">/* close after sending a DELETE */</span></span><br><span class="line">				<span class="keyword">return</span> DESTROY_ME;</span><br><span class="line">			<span class="keyword">default</span>:</span><br><span class="line">				<span class="keyword">break</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 进入状态机下一个阶段</span></span><br><span class="line">	<span class="keyword">return</span> initiate(this);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+  
+
+
+  </article>
+  
+<br>
+
+  
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body waline'>
+      
+
+<div id="waline_container" class="waline_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>本站由 <a href="https://peiyake.com/">@Yake Pei</a> 创建，使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.8.0" title="v1.8.0">Stellar</a> 作为主题。</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.8.0';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://fastly.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://fastly.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://fastly.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://fastly.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://fastly.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.fancybox = Object.assign({"enable":true,"js":"https://fastly.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.js","css":"https://fastly.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.css","selector":".swiper-slide img"});
+  }
+  if ('false' == 'true') {
+    stellar.plugins.heti = Object.assign({"enable":false,"css":"https://unpkg.com/heti/umd/heti.min.css","js":"https://unpkg.com/heti/umd/heti-addon.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function load_comment(){
+    if(!document.getElementById("waline_container"))return;
+    stellar.loadCSS('https://unpkg.com/@waline/client@v2/dist/waline.css');
+    stellar.loadScript('https://unpkg.com/@waline/client@v2/dist/waline.js', {defer:true}).then(function () {
+      const el = document.getElementById("waline_container");
+      //var path = el.getAttribute('comment_id');
+      var path = "/wiki/strongswan/ike_sa.html";
+      var n = path.search(/index.html$/);
+      if(-1 != n){
+        path = path.slice(0,n);
+      }
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      Waline.init(Object.assign({"js":"https://unpkg.com/@waline/client@v2/dist/waline.js","css":"https://unpkg.com/@waline/client@v2/dist/waline.css","serverURL":"https://peiyake.com.cn/","commentCount":false,"pageview":true,"requiredMeta":["nick","mail"],"copyright":false,"placeholder":"请留言。(填写邮箱可在被回复时收到邮件提醒)"}, {
+        el: '#waline_container',
+        path: path,
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+  
+
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+
+<head>
+  <meta name="generator" content="Hexo 5.4.2">
+  <meta charset="utf-8">
+  
+
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  <link rel='dns-prefetch' href='https://fastly.jsdelivr.net'>
+  <link rel="preconnect" href="https://fastly.jsdelivr.net" crossorigin>
+  <link rel='dns-prefetch' href='//unpkg.com'>
+
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#f8f8f8">
+  <title>StrongSwan：charon解析 - Mr.Piak</title>
+
+  
+    <meta name="description" content="带着疑问去看 charon如何组织框架中各个模块？ charon中各模块如何相互交叉联系？ charon核心业务的启动点在什么地方？  charon源码解析mainstrongswan-5.9.1\src\charon\charon.c 12345678910111213141516171819202122232425262728293031323334353637383940414243&#x2F;**">
+<meta property="og:type" content="website">
+<meta property="og:title" content="charon解析">
+<meta property="og:url" content="https://peiyake.com/wiki/strongswan/charon_code.html">
+<meta property="og:site_name" content="Mr.Piak">
+<meta property="og:description" content="带着疑问去看 charon如何组织框架中各个模块？ charon中各模块如何相互交叉联系？ charon核心业务的启动点在什么地方？  charon源码解析mainstrongswan-5.9.1\src\charon\charon.c 12345678910111213141516171819202122232425262728293031323334353637383940414243&#x2F;**">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-08-26T08:46:50.450Z">
+<meta property="article:modified_time" content="2022-08-26T08:46:50.450Z">
+<meta property="article:author" content="Yake Pei">
+<meta property="article:tag" content="Linux,内核,IPSec,国密,网络知识,网络协议,Strongswan,openwrt,feed,luci,uboot,文件系统,shell,lua,全栈">
+<meta name="twitter:card" content="summary">
+  
+  
+
+  <!-- feed -->
+  
+
+  
+    
+<link rel="stylesheet" href="/css/main.css">
+
+  
+
+  
+    <link rel="shortcut icon" href="/images/favicon.png">
+  
+
+  
+</head>
+
+<body>
+  
+
+
+
+
+  <div class='l_body' id='start'>
+    <aside class='l_left' layout='wiki'>
+    
+
+
+<header class="header">
+
+<div class="logo-wrap wiki"><a style="filter: grayscale(100%)" class="wiki-home cap" href="/"><svg aria-hidden="true" viewBox="0 0 16 16" width="1rem" height="1rem" fill="currentColor"><path fill-rule="evenodd" d="M7.78 12.53a.75.75 0 01-1.06 0L2.47 8.28a.75.75 0 010-1.06l4.25-4.25a.75.75 0 011.06 1.06L4.81 7h7.44a.75.75 0 010 1.5H4.81l2.97 2.97a.75.75 0 010 1.06z"></path></svg>所有项目</a><a class="title" href="/wiki/strongswan/index.html"><div class="main">StrongSwan的使用和源码解析</div></a></div>
+</header>
+
+<div class="widgets">
+
+<div class="widget-wrap multi" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree"><a class="doc-tree-link" href="/wiki/strongswan/index.html"><span class="toc-text">核心进程charon</span></a></div><div class="doc-tree active"><a class="doc-tree-link active" href="/wiki/strongswan/charon_code.html"><span class="toc-text">charon解析</span></a><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%A6%E7%9D%80%E7%96%91%E9%97%AE%E5%8E%BB%E7%9C%8B"><span class="toc-text">带着疑问去看</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#charon%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90"><span class="toc-text">charon源码解析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#main"><span class="toc-text">main</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E5%85%A8%E5%B1%80library-t-lib%E5%AE%9E%E4%BE%8B"><span class="toc-text">初始化全局library_t *lib实例</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E5%85%A8%E5%B1%80daemon-t-charon%E5%AE%9E%E4%BE%8B"><span class="toc-text">初始化全局daemon_t *charon实例</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%88%E6%8A%A4%E8%BF%9B%E7%A8%8Bcharon%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-text">守护进程charon初始化</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8%E5%AE%88%E6%8A%A4%E8%BF%9B%E7%A8%8Bcharon"><span class="toc-text">启动守护进程charon</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BB%93%E5%B0%BE%E2%80%93%E4%B8%BB%E8%BF%9B%E7%A8%8B%E5%BC%80%E5%90%AF%E5%AE%88%E6%8A%A4"><span class="toc-text">结尾–主进程开启守护</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E6%8F%90%E7%96%91%E9%97%AE%E8%A7%A3%E7%AD%94"><span class="toc-text">前提疑问解答</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#charon%E5%A6%82%E4%BD%95%E7%BB%84%E7%BB%87%E6%A1%86%E6%9E%B6%E4%B8%AD%E5%90%84%E4%B8%AA%E6%A8%A1%E5%9D%97%EF%BC%9F"><span class="toc-text">charon如何组织框架中各个模块？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#charon%E4%B8%AD%E5%90%84%E6%A8%A1%E5%9D%97%E5%A6%82%E4%BD%95%E7%9B%B8%E4%BA%92%E4%BA%A4%E5%8F%89%E8%81%94%E7%B3%BB%EF%BC%9F"><span class="toc-text">charon中各模块如何相互交叉联系？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#charon%E6%A0%B8%E5%BF%83%E4%B8%9A%E5%8A%A1%E7%9A%84%E5%90%AF%E5%8A%A8%E7%82%B9%E5%9C%A8%E4%BB%80%E4%B9%88%E5%9C%B0%E6%96%B9%EF%BC%9F"><span class="toc-text">charon核心业务的启动点在什么地方？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%93%E6%9D%9F%E8%AF%AD"><span class="toc-text">结束语</span></a></li></ol></div><div class="doc-tree"><a class="doc-tree-link" href="/wiki/strongswan/start_point.html"><span class="toc-text">charon启动过程分析</span></a></div><div class="doc-tree"><a class="doc-tree-link" href="/wiki/strongswan/ike_sa_manager.html"><span class="toc-text">IKE_SA Manager</span></a></div><div class="doc-tree"><a class="doc-tree-link" href="/wiki/strongswan/ike_sa.html"><span class="toc-text">IKE_SA</span></a></div></div></div>
+
+
+
+
+</div>
+
+
+    </aside>
+    <div class='l_main'>
+      
+
+      
+
+  
+  
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" id="home" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" id="menu" href="/wiki/">专栏</a><span class="sep"></span><a class="cap breadcrumb" id="proj" href="/wiki/strongswan/index.html">StrongSwan的使用和源码解析</a></div><div id="post-meta">更新于&nbsp;<time datetime="2022-08-26T08:46:50.450Z">2022-08-26</time>&nbsp;&nbsp;<span>阅读:</span>&nbsp;<span class="waline-pageview-count" data-path="/wiki/strongswan/charon_code.html">loading</span></span></div></div>
+
+  <article class='content md wiki'>
+  <h1 class="article-title"><span>charon解析</span></h1>
+  <h2 id="带着疑问去看"><a href="#带着疑问去看" class="headerlink" title="带着疑问去看"></a>带着疑问去看</h2><ul>
+<li><code>charon</code>如何组织框架中各个模块？</li>
+<li><code>charon</code>中各模块如何相互交叉联系？</li>
+<li><code>charon</code>核心业务的启动点在什么地方？</li>
+</ul>
+<h2 id="charon源码解析"><a href="#charon源码解析" class="headerlink" title="charon源码解析"></a>charon源码解析</h2><h3 id="main"><a href="#main" class="headerlink" title="main"></a>main</h3><p>strongswan-5.9.1\src\charon\charon.c</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Main function, starts the daemon.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> *argv[])</span></span><br><span class="line">&#123;</span><br><span class="line">	...</span><br><span class="line">	<span class="comment">/* initialize library */</span></span><br><span class="line">	<span class="keyword">if</span> (!library_init(<span class="literal">NULL</span>, <span class="string">&quot;charon&quot;</span>))</span><br><span class="line">	&#123;</span><br><span class="line">		library_deinit();</span><br><span class="line">		<span class="built_in">exit</span>(SS_RC_LIBSTRONGSWAN_INTEGRITY);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	...</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (!libcharon_init())</span><br><span class="line">	&#123;</span><br><span class="line">		dbg_stderr(DBG_DMN, <span class="number">1</span>, <span class="string">&quot;initialization failed - aborting charon&quot;</span>);</span><br><span class="line">		<span class="keyword">goto</span> deinit;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	...</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* initialize daemon */</span></span><br><span class="line">	<span class="keyword">if</span> (!charon-&gt;initialize(charon,</span><br><span class="line">				lib-&gt;settings-&gt;get_str(lib-&gt;settings, <span class="string">&quot;charon.load&quot;</span>, PLUGINS)))</span><br><span class="line">	&#123;</span><br><span class="line">		DBG1(DBG_DMN, <span class="string">&quot;initialization failed - aborting charon&quot;</span>);</span><br><span class="line">		<span class="keyword">goto</span> deinit;</span><br><span class="line">	&#125;</span><br><span class="line">	lib-&gt;plugins-&gt;status(lib-&gt;plugins, LEVEL_CTRL);</span><br><span class="line"></span><br><span class="line">	...</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* start daemon (i.e. the threads in the thread-pool) */</span></span><br><span class="line">	charon-&gt;start(charon);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* main thread goes to run loop */</span></span><br><span class="line">	run();</span><br><span class="line"></span><br><span class="line">	...</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="初始化全局library-t-lib实例"><a href="#初始化全局library-t-lib实例" class="headerlink" title="初始化全局library_t *lib实例"></a>初始化全局<code>library_t *lib</code>实例</h4><p>strongswan-5.9.1\src\libstrongswan\library.c</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">bool</span> <span class="title function_">library_init</span><span class="params">(<span class="type">char</span> *settings, <span class="type">const</span> <span class="type">char</span> *namespace)</span></span><br><span class="line">&#123;</span><br><span class="line">	...</span><br><span class="line"></span><br><span class="line">	this-&gt;public.hosts = host_resolver_create();</span><br><span class="line">	this-&gt;public.proposal = proposal_keywords_create();</span><br><span class="line">	this-&gt;public.caps = capabilities_create();</span><br><span class="line">	this-&gt;public.crypto = crypto_factory_create();</span><br><span class="line">	this-&gt;public.creds = credential_factory_create();</span><br><span class="line">	this-&gt;public.credmgr = credential_manager_create();</span><br><span class="line">	this-&gt;public.encoding = cred_encoding_create();</span><br><span class="line">	this-&gt;public.fetcher = fetcher_manager_create();</span><br><span class="line">	this-&gt;public.resolver = resolver_manager_create();</span><br><span class="line">	this-&gt;public.db = database_factory_create();</span><br><span class="line">	this-&gt;public.processor = processor_create();</span><br><span class="line">	this-&gt;public.scheduler = scheduler_create();</span><br><span class="line">	this-&gt;public.watcher = watcher_create();</span><br><span class="line">	this-&gt;public.streams = stream_manager_create();</span><br><span class="line">	this-&gt;public.plugins = plugin_loader_create();</span><br><span class="line"></span><br><span class="line">	...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们看到<code>library_init</code>并不是业务启动点，而是初始化了全局变量<code>library_t *lib</code>。该变量用来组织<strong>框架</strong>中的部分模块，包括：处理器（processor）/调度器（scheduler）、证书（creds）。它将这几个模块的指针进行了实例化，以备后用。</p>
+<p>其中调度器（scheduler）在初始化过程中创建了整个进程的第一个<strong>job</strong>，并将其加入到处理器（processor）的队列中。注意：此时处理器还没有开始工作（线程尚未创建）。另外，我们观察调度器的执行函数</p>
+<p>strongswan-5.9.1\src\libstrongswan\processing\scheduler.c</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">scheduler_t</span> * <span class="title function_">scheduler_create</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">	...</span><br><span class="line"></span><br><span class="line">	job = callback_job_create_with_prio((<span class="type">callback_job_cb_t</span>)schedule, this,</span><br><span class="line">										<span class="literal">NULL</span>, return_false, JOB_PRIO_CRITICAL);</span><br><span class="line">	lib-&gt;processor-&gt;queue_job(lib-&gt;processor, (<span class="type">job_t</span>*)job);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> &amp;this-&gt;public;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>执行函数入口是 <code>static job_requeue_t schedule(private_scheduler_t * this)</code>，该函数就是从它的队列中取<strong>events</strong>，然后交给处理器（Processor）。我们注意到它的返回值始终是<code>JOB_REQUEUE_DIRECT</code>。为什么呢？这其实牵扯到charon多线程工作模型：线程一直从队列中取<strong>job</strong>，<br>根据该<strong>job</strong>的返回值，决定下一步如何处理该<strong>job</strong>，如下，</p>
+<p>strongswan-5.9.1\src\libstrongswan\processing\jobs\job.h</p>
+<ul>
+<li><code>JOB_REQUEUE_TYPE_NONE</code>一次性任务，执行完就从队列中移出</li>
+<li><code>JOB_REQUEUE_TYPE_FAIR</code>任务执行失败，把它重新加入到队列尾部，等待下一次执行</li>
+<li><code>JOB_REQUEUE_TYPE_DIRECT</code>无需重新入队，直接循环执行此任务</li>
+<li><code>JOB_REQUEUE_TYPE_SCHEDULE</code>把该任务加入到调度器（Schedule）的队列后（定时任务）</li>
+</ul>
+<h4 id="初始化全局daemon-t-charon实例"><a href="#初始化全局daemon-t-charon实例" class="headerlink" title="初始化全局daemon_t *charon实例"></a>初始化全局<code>daemon_t *charon</code>实例</h4><p>strongswan-5.9.1\src\libcharon\daemon.c</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">bool</span> <span class="title function_">libcharon_init</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">	...</span><br><span class="line">	this = daemon_create();</span><br><span class="line">	...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">private_daemon_t</span> *<span class="title function_">daemon_create</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">	...</span><br><span class="line">	this-&gt;public.kernel = kernel_interface_create();</span><br><span class="line">	this-&gt;public.attributes = attribute_manager_create();</span><br><span class="line">	this-&gt;public.controller = controller_create();</span><br><span class="line">	this-&gt;public.eap = eap_manager_create();</span><br><span class="line">	this-&gt;public.xauth = xauth_manager_create();</span><br><span class="line">	this-&gt;public.backends = backend_manager_create();</span><br><span class="line">	this-&gt;public.socket = socket_manager_create();</span><br><span class="line">	this-&gt;public.traps = trap_manager_create();</span><br><span class="line">	this-&gt;public.shunts = shunt_manager_create();</span><br><span class="line">	this-&gt;public.redirect = redirect_manager_create();</span><br><span class="line">	this-&gt;kernel_handler = kernel_handler_create();</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> this;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>整个<strong>libcharon_init</strong>的过程都是针对全局变量<em>*daemon_t *charon**，初始化了它的各个成员。其中包括框架中的模块：</em>*kernel<strong>、</strong>backends<strong>、</strong>socket**。这里也不是进程的启动点，各个成员被初始化后，等待后面使用。</p>
+<h4 id="守护进程charon初始化"><a href="#守护进程charon初始化" class="headerlink" title="守护进程charon初始化"></a>守护进程charon初始化</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* initialize daemon */</span></span><br><span class="line"><span class="keyword">if</span> (!charon-&gt;initialize(charon,</span><br><span class="line">			lib-&gt;settings-&gt;get_str(lib-&gt;settings, <span class="string">&quot;charon.load&quot;</span>, PLUGINS)))</span><br><span class="line">&#123;</span><br><span class="line">	DBG1(DBG_DMN, <span class="string">&quot;initialization failed - aborting charon&quot;</span>);</span><br><span class="line">	<span class="keyword">goto</span> deinit;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>charon-&gt;initialize</code>调用了</p>
+<p>strongswan-5.9.1\src\libcharon\daemon.c</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">METHOD(<span class="type">daemon_t</span>, initialize, <span class="type">bool</span>,</span><br><span class="line">	<span class="type">private_daemon_t</span> *this, <span class="type">char</span> *plugins)</span><br><span class="line">&#123;</span><br><span class="line">	...</span><br><span class="line">		PLUGIN_CALLBACK((<span class="type">plugin_feature_callback_t</span>)sender_receiver_cb, this),</span><br><span class="line">	...</span><br><span class="line">		PLUGIN_CALLBACK((<span class="type">plugin_feature_callback_t</span>)sa_managers_cb, this),</span><br><span class="line">	...</span><br><span class="line">	lib-&gt;plugins-&gt;add_static_features(lib-&gt;plugins, lib-&gt;ns, features,</span><br><span class="line">									  countof(features), TRUE, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* load plugins, further infrastructure may need it */</span></span><br><span class="line">	<span class="keyword">if</span> (!lib-&gt;plugins-&gt;load(lib-&gt;plugins, plugins))</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">return</span> FALSE;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* Queue start_action job */</span></span><br><span class="line">	lib-&gt;processor-&gt;queue_job(lib-&gt;processor, (<span class="type">job_t</span>*)start_action_job_create());</span><br><span class="line">	...</span><br><span class="line">	<span class="keyword">return</span> TRUE;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如上看到，进程<strong>charon</strong>是一个统一插件的形式注册到了全局的插件管理器中，然后通过<code>lib-&gt;plugins-&gt;load(lib-&gt;plugins, plugins)</code>随着全部的插件一起进行了初始化。</p>
+<p>比较重要的是，<strong>charon</strong>注册了2个插件回调函数（在插件加载过程中会被执行）<code>sender_receiver_cb</code>、<code>sa_managers_cb</code>，通过这两个回调函数，初始化了框架中的接收器（receiver）和发送器（sender）以及<strong>IKE_SA Manager</strong>和<strong>CHILD_SA</strong>模块。</p>
+<p>然后又构建了一个<strong>job</strong>，加入到<strong>处理器</strong>的队列中，等待执行。注意：此时线程仍然没有被创建。</p>
+<h4 id="启动守护进程charon"><a href="#启动守护进程charon" class="headerlink" title="启动守护进程charon"></a>启动守护进程charon</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* start daemon (i.e. the threads in the thread-pool) */</span></span><br><span class="line">charon-&gt;start(charon);</span><br></pre></td></tr></table></figure>
+
+<p>strongswan-5.9.1\src\libcharon\daemon.c</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">METHOD(<span class="type">daemon_t</span>, start, <span class="type">void</span>,</span><br><span class="line">	   <span class="type">private_daemon_t</span> *this)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="comment">/* start the engine, go multithreaded */</span></span><br><span class="line">	lib-&gt;processor-&gt;set_threads(lib-&gt;processor,</span><br><span class="line">						lib-&gt;settings-&gt;get_int(lib-&gt;settings, <span class="string">&quot;%s.threads&quot;</span>,</span><br><span class="line">											   DEFAULT_THREADS, lib-&gt;ns));</span><br><span class="line"></span><br><span class="line">	run_scripts(this, <span class="string">&quot;start&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>启动多线程</li>
+</ol>
+<p>我们看到<strong>charon-&gt;start</strong>函数比较简单，实际只有区区的2个函数调用，但也正是这两个调用，正式开启了守护进程<strong>charon</strong>的魔幻之旅。</p>
+<p><code>lib-&gt;processor-&gt;set_threads</code>根据配置的线程数目创建出多线程，并启动各个线程。这里不再粘贴具体代码，只罗列一下多线程的创建及执行的调用栈：</p>
+<p>strongswan-5.9.1\src\libstrongswan\processing\processor.c</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">set_threads</span><br><span class="line">	thread_create</span><br><span class="line">		process_jobs</span><br><span class="line">			get_job</span><br><span class="line">				process_job</span><br><span class="line">					worker-&gt;job-&gt;execute(worker-&gt;job)</span><br><span class="line">					lib-&gt;scheduler-&gt;schedule_job(...)</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>执行启动脚本</li>
+</ol>
+<p><code>run_scripts(this, &quot;start&quot;)</code>的操作比较简单，获取配置文件<strong>strongswan.conf</strong>配置文件中的<code>start_scripts</code>配置，并执行其中的脚本。这里主要是方面使用者方便执行一些准备工作。</p>
+<h4 id="结尾–主进程开启守护"><a href="#结尾–主进程开启守护" class="headerlink" title="结尾–主进程开启守护"></a>结尾–主进程开启守护</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* main thread goes to run loop */</span></span><br><span class="line">run();</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">run</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">	...</span><br><span class="line">	<span class="keyword">while</span> (TRUE)</span><br><span class="line">	&#123;</span><br><span class="line">		...</span><br><span class="line">		<span class="keyword">switch</span> (sig)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">case</span> SIGHUP:</span><br><span class="line">			&#123;</span><br><span class="line">				DBG1(DBG_DMN, <span class="string">&quot;signal of type SIGHUP received. Reloading &quot;</span></span><br><span class="line">					 <span class="string">&quot;configuration&quot;</span>);</span><br><span class="line">				...</span><br><span class="line">				<span class="keyword">break</span>;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">case</span> SIGINT:</span><br><span class="line">			<span class="keyword">case</span> SIGTERM:</span><br><span class="line">			&#123;</span><br><span class="line">				DBG1(DBG_DMN, <span class="string">&quot;%s received, shutting down&quot;</span>,</span><br><span class="line">					 sig == SIGINT ? <span class="string">&quot;SIGINT&quot;</span> : <span class="string">&quot;SIGTERM&quot;</span>);</span><br><span class="line">				charon-&gt;bus-&gt;alert(charon-&gt;bus, ALERT_SHUTDOWN_SIGNAL, sig);</span><br><span class="line">				<span class="keyword">return</span>;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>run()</code>开启一个死循环，设置几个信号。像忠诚的机器人一样等待使用者的信号召唤（命令行管理工具等），收到召唤（信号）后执行<strong>重新加载配置</strong>或者<strong>退出</strong>的操作。</p>
+<p>至此，<strong>charon</strong>就开始工作了。</p>
+<h2 id="前提疑问解答"><a href="#前提疑问解答" class="headerlink" title="前提疑问解答"></a>前提疑问解答</h2><h3 id="charon如何组织框架中各个模块？"><a href="#charon如何组织框架中各个模块？" class="headerlink" title="charon如何组织框架中各个模块？"></a><code>charon</code>如何组织框架中各个模块？</h3><p>我们通过上面分析看到，整个charon的启动过程主要是围绕两个初始化工作进行的，当初始化完成后，直接调用一个<strong>start</strong>就启动了核心功能。而各个模块也是在初始化过程中通过*<em>library_t <em>lib</em></em> 和 **daemon_t *charon**两个全局变量给组织起来，每个模块都实现一组抽象出来的特定功能，然后由核心业务逻辑在执行过程中根据需要去调用。</p>
+<h3 id="charon中各模块如何相互交叉联系？"><a href="#charon中各模块如何相互交叉联系？" class="headerlink" title="charon中各模块如何相互交叉联系？"></a><code>charon</code>中各模块如何相互交叉联系？</h3><p>因为各个模块的实例都保存在上面提到的两个全局变量中，根据每个模块的功能不通，在使用时，可以直接通过这两个全局变量创建模块的对象，并使用。至于模块间的关系，这个需要结合业务逻辑来分析。</p>
+<h3 id="charon核心业务的启动点在什么地方？"><a href="#charon核心业务的启动点在什么地方？" class="headerlink" title="charon核心业务的启动点在什么地方？"></a><code>charon</code>核心业务的启动点在什么地方？</h3><p>在上面的源码解析中，我们看到在线程创建之前已经至少有2个<strong>job</strong>加入了处理器的队列中，一旦多线程启动，那么这两个<strong>job</strong>就会被立即执行。而我们核心业务的启动点就在这2个<strong>job</strong>中，就是<a href="#%E5%AE%88%E6%8A%A4%E8%BF%9B%E7%A8%8Bcharon%E5%88%9D%E5%A7%8B%E5%8C%96">守护进程charon初始化</a>中初始化的<strong>job</strong>：<code>start_action_job_create</code>，我们针对这个<strong>job</strong>来具体分析一下：</p>
+<p>strongswan-5.9.1\src\libcharon\processing\jobs\start_action_job.c</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">start_action_job_t</span> *<span class="title function_">start_action_job_create</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">private_start_action_job_t</span> *this;</span><br><span class="line"></span><br><span class="line">	INIT(this,</span><br><span class="line">		.public = &#123;</span><br><span class="line">			.job_interface = &#123;</span><br><span class="line">				.execute = _execute,</span><br><span class="line">				.get_priority = _get_priority,</span><br><span class="line">				.destroy = _destroy,</span><br><span class="line">			&#125;,</span><br><span class="line">		&#125;,</span><br><span class="line">	);</span><br><span class="line">	<span class="keyword">return</span> &amp;this-&gt;public;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们看到这个函数创建了一个<strong>job</strong>对象<code>job_t</code>，每个<strong>job</strong>都有一个 <code>execute</code>成员，也就是它实际执行任务的函数。我们再分析一下这个启动函数</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">METHOD(<span class="type">job_t</span>, execute, <span class="type">job_requeue_t</span>,</span><br><span class="line">	<span class="type">private_start_action_job_t</span> *this)</span><br><span class="line">&#123;</span><br><span class="line">	...</span><br><span class="line">	enumerator = charon-&gt;backends-&gt;create_peer_cfg_enumerator(charon-&gt;backends,</span><br><span class="line">											<span class="literal">NULL</span>, <span class="literal">NULL</span>, <span class="literal">NULL</span>, <span class="literal">NULL</span>, IKE_ANY);</span><br><span class="line">	<span class="keyword">while</span> (enumerator-&gt;enumerate(enumerator, &amp;peer_cfg))</span><br><span class="line">	&#123;</span><br><span class="line">		children = peer_cfg-&gt;create_child_cfg_enumerator(peer_cfg);</span><br><span class="line">		<span class="keyword">while</span> (children-&gt;enumerate(children, &amp;child_cfg))</span><br><span class="line">		&#123;</span><br><span class="line">			name = child_cfg-&gt;get_name(child_cfg);</span><br><span class="line"></span><br><span class="line">			<span class="keyword">switch</span> (child_cfg-&gt;get_start_action(child_cfg))</span><br><span class="line">			&#123;</span><br><span class="line">				<span class="keyword">case</span> ACTION_RESTART:</span><br><span class="line">					DBG1(DBG_JOB, <span class="string">&quot;start action: initiate &#x27;%s&#x27;&quot;</span>, name);</span><br><span class="line">					charon-&gt;controller-&gt;initiate(charon-&gt;controller,</span><br><span class="line">												 peer_cfg-&gt;get_ref(peer_cfg),</span><br><span class="line">												 child_cfg-&gt;get_ref(child_cfg),</span><br><span class="line">												 <span class="literal">NULL</span>, <span class="literal">NULL</span>, <span class="number">0</span>, FALSE);</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">				<span class="keyword">case</span> ACTION_ROUTE:</span><br><span class="line">					DBG1(DBG_JOB, <span class="string">&quot;start action: route &#x27;%s&#x27;&quot;</span>, name);</span><br><span class="line">					mode = child_cfg-&gt;get_mode(child_cfg);</span><br><span class="line">					<span class="keyword">if</span> (mode == MODE_PASS || mode == MODE_DROP)</span><br><span class="line">					&#123;</span><br><span class="line">						charon-&gt;shunts-&gt;install(charon-&gt;shunts,</span><br><span class="line">												peer_cfg-&gt;get_name(peer_cfg),</span><br><span class="line">												child_cfg);</span><br><span class="line">					&#125;</span><br><span class="line">					<span class="keyword">else</span></span><br><span class="line">					&#123;</span><br><span class="line">						charon-&gt;traps-&gt;install(charon-&gt;traps, peer_cfg,</span><br><span class="line">											   child_cfg);</span><br><span class="line">					&#125;</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">				<span class="keyword">case</span> ACTION_NONE:</span><br><span class="line">					<span class="keyword">break</span>;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		children-&gt;destroy(children);</span><br><span class="line">	&#125;</span><br><span class="line">	enumerator-&gt;destroy(enumerator);</span><br><span class="line">	<span class="keyword">return</span> JOB_REQUEUE_NONE;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>execute</code>函数首先创建一个ipsec配置的迭代器</li>
+<li>迭代处理每组配置，根据配置的当前状态执行相应的操作<ul>
+<li>ACTION_RESTART<ul>
+<li>执行配置初始化 <code>charon-&gt;controller-&gt;initiate(...)</code></li>
+</ul>
+</li>
+<li>ACTION_ROUTE<ul>
+<li><strong>MODE_PASS</strong>/<strong>MODE_DROP</strong>模式，执行<code>charon-&gt;shunts-&gt;install(...)</code></li>
+<li><strong>MODE_TRANSPORT</strong>/<strong>MODE_TUNNEL</strong>模式，执行<code>charon-&gt;traps-&gt;install(...)</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>这里也对应了我们再<a href="index#charon%E6%A1%86%E6%9E%B6%E7%BB%BC%E8%BF%B0">charon框架综述</a>中提到的<strong>charon</strong>的工作机制。</p>
+<h2 id="结束语"><a href="#结束语" class="headerlink" title="结束语"></a>结束语</h2><p>StrongSwan的核心<strong>charon</strong>的实现还是很复杂的，通过上面的分析我们可以从整体上理解它的设计框架和核心思想。如果想要驾驭并修改<strong>charon</strong>的功能，那么还要更加深入的从细节上分析。</p>
+<p>另外，以面向对象的思想来理解整个代码实现会比较好一些。</p>
+<p>更加具体的分析，请看其它文章….</p>
+
+  
+
+
+  </article>
+  
+<div class="related-wrap reveal" id="read-next"><section class="header cap theme"><span>接下来阅读</span></section><section class="body fs14"><a id="next" href="/wiki/strongswan/start_point.html">charon启动过程分析<span class="note">下一篇</span></a><div class="line"></div><a id="prev" href="/wiki/strongswan/index.html">核心进程charon<span class="note">上一篇</span></a></section></div>
+
+  
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body waline'>
+      
+
+<div id="waline_container" class="waline_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
+  </div>
+
+
+
+
+      
+<footer class="page-footer reveal fs12"><hr><div class="text"><p>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+<p>本站由 <a href="https://peiyake.com/">@Yake Pei</a> 创建，使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.8.0" title="v1.8.0">Stellar</a> 作为主题。</p>
+</div></footer>
+
+      <div class='float-panel mobile-only blur' style='display:none'>
+  <button type='button' class='sidebar-toggle mobile' onclick='sidebar.toggle()'>
+    <svg class="icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15301"><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15302"></path><path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z" p-id="15303"></path></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+  <div class='scripts'>
+    <script type="text/javascript">
+  stellar = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    loadCSS: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    // 从 butterfly 和 volantis 获得灵感
+    loadScript: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    // https://github.com/jerryc127/hexo-theme-butterfly
+    jQuery: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        stellar.loadScript(stellar.plugins.jQuery).then(fn)
+      } else {
+        fn()
+      }
+    }
+  };
+  stellar.github = 'https://github.com/xaoxuu/hexo-theme-stellar/tree/1.8.0';
+  stellar.config = {
+    date_suffix: {
+      just: '刚刚',
+      min: '分钟前',
+      hour: '小时前',
+      day: '天前',
+      month: '个月前',
+    },
+  };
+
+  // required plugins (only load if needs)
+  stellar.plugins = {
+    jQuery: 'https://fastly.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js',
+    sitesjs: '/js/plugins/sites.js',
+    friendsjs: '/js/plugins/friends.js',
+  };
+
+  // optional plugins
+  if ('true' == 'true') {
+    stellar.plugins.lazyload = Object.assign({"enable":true,"js":"https://fastly.jsdelivr.net/npm/vanilla-lazyload@17.3.1/dist/lazyload.min.js","transition":"blur"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.swiper = Object.assign({"enable":true,"css":"https://unpkg.com/swiper@6/swiper-bundle.min.css","js":"https://unpkg.com/swiper@6/swiper-bundle.min.js"});
+  }
+  if ('' == 'true') {
+    stellar.plugins.scrollreveal = Object.assign({"enable":null,"js":"https://fastly.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js","distance":"8px","duration":500,"interval":100,"scale":1});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.preload = Object.assign({"enable":true,"service":"flying_pages","instant_page":"https://fastly.jsdelivr.net/gh/volantis-x/cdn-volantis@4.1.2/js/instant_page.js","flying_pages":"https://fastly.jsdelivr.net/gh/gijo-varghese/flying-pages@2.1.2/flying-pages.min.js"});
+  }
+  if ('true' == 'true') {
+    stellar.plugins.fancybox = Object.assign({"enable":true,"js":"https://fastly.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.js","css":"https://fastly.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.css","selector":".swiper-slide img"});
+  }
+  if ('false' == 'true') {
+    stellar.plugins.heti = Object.assign({"enable":false,"css":"https://unpkg.com/heti/umd/heti.min.css","js":"https://unpkg.com/heti/umd/heti-addon.min.js"});
+  }
+</script>
+
+<!-- required -->
+
+  
+<script src="/js/main.js" async></script>
+
+
+
+<!-- optional -->
+
+  <script>
+  function load_comment(){
+    if(!document.getElementById("waline_container"))return;
+    stellar.loadCSS('https://unpkg.com/@waline/client@v2/dist/waline.css');
+    stellar.loadScript('https://unpkg.com/@waline/client@v2/dist/waline.js', {defer:true}).then(function () {
+      const el = document.getElementById("waline_container");
+      //var path = el.getAttribute('comment_id');
+      var path = "/wiki/strongswan/charon_code.html";
+      var n = path.search(/index.html$/);
+      if(-1 != n){
+        path = path.slice(0,n);
+      }
+      if (!path) {
+        path = decodeURI(window.location.pathname);
+      }
+      Waline.init(Object.assign({"js":"https://unpkg.com/@waline/client@v2/dist/waline.js","css":"https://unpkg.com/@waline/client@v2/dist/waline.css","serverURL":"https://peiyake.com.cn/","commentCount":false,"pageview":true,"requiredMeta":["nick","mail"],"copyright":false,"placeholder":"请留言。(填写邮箱可在被回复时收到邮件提醒)"}, {
+        el: '#waline_container',
+        path: path,
+      }));
+    });
+  }
+  window.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+    load_comment();
+  });
+
+</script>
+
+  
+
+
+
+
+
+<!-- inject -->
+
+
+  </div>
+</body>
+</html>
