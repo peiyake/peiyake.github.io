@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="Hexo 5.4.2">
   <meta charset="utf-8">
-  <meta name="robots" content="noindex,follow">
+  
 
   <meta http-equiv='x-dns-prefetch-control' content='on' />
   <link rel='dns-prefetch' href='https://fastly.jsdelivr.net'>
@@ -18,14 +18,18 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="theme-color" content="#f8f8f8">
-  <title>标签 - Mr.Piak</title>
+  <title>StrongSwan：关键代码调用栈 - Mr.Piak</title>
 
   
-    <meta property="og:type" content="website">
-<meta property="og:title" content="标签">
-<meta property="og:url" content="https://peiyake.com/tags/index.html">
+    <meta name="description" content="StrongSwan-5.9.1  ISAKMP–报文发送P112345678910111213141516171819202122232425262728293031323334353637&#x2F;&#x2F;start_action_job.cMETHOD(job_t, execute, job_requeue_t,private_start_action_job_t *this)charon-&gt;co">
+<meta property="og:type" content="website">
+<meta property="og:title" content="关键代码调用栈">
+<meta property="og:url" content="https://peiyake.com/wiki/strongswan/stack.html">
 <meta property="og:site_name" content="Mr.Piak">
+<meta property="og:description" content="StrongSwan-5.9.1  ISAKMP–报文发送P112345678910111213141516171819202122232425262728293031323334353637&#x2F;&#x2F;start_action_job.cMETHOD(job_t, execute, job_requeue_t,private_start_action_job_t *this)charon-&gt;co">
 <meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-08-30T10:47:25.058Z">
+<meta property="article:modified_time" content="2022-08-30T10:47:25.058Z">
 <meta property="article:author" content="Yake Pei">
 <meta property="article:tag" content="Linux,内核,IPSec,国密,网络知识,网络协议,Strongswan,openwrt,feed,luci,uboot,文件系统,shell,lua,全栈">
 <meta name="twitter:card" content="summary">
@@ -52,98 +56,66 @@
   
 
 
+
+
   <div class='l_body' id='start'>
-    <aside class='l_left' layout='tags'>
+    <aside class='l_left' layout='wiki'>
     
 
 
 <header class="header">
 
-<div class="logo-wrap"><a class="avatar" href="/about/"><div class="bg" style="opacity:0;background-image:url(https://fastly.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/images/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://fastly.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">Mr.Piak</div><div class="sub cap">青青子衿，悠悠我心</div></a></div>
-<nav class="menu dis-select"><a class="nav-item active" href="/">文章</a><a class="nav-item" href="/wiki/">专栏</a><a class="nav-item" href="/about/">关于</a></nav></header>
+<div class="logo-wrap wiki"><a style="filter: grayscale(100%)" class="wiki-home cap" href="/"><svg aria-hidden="true" viewBox="0 0 16 16" width="1rem" height="1rem" fill="currentColor"><path fill-rule="evenodd" d="M7.78 12.53a.75.75 0 01-1.06 0L2.47 8.28a.75.75 0 010-1.06l4.25-4.25a.75.75 0 011.06 1.06L4.81 7h7.44a.75.75 0 010 1.5H4.81l2.97 2.97a.75.75 0 010 1.06z"></path></svg>所有项目</a><a class="title" href="/wiki/strongswan/index.html"><div class="main">StrongSwan的使用和源码解析</div></a></div>
+</header>
 
 <div class="widgets">
-<div class="widget-wrap" id="markdown"><div class="widget-header cap dis-select"><span class="name">欢迎看官</span></div><div class="widget-body fs14"><p>欢迎光临小站，本站专注于Linux环境开发技术。总结、归纳、收藏博主在工作中遇到的问题和解决办法。不拘泥于某个技术实现细节，侧重记录解决方案、实现原理、编程思想。本站也会记录一些实用的技巧、方法，欢迎同行来站<a href="/about/#comments">留言</a>、交流…<br><br><br><em style="color: gray;">新建站点，以前的一些文章将陆续迁移过来…</em><br><br></p>
-<hr>
-<font size="1" style="display: block;color: gray;padding-bottom: 5px;">21th&middot;开发者</font>
-<font size="1">
-虚拟世界 <br>
-你是内存中哪一个孤独的进程？<br>
-现实社会<br>
-你是人群中哪一个平凡的身影？<br>
-此端，彼岸 <br>
-在冯·诺伊曼体系中切换 <br>
-</font>
-</div></div>
 
-<div class="widget-wrap" id="recent"><div class="widget-header cap dis-select"><span class="name">最近更新</span></div><div class="widget-body fs14"><div class="more-item"><a class="title" href="/2022/07/14/d050aabdbce5/">测试文章</a></div><div class="more-item"><a class="title" href="/2022/07/13/2f9c86473b67/">通过钩子实时获取内核日志</a></div></div></div>
+<div class="widget-wrap multi" id="toc"><div class="widget-header cap dis-select"><span class="name">本文目录</span></div><div class="widget-body fs14"><div class="doc-tree"><a class="doc-tree-link" href="/wiki/strongswan/index.html"><span class="toc-text">核心进程charon</span></a></div><div class="doc-tree"><a class="doc-tree-link" href="/wiki/strongswan/charon_code.html"><span class="toc-text">charon解析</span></a></div><div class="doc-tree"><a class="doc-tree-link" href="/wiki/strongswan/start_point.html"><span class="toc-text">charon启动过程分析</span></a></div><div class="doc-tree"><a class="doc-tree-link" href="/wiki/strongswan/ike_sa_manager.html"><span class="toc-text">IKE_SA Manager</span></a></div><div class="doc-tree"><a class="doc-tree-link" href="/wiki/strongswan/ike_sa.html"><span class="toc-text">IKE_SA</span></a></div><div class="doc-tree active"><a class="doc-tree-link active" href="/wiki/strongswan/stack.html"><span class="toc-text">关键代码调用栈</span></a><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#ISAKMP%E2%80%93%E6%8A%A5%E6%96%87%E5%8F%91%E9%80%81P1"><span class="toc-text">ISAKMP–报文发送P1</span></a></li></ol></div></div></div>
+
+
+
+
 </div>
 
 
     </aside>
-    <div class='l_main list'>
+    <div class='l_main'>
       
-  
-
-<header class="header mobile-only">
-
-<div class="logo-wrap"><a class="avatar" href="/about/"><div class="bg" style="opacity:0;background-image:url(https://fastly.jsdelivr.net/gh/cdn-x/placeholder@1.0.2/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/images/avatar.png" onerror="javascript:this.classList.add('error');this.src='https://fastly.jsdelivr.net/gh/cdn-x/placeholder@1.0.1/image/2659360.svg';"></a><a class="title" href="/"><div class="main">Mr.Piak</div><div class="sub cap">青青子衿，悠悠我心</div></a></div>
-</header>
-
-
 
       
 
   
   
-  <div class='nav-wrap'>
-  <nav class='sub post cap'>
-    
-      <a href='/'>近期发布</a>
-    
-    
-      
-        <a href='/categories'>分类</a>
-      
-    
-    
-      
-        <a class='active' href='/tags'>标签</a>
-      
-    
-    
-      
-        <a href='/archives'>归档</a>
-      
-    
-  </nav>
-</div>
+<div class="bread-nav fs12"><div id="breadcrumb"><a class="cap breadcrumb" id="home" href="/">主页</a><span class="sep"></span><a class="cap breadcrumb" id="menu" href="/wiki/">专栏</a><span class="sep"></span><a class="cap breadcrumb" id="proj" href="/wiki/strongswan/index.html">StrongSwan的使用和源码解析</a></div><div id="post-meta">更新于&nbsp;<time datetime="2022-08-30T10:47:25.058Z">2022-08-30</time>&nbsp;&nbsp;<span>阅读:</span>&nbsp;<span class="waline-pageview-count" data-path="/wiki/strongswan/stack.html">loading</span></span></div></div>
 
-  <div class='post-list'>
-    <article class='' id='tags'>
+  <article class='content md wiki'>
+  <h1 class="article-title"><span>关键代码调用栈</span></h1>
+  <ul>
+<li>StrongSwan-5.9.1</li>
+</ul>
+<h2 id="ISAKMP–报文发送P1"><a href="#ISAKMP–报文发送P1" class="headerlink" title="ISAKMP–报文发送P1"></a>ISAKMP–报文发送P1</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//start_action_job.c</span></span><br><span class="line">METHOD(<span class="type">job_t</span>, execute, <span class="type">job_requeue_t</span>,<span class="type">private_start_action_job_t</span> *this)</span><br><span class="line">charon-&gt;controller-&gt;initiate(...)</span><br><span class="line"><span class="comment">//controller.c +498</span></span><br><span class="line">	METHOD(<span class="type">controller_t</span>, initiate, <span class="type">status_t</span>,...)</span><br><span class="line">	METHOD(<span class="type">job_t</span>, initiate_execute,...)</span><br><span class="line">	charon-&gt;ike_sa_manager-&gt;checkout_by_config(...)</span><br><span class="line"><span class="comment">//ike_sa_manager.c +1452</span></span><br><span class="line">	METHOD(<span class="type">ike_sa_manager_t</span>, checkout_by_config,...)</span><br><span class="line">	ike_sa-&gt;initiate(...)</span><br><span class="line"><span class="comment">//ike_sa.c +1501</span></span><br><span class="line">		METHOD(<span class="type">ike_sa_t</span>, initiate,...)</span><br><span class="line">		this-&gt;task_manager-&gt;queue_ike(...)</span><br><span class="line"><span class="comment">//task_manager_v1.c +1594</span></span><br><span class="line">			METHOD(<span class="type">task_manager_t</span>, queue_ike,...)</span><br><span class="line">			this-&gt;task_manager-&gt;initiate(...)</span><br><span class="line"><span class="comment">//task_manager_v1.c +482</span></span><br><span class="line">				METHOD(<span class="type">task_manager_t</span>, initiate,...)</span><br><span class="line">				task-&gt;build(...)</span><br><span class="line">					@main_mode.c</span><br><span class="line">					@isakmp_vendor.c</span><br><span class="line">					@isakmp_cert_post.c</span><br><span class="line">				<span class="title function_">generate_message</span><span class="params">(...)</span></span><br><span class="line">					this-&gt;ike_sa-&gt;<span class="title function_">generate_message_fragmented</span><span class="params">(...)</span></span><br><span class="line"><span class="comment">//ike_sa.c +1258</span></span><br><span class="line">						<span class="title function_">METHOD</span><span class="params">(<span class="type">ike_sa_t</span>, generate_message_fragmented,...)</span></span><br><span class="line">							<span class="title function_">generate_message</span><span class="params">(...)</span></span><br><span class="line"><span class="comment">//ike_sa.c +1219</span></span><br><span class="line">								<span class="title function_">METHOD</span><span class="params">(<span class="type">ike_sa_t</span>, generate_message,...)</span></span><br><span class="line">								message-&gt;<span class="title function_">generate</span><span class="params">(...)</span></span><br><span class="line"><span class="comment">//message.c +1861</span></span><br><span class="line">									<span class="title function_">METHOD</span><span class="params">(<span class="type">message_t</span>, generate,...)</span></span><br><span class="line">									<span class="title function_">generate_message</span><span class="params">(...)</span></span><br><span class="line">										<span class="title function_">order_payloads</span><span class="params">(...)</span></span><br><span class="line">									<span class="title function_">finalize_message</span><span class="params">(...)</span></span><br><span class="line">				<span class="title function_">send_packets</span><span class="params">(...)</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+  
+
+
+  </article>
+  
+<br>
+
+  
+
+  <div class='related-wrap md reveal' id="comments">
+    <div class='cmt-title cap theme'>
+      快来参与讨论吧
+    </div>
+    <div class='cmt-body waline'>
       
-        <a class='tag' href="/tags/printk/">
-          <span class='name'>printk</span>
-        </a>
-      
-        <a class='tag' href="/tags/HOOK/">
-          <span class='name'>HOOK</span>
-        </a>
-      
-        <a class='tag' href="/tags/blackbox/">
-          <span class='name'>blackbox</span>
-        </a>
-      
-        <a class='tag' href="/tags/%E5%86%85%E6%A0%B8%E6%97%A5%E5%BF%97/">
-          <span class='name'>内核日志</span>
-        </a>
-      
-        <a class='tag' href="/tags/%E6%B5%8B%E8%AF%95/">
-          <span class='name'>测试</span>
-        </a>
-      
-    </article>
+
+<div id="waline_container" class="waline_thread"><svg class="loading" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2709"><path d="M832 512c0-176-144-320-320-320V128c211.2 0 384 172.8 384 384h-64zM192 512c0 176 144 320 320 320v64C300.8 896 128 723.2 128 512h64z" p-id="2710"></path></svg></div>
+
+    </div>
   </div>
+
+
 
 
       
@@ -307,7 +279,7 @@
     stellar.loadScript('https://unpkg.com/@waline/client@v2/dist/waline.js', {defer:true}).then(function () {
       const el = document.getElementById("waline_container");
       //var path = el.getAttribute('comment_id');
-      var path = "/tags/index.html";
+      var path = "/wiki/strongswan/stack.html";
       var n = path.search(/index.html$/);
       if(-1 != n){
         path = path.slice(0,n);
