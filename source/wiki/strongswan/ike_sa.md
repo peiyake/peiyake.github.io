@@ -67,7 +67,7 @@ METHOD(task_manager_t, queue_ike, void,
 strongswan-5.9.1\src\libcharon\sa\ike_sa.h +268
 
 ```c
-/**
+**
  * State of an IKE_SA.
  *
  * An IKE_SA passes various states in its lifetime. A newly created
@@ -103,7 +103,7 @@ strongswan-5.9.1\src\libcharon\sa\ike_sa.h +268
                          X
                         / \
    @endverbatim
- */
+ *
 ```
 
 ## IKE_SA代码分析
